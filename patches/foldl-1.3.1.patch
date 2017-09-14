@@ -1,0 +1,57 @@
+diff -ru foldl-1.3.1.orig/src/Control/Foldl.hs foldl-1.3.1/src/Control/Foldl.hs
+--- foldl-1.3.1.orig/src/Control/Foldl.hs	2017-09-03 04:12:45.000000000 +0200
++++ foldl-1.3.1/src/Control/Foldl.hs	2017-09-14 22:41:32.877465396 +0200
+@@ -144,6 +144,7 @@
+ import Data.Functor.Identity (Identity, runIdentity)
+ import Data.Functor.Contravariant (Contravariant(..))
+ import Data.Monoid
++import Data.Semigroup (Semigroup(..))
+ import Data.Profunctor
+ import Data.Sequence ((|>))
+ import Data.Vector.Generic (Vector, Mutable)
+@@ -222,11 +223,15 @@
+         in  Fold step begin done
+     {-# INLINE (<*>) #-}
+ 
++instance Monoid b => Semigroup (Fold a b) where
++    (<>) = liftA2 mappend
++    {-# INLINE (<>) #-}
++
+ instance Monoid b => Monoid (Fold a b) where
+     mempty = pure mempty
+     {-# INLINE mempty #-}
+ 
+-    mappend = liftA2 mappend
++    mappend = (<>)
+     {-# INLINE mappend #-}
+ 
+ instance Num b => Num (Fold a b) where
+@@ -357,6 +362,10 @@
+     rmap = fmap
+     lmap = premapM
+ 
++instance (Monoid b, Monad m) => Semigroup (FoldM m a b) where
++    (<>) = liftA2 mappend
++    {-# INLINE (<>) #-}
++
+ instance (Monoid b, Monad m) => Monoid (FoldM m a b) where
+     mempty = pure mempty
+     {-# INLINE mempty #-}
+@@ -1156,11 +1165,15 @@
+ -}
+ newtype EndoM m a = EndoM { appEndoM :: a -> m a }
+ 
++instance Monad m => Semigroup (EndoM m a) where
++    (EndoM f) <> (EndoM g) = EndoM (f <=< g)
++    {-# INLINE (<>) #-}
++
+ instance Monad m => Monoid (EndoM m a) where
+     mempty = EndoM return
+     {-# INLINE mempty #-}
+ 
+-    mappend (EndoM f) (EndoM g) = EndoM (f <=< g)
++    mappend = (<>)
+     {-# INLINE mappend #-}
+ 
+ {-| A Handler for the upstream input of `FoldM`
+Only in foldl-1.3.1/src/Control: Foldl.hs~
