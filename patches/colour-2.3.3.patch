@@ -1,0 +1,77 @@
+diff -ru colour-2.3.3.orig/colour.cabal colour-2.3.3/colour.cabal
+--- colour-2.3.3.orig/colour.cabal	2012-01-17 16:49:47.000000000 +0100
++++ colour-2.3.3/colour.cabal	2017-09-14 21:55:11.476312946 +0200
+@@ -18,7 +18,7 @@
+ data-files:          README CHANGELOG
+ 
+ Library
+-  Build-Depends:     base >= 3 && < 5
++  Build-Depends:     base >= 4.9 && < 5
+   Exposed-Modules:   Data.Colour
+                      Data.Colour.SRGB
+                      Data.Colour.SRGB.Linear
+diff -ru colour-2.3.3.orig/Data/Colour/Internal.hs colour-2.3.3/Data/Colour/Internal.hs
+--- colour-2.3.3.orig/Data/Colour/Internal.hs	2012-01-17 16:49:47.000000000 +0100
++++ colour-2.3.3/Data/Colour/Internal.hs	2017-09-14 21:53:50.228743518 +0200
+@@ -25,7 +25,7 @@
+ import Data.List
+ import qualified Data.Colour.Chan as Chan
+ import Data.Colour.Chan (Chan(Chan))
+-import Data.Monoid
++import Data.Semigroup
+ 
+ data Red = Red
+ data Green = Green
+@@ -53,10 +53,14 @@
+ black :: (Num a) => Colour a
+ black = RGB Chan.empty Chan.empty Chan.empty
+ 
++instance (Num a) => Semigroup (Colour a) where
++  (RGB r1 g1 b1) <> (RGB r2 g2 b2) =
++    RGB (r1 `Chan.add` r2) (g1 `Chan.add` g2) (b1 `Chan.add` b2)
++
++
+ instance (Num a) => Monoid (Colour a) where
+   mempty = black
+-  (RGB r1 g1 b1) `mappend` (RGB r2 g2 b2) =
+-    RGB (r1 `Chan.add` r2) (g1 `Chan.add` g2) (b1 `Chan.add` b2)
++  mappend = (<>)
+   mconcat l = RGB (Chan.sum lr) (Chan.sum lg) (Chan.sum lb)
+    where
+     (lr,lg,lb) = unzip3 (map toRGB l)
+@@ -167,10 +171,13 @@
+    RGBA (c0 `over` c1) (Chan.over a0 a0' a1)
+  darken s (RGBA c a) = RGBA (darken s c) a
+ 
++instance (Num a) => Semigroup (AlphaColour a) where
++  (<>) = over
++
+ -- | 'AlphaColour' forms a monoid with 'over' and 'transparent'.
+ instance (Num a) => Monoid (AlphaColour a) where
+   mempty = transparent
+-  mappend = over
++  mappend = (<>)
+ 
+ -- | @c1 \`atop\` c2@ returns the 'AlphaColour' produced by covering
+ -- the portion of @c2@ visible by @c1@.
+Only in colour-2.3.3/Data/Colour: Internal.hs~
+diff -ru colour-2.3.3.orig/Data/Colour/RGBSpace.hs colour-2.3.3/Data/Colour/RGBSpace.hs
+--- colour-2.3.3.orig/Data/Colour/RGBSpace.hs	2012-01-17 16:49:47.000000000 +0100
++++ colour-2.3.3/Data/Colour/RGBSpace.hs	2017-09-14 21:54:16.268605613 +0200
+@@ -109,10 +109,13 @@
+ inverseTransferFunction (TransferFunction for rev g) =
+   TransferFunction rev for (recip g)
+ 
++instance (Num a) => Semigroup (TransferFunction a) where
++ (TransferFunction f0 f1 f) <> (TransferFunction g0 g1 g) =
++   (TransferFunction (f0 . g0) (g1 . f1) (f*g))
++
+ instance (Num a) => Monoid (TransferFunction a) where
+  mempty = linearTransferFunction
+- (TransferFunction f0 f1 f) `mappend` (TransferFunction g0 g1 g) =
+-   (TransferFunction (f0 . g0) (g1 . f1) (f*g))
++ mappend = (<>)
+ 
+ -- |An 'RGBSpace' is a colour coordinate system for colours laying
+ -- 'inGamut' of 'gamut'.
+Only in colour-2.3.3/Data/Colour: RGBSpace.hs~
