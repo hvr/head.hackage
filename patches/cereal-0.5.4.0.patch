@@ -1,0 +1,32 @@
+diff -ru cereal-0.5.4.0.orig/src/Data/Serialize/Put.hs cereal-0.5.4.0/src/Data/Serialize/Put.hs
+--- cereal-0.5.4.0.orig/src/Data/Serialize/Put.hs	2016-11-09 01:40:53.000000000 +0100
++++ cereal-0.5.4.0/src/Data/Serialize/Put.hs	2017-09-15 11:28:52.023473444 +0200
+@@ -116,6 +116,10 @@
+ import Data.Monoid
+ #endif
+ 
++#if !(MIN_VERSION_base(4,11,0))
++import Data.Semigroup (Semigroup(..))
++#endif
++
+ #if !(MIN_VERSION_bytestring(0,10,0))
+ import Foreign.ForeignPtr (withForeignPtr)
+ import Foreign.Marshal.Utils (copyBytes)
+@@ -175,11 +179,15 @@
+     (>>) = (*>)
+     {-# INLINE (>>) #-}
+ 
++instance Semigroup (PutM ()) where
++    (<>) = (*>)
++    {-# INLINE (<>) #-}
++
+ instance Monoid (PutM ()) where
+     mempty = pure ()
+     {-# INLINE mempty #-}
+ 
+-    mappend = (*>)
++    mappend = (<>)
+     {-# INLINE mappend #-}
+ 
+ tell :: Putter Builder
+Only in cereal-0.5.4.0/src/Data/Serialize: Put.hs~

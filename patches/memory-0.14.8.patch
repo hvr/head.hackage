@@ -1,0 +1,52 @@
+diff -ru memory-0.14.8.orig/Data/ByteArray/Bytes.hs memory-0.14.8/Data/ByteArray/Bytes.hs
+--- memory-0.14.8.orig/Data/ByteArray/Bytes.hs	2017-09-04 16:13:06.000000000 +0200
++++ memory-0.14.8/Data/ByteArray/Bytes.hs	2017-09-15 12:14:25.768075696 +0200
+@@ -23,6 +23,7 @@
+ import           Data.Memory.Internal.CompatPrim
+ import           Data.Memory.Internal.Compat      (unsafeDoIO)
+ import           Data.ByteArray.Types
++import           Data.Semigroup
+ 
+ -- | Simplest Byte Array
+ data Bytes = Bytes (MutableByteArray# RealWorld)
+@@ -33,9 +34,12 @@
+     (==) = bytesEq
+ instance Ord Bytes where
+     compare = bytesCompare
++
++instance Semigroup Bytes where
++    b1 <> b2      = unsafeDoIO $ bytesAppend b1 b2
+ instance Monoid Bytes where
+     mempty        = unsafeDoIO (newBytes 0)
+-    mappend b1 b2 = unsafeDoIO $ bytesAppend b1 b2
++    mappend       = (<>)
+     mconcat       = unsafeDoIO . bytesConcat
+ instance NFData Bytes where
+     rnf b = b `seq` ()
+Only in memory-0.14.8/Data/ByteArray: Bytes.hs~
+diff -ru memory-0.14.8.orig/Data/ByteArray/ScrubbedBytes.hs memory-0.14.8/Data/ByteArray/ScrubbedBytes.hs
+--- memory-0.14.8.orig/Data/ByteArray/ScrubbedBytes.hs	2017-04-25 12:46:48.000000000 +0200
++++ memory-0.14.8/Data/ByteArray/ScrubbedBytes.hs	2017-09-15 12:13:32.248375591 +0200
+@@ -25,6 +25,7 @@
+ import           Data.Memory.Internal.Scrubber   (getScrubber)
+ import           Data.ByteArray.Types
+ import           Foreign.Storable
++import           Data.Semigroup
+ 
+ -- | ScrubbedBytes is a memory chunk which have the properties of:
+ --
+@@ -43,9 +44,11 @@
+     (==) = scrubbedBytesEq
+ instance Ord ScrubbedBytes where
+     compare = scrubbedBytesCompare
++instance Semigroup ScrubbedBytes where
++    b1 <> b2 = unsafeDoIO $ scrubbedBytesAppend b1 b2
+ instance Monoid ScrubbedBytes where
+     mempty        = unsafeDoIO (newScrubbedBytes 0)
+-    mappend b1 b2 = unsafeDoIO $ scrubbedBytesAppend b1 b2
++    mappend       = (<>)
+     mconcat       = unsafeDoIO . scrubbedBytesConcat
+ instance NFData ScrubbedBytes where
+     rnf b = b `seq` ()
+Only in memory-0.14.8/Data/ByteArray: ScrubbedBytes.hs~
+Only in memory-0.14.8/Data/ByteArray: Types.hs~

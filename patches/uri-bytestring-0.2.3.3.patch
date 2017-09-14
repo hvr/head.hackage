@@ -1,0 +1,35 @@
+diff -ru uri-bytestring-0.2.3.3.orig/src/URI/ByteString/Internal.hs uri-bytestring-0.2.3.3/src/URI/ByteString/Internal.hs
+--- uri-bytestring-0.2.3.3.orig/src/URI/ByteString/Internal.hs	2017-06-06 17:27:21.000000000 +0200
++++ uri-bytestring-0.2.3.3/src/URI/ByteString/Internal.hs	2017-09-15 11:50:19.212228883 +0200
+@@ -791,6 +791,7 @@
+                              , Alternative
+                              , Monad
+                              , MonadPlus
++                             , Semigroup
+                              , Monoid)
+ 
+ 
+Only in uri-bytestring-0.2.3.3/src/URI/ByteString: Internal.hs~
+diff -ru uri-bytestring-0.2.3.3.orig/src/URI/ByteString/Types.hs uri-bytestring-0.2.3.3/src/URI/ByteString/Types.hs
+--- uri-bytestring-0.2.3.3.orig/src/URI/ByteString/Types.hs	2017-06-06 17:27:21.000000000 +0200
++++ uri-bytestring-0.2.3.3/src/URI/ByteString/Types.hs	2017-09-15 11:50:08.632288724 +0200
+@@ -15,6 +15,9 @@
+ import           Data.ByteString (ByteString)
+ import qualified Data.Map.Strict as M
+ import           Data.Monoid
++#if !(MIN_VERSION_base(4,11,0))
++import           Data.Semigroup
++#endif
+ import           Data.Typeable
+ import           Data.Word
+ import           GHC.Generics
+@@ -89,7 +92,7 @@
+ 
+ -------------------------------------------------------------------------------
+ newtype Query = Query { queryPairs :: [(ByteString, ByteString)] }
+-              deriving (Show, Eq, Monoid, Generic, Typeable, Ord)
++              deriving (Show, Eq, Semigroup, Monoid, Generic, Typeable, Ord)
+ 
+ #ifdef LIFT_COMPAT
+ deriveLift ''Query
+Only in uri-bytestring-0.2.3.3/src/URI/ByteString: Types.hs~

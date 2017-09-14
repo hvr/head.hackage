@@ -1,0 +1,51 @@
+diff -ru http-client-0.5.7.0.orig/Network/HTTP/Client/Types.hs http-client-0.5.7.0/Network/HTTP/Client/Types.hs
+--- http-client-0.5.7.0.orig/Network/HTTP/Client/Types.hs	2017-05-09 13:19:16.000000000 +0200
++++ http-client-0.5.7.0/Network/HTTP/Client/Types.hs	2017-09-15 12:03:53.567634124 +0200
+@@ -47,6 +47,7 @@
+ import Data.Int (Int64)
+ import Data.Foldable (Foldable)
+ import Data.Monoid
++import Data.Semigroup
+ import Data.String (IsString, fromString)
+ import Data.Time (UTCTime)
+ import Data.Traversable (Traversable)
+@@ -279,16 +280,19 @@
+ instance Eq CookieJar where
+   (==) cj1 cj2 = (DL.sort $ expose cj1) == (DL.sort $ expose cj2)
+ 
+--- | Since 1.9
+-instance Data.Monoid.Monoid CookieJar where
+-  mempty = CJ []
+-  (CJ a) `mappend` (CJ b) = CJ (DL.nub $ DL.sortBy compare' $ a `mappend` b)
++instance Semigroup CookieJar where
++  (CJ a) <> (CJ b) = CJ (DL.nub $ DL.sortBy compare' $ a `mappend` b)
+     where compare' c1 c2 =
+             -- inverse so that recent cookies are kept by nub over older
+             if cookie_creation_time c1 > cookie_creation_time c2
+                 then LT
+                 else GT
+ 
++-- | Since 1.9
++instance Data.Monoid.Monoid CookieJar where
++  mempty = CJ []
++  mappend = (<>)
++
+ -- | Define a HTTP proxy, consisting of a hostname and port number.
+ 
+ data Proxy = Proxy
+@@ -323,9 +327,13 @@
+ -- Since 0.4.12
+ instance IsString RequestBody where
+     fromString str = RequestBodyBS (fromString str)
++
+ instance Monoid RequestBody where
+     mempty = RequestBodyBS S.empty
+-    mappend x0 y0 =
++    mappend = (<>)
++
++instance Semigroup RequestBody where
++    x0 <> y0 =
+         case (simplify x0, simplify y0) of
+             (Left (i, x), Left (j, y)) -> RequestBodyBuilder (i + j) (x `mappend` y)
+             (Left x, Right y) -> combine (builderToStream x) y
+Only in http-client-0.5.7.0/Network/HTTP/Client: Types.hs~

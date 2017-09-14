@@ -1,0 +1,26 @@
+diff -ru tls-1.4.0.orig/Network/TLS/Credentials.hs tls-1.4.0/Network/TLS/Credentials.hs
+--- tls-1.4.0.orig/Network/TLS/Credentials.hs	2017-07-31 20:31:58.000000000 +0200
++++ tls-1.4.0/Network/TLS/Credentials.hs	2017-09-15 12:19:46.218278360 +0200
+@@ -21,6 +21,7 @@
+ 
+ import Data.ByteString (ByteString)
+ import Data.Monoid
++import Data.Semigroup
+ import Data.Maybe (catMaybes)
+ import Data.List (find)
+ import Network.TLS.Crypto
+@@ -36,9 +37,12 @@
+ 
+ newtype Credentials = Credentials [Credential]
+ 
++instance Semigroup Credentials where
++    (Credentials l1) <> (Credentials l2) = Credentials (l1 ++ l2)
++
+ instance Monoid Credentials where
+     mempty = Credentials []
+-    mappend (Credentials l1) (Credentials l2) = Credentials (l1 ++ l2)
++    mappend = (<>)
+ 
+ -- | try to create a new credential object from a public certificate
+ -- and the associated private key that are stored on the filesystem
+Only in tls-1.4.0/Network/TLS: Credentials.hs~
