@@ -61,7 +61,7 @@ EOF
     echo "packages: ." >> cabal.project
     shift
     for PKG in "$@"; do
-        echo "packages: $PKG" >> cabal.project
+        echo "optional-packages: $PKG" >> cabal.project
     done
 
     echo "" >> cabal.project
