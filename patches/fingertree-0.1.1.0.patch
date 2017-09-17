@@ -1,0 +1,154 @@
+Sat Sep 16 20:29:57 EDT 2017  ben@smart-cactus.org
+  * Compatibility with Semigroup/Monoid proposal
+diff -rN -u old-fingertree/Data/FingerTree.hs new-fingertree/Data/FingerTree.hs
+--- old-fingertree/Data/FingerTree.hs	2017-09-16 20:46:28.975832402 -0400
++++ new-fingertree/Data/FingerTree.hs	2017-09-16 20:46:28.979832381 -0400
+@@ -76,6 +76,9 @@
+ import Data.Monoid
+ import Data.Foldable (Foldable(foldMap))
+ #endif
++#if MIN_VERSION_base(4,9,0)
++import Data.Semigroup
++#endif
+ import Data.Foldable (toList)
+ 
+ infixr 5 ><
+@@ -103,10 +106,17 @@
+     fmap _ EmptyR    = EmptyR
+     fmap f (xs :> x) = fmap f xs :> f x
+ 
++#if MIN_VERSION_base(4,9,0)
++instance (Measured v a) => Semigroup (FingerTree v a) where
++    (<>) = (><)
++#endif
++
+ -- | 'empty' and '><'.
+ instance (Measured v a) => Monoid (FingerTree v a) where
+     mempty = empty
++#if !(MIN_VERSION_base(4,11,0))
+     mappend = (><)
++#endif
+ 
+ -- Explicit Digit type (Exercise 1)
+ 
+diff -rN -u old-fingertree/Data/IntervalMap/FingerTree.hs new-fingertree/Data/IntervalMap/FingerTree.hs
+--- old-fingertree/Data/IntervalMap/FingerTree.hs	2017-09-16 20:46:28.979832381 -0400
++++ new-fingertree/Data/IntervalMap/FingerTree.hs	2017-09-16 20:46:28.979832381 -0400
+@@ -54,6 +54,9 @@
+ import Data.Monoid
+ import Data.Traversable (Traversable(traverse))
+ #endif
++#if MIN_VERSION_base(4,9,0)
++import Data.Semigroup
++#endif
+ import Data.Foldable (toList)
+ 
+ ----------------------------------
+@@ -92,12 +95,23 @@
+ -- rightmost interval (including largest lower bound) and largest upper bound.
+ data IntInterval v = NoInterval | IntInterval (Interval v) v
+ 
++#if MIN_VERSION_base(4,9,0)
++instance Ord v => Semigroup (IntInterval v) where
++    (<>) = intervalUnion
++#endif
++
+ instance Ord v => Monoid (IntInterval v) where
+     mempty = NoInterval
+-    NoInterval `mappend` i  = i
+-    i `mappend` NoInterval  = i
+-    IntInterval _ hi1 `mappend` IntInterval int2 hi2 =
+-        IntInterval int2 (max hi1 hi2)
++#if !(MIN_VERSION_base(4,11,0))
++    mappend = intervalUnion
++#endif
++
++intervalUnion :: Ord v => IntInterval v -> IntInterval v -> IntInterval v
++NoInterval `intervalUnion` i  = i
++i `intervalUnion` NoInterval  = i
++IntInterval _ hi1 `intervalUnion` IntInterval int2 hi2 =
++    IntInterval int2 (max hi1 hi2)
++
+ 
+ instance (Ord v) => Measured (IntInterval v) (Node v a) where
+     measure (Node i _) = IntInterval i (high i)
+@@ -140,10 +154,18 @@
+             showString "insert " . shows i . showChar ' ' . shows x .
+                 showString " $ " . showIntervals ixs
+ 
++#if MIN_VERSION_base(4,9,0)
++-- | 'union'.
++instance (Ord v) => Semigroup (IntervalMap v a) where
++    (<>) = union
++#endif
++
+ -- | 'empty' and 'union'.
+ instance (Ord v) => Monoid (IntervalMap v a) where
+     mempty = empty
++#if !(MIN_VERSION_base(4,11,0))
+     mappend = union
++#endif
+ 
+ -- | /O(1)/.  The empty interval map.
+ empty :: (Ord v) => IntervalMap v a
+diff -rN -u old-fingertree/Data/PriorityQueue/FingerTree.hs new-fingertree/Data/PriorityQueue/FingerTree.hs
+--- old-fingertree/Data/PriorityQueue/FingerTree.hs	2017-09-16 20:46:28.979832381 -0400
++++ new-fingertree/Data/PriorityQueue/FingerTree.hs	2017-09-16 20:46:28.979832381 -0400
+@@ -64,6 +64,9 @@
+ import Data.Foldable (Foldable(foldMap))
+ import Data.Monoid
+ #endif
++#if MIN_VERSION_base(4,9,0)
++import Data.Semigroup
++#endif
+ import Control.Arrow ((***))
+ import Data.List (unfoldr)
+ 
+@@ -77,13 +80,23 @@
+ 
+ data Prio k v = NoPrio | Prio k v
+ 
++#if MIN_VERSION_base(4,9,0)
++instance Ord k => Semigroup (Prio k v) where
++    (<>) = unionPrio
++#endif
++
+ instance Ord k => Monoid (Prio k v) where
+-    mempty                  = NoPrio
+-    x `mappend` NoPrio      = x
+-    NoPrio `mappend` y      = y
+-    x@(Prio kx _) `mappend` y@(Prio ky _)
+-      | kx <= ky            = x
+-      | otherwise           = y
++    mempty  = NoPrio
++#if !(MIN_VERSION_base(4,11,0))
++    mappend = unionPrio
++#endif
++
++unionPrio :: Ord k => Prio k v -> Prio k v -> Prio k v
++x `unionPrio` NoPrio      = x
++NoPrio `unionPrio` y      = y
++x@(Prio kx _) `unionPrio` y@(Prio ky _)
++  | kx <= ky            = x
++  | otherwise           = y
+ 
+ instance Ord k => Measured (Prio k v) (Entry k v) where
+     measure (Entry k v) = Prio k v
+@@ -103,10 +116,17 @@
+     null (PQueue q) = Prelude.null q
+ #endif
+ 
++#if MIN_VERSION_base(4,9,0)
++instance Ord k => Semigroup (PQueue k v) where
++    (<>) = union
++#endif
++
+ -- | 'empty' and 'union'
+ instance Ord k => Monoid (PQueue k v) where
+     mempty = empty
++#if !(MIN_VERSION_base(4,11,0))
+     mappend = union
++#endif
+ 
+ instance (Ord k, Eq v) => Eq (PQueue k v) where
+     xs == ys = assocs xs == assocs ys
