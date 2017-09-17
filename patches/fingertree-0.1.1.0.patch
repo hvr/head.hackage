@@ -1,19 +1,20 @@
-Sat Sep 16 20:29:57 EDT 2017  ben@smart-cactus.org
-  * Compatibility with Semigroup/Monoid proposal
-diff -rN -u old-fingertree/Data/FingerTree.hs new-fingertree/Data/FingerTree.hs
---- old-fingertree/Data/FingerTree.hs	2017-09-16 20:46:28.975832402 -0400
-+++ new-fingertree/Data/FingerTree.hs	2017-09-16 20:46:28.979832381 -0400
-@@ -76,6 +76,9 @@
+diff -ru fingertree-0.1.1.0.orig/Data/FingerTree.hs fingertree-0.1.1.0/Data/FingerTree.hs
+--- fingertree-0.1.1.0.orig/Data/FingerTree.hs	2015-06-09 13:26:48.000000000 +0200
++++ fingertree-0.1.1.0/Data/FingerTree.hs	2017-09-17 10:32:22.555868451 +0200
+@@ -64,6 +64,12 @@
+ 
+ import Control.Applicative (Applicative(pure, (<*>)), (<$>))
  import Data.Monoid
- import Data.Foldable (Foldable(foldMap))
- #endif
 +#if MIN_VERSION_base(4,9,0)
 +import Data.Semigroup
 +#endif
- import Data.Foldable (toList)
++#if MIN_VERSION_base(4,9,0)
++import Data.Semigroup
++#endif
+ import Data.Foldable (Foldable(foldMap), toList)
  
  infixr 5 ><
-@@ -103,10 +106,17 @@
+@@ -91,10 +97,18 @@
      fmap _ EmptyR    = EmptyR
      fmap f (xs :> x) = fmap f xs :> f x
  
@@ -23,28 +24,19 @@ diff -rN -u old-fingertree/Data/FingerTree.hs new-fingertree/Data/FingerTree.hs
 +#endif
 +
  -- | 'empty' and '><'.
- instance (Measured v a) => Monoid (FingerTree v a) where
+ instance Measured v a => Monoid (FingerTree v a) where
      mempty = empty
 +#if !(MIN_VERSION_base(4,11,0))
      mappend = (><)
 +#endif
++
  
  -- Explicit Digit type (Exercise 1)
  
-diff -rN -u old-fingertree/Data/IntervalMap/FingerTree.hs new-fingertree/Data/IntervalMap/FingerTree.hs
---- old-fingertree/Data/IntervalMap/FingerTree.hs	2017-09-16 20:46:28.979832381 -0400
-+++ new-fingertree/Data/IntervalMap/FingerTree.hs	2017-09-16 20:46:28.979832381 -0400
-@@ -54,6 +54,9 @@
- import Data.Monoid
- import Data.Traversable (Traversable(traverse))
- #endif
-+#if MIN_VERSION_base(4,9,0)
-+import Data.Semigroup
-+#endif
- import Data.Foldable (toList)
- 
- ----------------------------------
-@@ -92,12 +95,23 @@
+diff -ru fingertree-0.1.1.0.orig/Data/IntervalMap/FingerTree.hs fingertree-0.1.1.0/Data/IntervalMap/FingerTree.hs
+--- fingertree-0.1.1.0.orig/Data/IntervalMap/FingerTree.hs	2015-06-09 13:26:48.000000000 +0200
++++ fingertree-0.1.1.0/Data/IntervalMap/FingerTree.hs	2017-09-17 09:07:17.097589571 +0200
+@@ -77,12 +77,23 @@
  -- rightmost interval (including largest lower bound) and largest upper bound.
  data IntInterval v = NoInterval | IntInterval (Interval v) v
  
@@ -72,9 +64,9 @@ diff -rN -u old-fingertree/Data/IntervalMap/FingerTree.hs new-fingertree/Data/In
  
  instance (Ord v) => Measured (IntInterval v) (Node v a) where
      measure (Node i _) = IntInterval i (high i)
-@@ -140,10 +154,18 @@
-             showString "insert " . shows i . showChar ' ' . shows x .
-                 showString " $ " . showIntervals ixs
+@@ -104,10 +115,18 @@
+     traverse f (IntervalMap t) =
+         IntervalMap <$> FT.unsafeTraverse (traverse f) t
  
 +#if MIN_VERSION_base(4,9,0)
 +-- | 'union'.
@@ -91,20 +83,20 @@ diff -rN -u old-fingertree/Data/IntervalMap/FingerTree.hs new-fingertree/Data/In
  
  -- | /O(1)/.  The empty interval map.
  empty :: (Ord v) => IntervalMap v a
-diff -rN -u old-fingertree/Data/PriorityQueue/FingerTree.hs new-fingertree/Data/PriorityQueue/FingerTree.hs
---- old-fingertree/Data/PriorityQueue/FingerTree.hs	2017-09-16 20:46:28.979832381 -0400
-+++ new-fingertree/Data/PriorityQueue/FingerTree.hs	2017-09-16 20:46:28.979832381 -0400
-@@ -64,6 +64,9 @@
+diff -ru fingertree-0.1.1.0.orig/Data/PriorityQueue/FingerTree.hs fingertree-0.1.1.0/Data/PriorityQueue/FingerTree.hs
+--- fingertree-0.1.1.0.orig/Data/PriorityQueue/FingerTree.hs	2015-06-09 13:26:48.000000000 +0200
++++ fingertree-0.1.1.0/Data/PriorityQueue/FingerTree.hs	2017-09-17 10:33:39.103399420 +0200
+@@ -60,6 +60,9 @@
+ import Control.Arrow ((***))
  import Data.Foldable (Foldable(foldMap))
  import Data.Monoid
- #endif
 +#if MIN_VERSION_base(4,9,0)
 +import Data.Semigroup
 +#endif
- import Control.Arrow ((***))
- import Data.List (unfoldr)
+ import Prelude hiding (null)
  
-@@ -77,13 +80,23 @@
+ data Entry k v = Entry k v
+@@ -72,13 +75,23 @@
  
  data Prio k v = NoPrio | Prio k v
  
@@ -134,21 +126,20 @@ diff -rN -u old-fingertree/Data/PriorityQueue/FingerTree.hs new-fingertree/Data/
  
  instance Ord k => Measured (Prio k v) (Entry k v) where
      measure (Entry k v) = Prio k v
-@@ -103,10 +116,17 @@
-     null (PQueue q) = Prelude.null q
- #endif
+@@ -94,9 +107,16 @@
+         Nothing -> mempty
+         Just (v, q') -> f v `mappend` foldMap f q'
  
 +#if MIN_VERSION_base(4,9,0)
 +instance Ord k => Semigroup (PQueue k v) where
 +    (<>) = union
 +#endif
 +
- -- | 'empty' and 'union'
  instance Ord k => Monoid (PQueue k v) where
      mempty = empty
 +#if !(MIN_VERSION_base(4,11,0))
      mappend = union
 +#endif
  
- instance (Ord k, Eq v) => Eq (PQueue k v) where
-     xs == ys = assocs xs == assocs ys
+ -- | /O(1)/. The empty priority queue.
+ empty :: Ord k => PQueue k v
