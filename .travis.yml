@@ -1,13 +1,12 @@
 language: c
 
 before_install:
- - CHANGED_FILES=($(git diff --name-only $TRAVIS_COMMIT_RANGE))
  - echo "$TRAVIS_COMMIT_RANGE"
  - echo "$TRAVIS_COMMIT"
  - echo "$TRAVIS_EVENT_TYPE"
- - echo "$CHANGED_FILES"
 
 install:
+ - "true"
 
 script:
-
+ - scripts/travis.sh
