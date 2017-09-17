@@ -1,5 +1,7 @@
 Sat Sep 16 20:29:57 EDT 2017  ben@smart-cactus.org
+
   * Compatibility with Semigroup/Monoid proposal
+
 diff -rN -u old-fingertree/Data/FingerTree.hs new-fingertree/Data/FingerTree.hs
 --- old-fingertree/Data/FingerTree.hs	2017-09-16 20:46:28.975832402 -0400
 +++ new-fingertree/Data/FingerTree.hs	2017-09-16 20:46:28.979832381 -0400
