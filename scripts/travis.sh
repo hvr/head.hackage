@@ -6,6 +6,9 @@ case "X$TRAVIS_EVENT_TYPE" in
     Xpull_request)
     ;;
 
+    Xpush)
+    ;;
+
     X*)
         echo "INFO: not a PR; ignoring"
         exit 0
