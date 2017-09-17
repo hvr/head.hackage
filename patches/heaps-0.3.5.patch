@@ -1,0 +1,144 @@
+diff -ru heaps-0.3.5.orig/heaps.cabal heaps-0.3.5/heaps.cabal
+--- heaps-0.3.5.orig/heaps.cabal	2017-07-29 02:34:39.000000000 +0200
++++ heaps-0.3.5/heaps.cabal	2017-09-17 11:03:50.473204188 +0200
+@@ -1,53 +1,54 @@
+-name:           heaps
+-version:        0.3.5
+-license:        BSD3
+-license-file:   LICENSE
+-author:         Edward A. Kmett
+-maintainer:     Edward A. Kmett <ekmett@gmail.com>
+-stability:      experimental
+-homepage:       http://github.com/ekmett/heaps/
+-bug-reports:    http://github.com/ekmett/heaps/issues
+-category:       Data Structures
+-synopsis:       Asymptotically optimal Brodal/Okasaki heaps.
+-description:    Asymptotically optimal Brodal\/Okasaki bootstrapped skew-binomial heaps from the paper <http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.48.973 "Optimal Purely Functional Priority Queues">, extended with a 'Foldable' interface.
+-copyright:      (c) 2010-2015 Edward A. Kmett
+-tested-with:    GHC == 7.4.2, GHC == 7.6.3, GHC == 7.8.4, GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.1
+-build-type:     Custom
+-cabal-version:  >=1.8
+-extra-source-files:
+-  HLint.hs
+-  Warning.hs
+-  .gitignore
+-  .travis.yml
+-  CHANGELOG.markdown
+-  README.markdown
+-
+-custom-setup
+-  setup-depends:
+-    base          >= 4.3 && <5,
+-    Cabal         >= 1.10,
+-    cabal-doctest >= 1 && <1.1
+-
+-source-repository head
+-  type: git
+-  location: git://github.com/ekmett/heaps.git
+-
+-library
+-  exposed-modules: Data.Heap
+-  build-depends:
+-    base >= 4 && < 6
+-  hs-source-dirs: src
+-  ghc-options: -O2
+-
+--- Verify the results of the examples
+-test-suite doctests
+-  type:    exitcode-stdio-1.0
+-  main-is: doctests.hs
+-  build-depends:
+-    base,
+-    directory >= 1.0 && < 1.4,
+-    doctest >= 0.9 && < 0.13,
+-    filepath,
+-    heaps
+-  ghc-options: -Wall
+-  hs-source-dirs: tests
++name:           heaps
++version:        0.3.5
++x-revision: 1
++license:        BSD3
++license-file:   LICENSE
++author:         Edward A. Kmett
++maintainer:     Edward A. Kmett <ekmett@gmail.com>
++stability:      experimental
++homepage:       http://github.com/ekmett/heaps/
++bug-reports:    http://github.com/ekmett/heaps/issues
++category:       Data Structures
++synopsis:       Asymptotically optimal Brodal/Okasaki heaps.
++description:    Asymptotically optimal Brodal\/Okasaki bootstrapped skew-binomial heaps from the paper <http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.48.973 "Optimal Purely Functional Priority Queues">, extended with a 'Foldable' interface.
++copyright:      (c) 2010-2015 Edward A. Kmett
++tested-with:    GHC == 7.4.2, GHC == 7.6.3, GHC == 7.8.4, GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.1
++build-type:     Custom
++cabal-version:  >=1.8
++extra-source-files:
++  HLint.hs
++  Warning.hs
++  .gitignore
++  .travis.yml
++  CHANGELOG.markdown
++  README.markdown
++
++custom-setup
++  setup-depends:
++    base          >= 4.3 && <5,
++    Cabal         >= 1.10,
++    cabal-doctest >= 1 && <1.1
++
++source-repository head
++  type: git
++  location: git://github.com/ekmett/heaps.git
++
++library
++  exposed-modules: Data.Heap
++  build-depends:
++    base >= 4 && < 6
++  hs-source-dirs: src
++  ghc-options: -O2
++
++-- Verify the results of the examples
++test-suite doctests
++  type:    exitcode-stdio-1.0
++  main-is: doctests.hs
++  build-depends:
++    base,
++    directory >= 1.0 && < 1.4,
++    doctest >= 0.9 && < 0.14,
++    filepath,
++    heaps
++  ghc-options: -Wall
++  hs-source-dirs: tests
+diff -ru heaps-0.3.5.orig/src/Data/Heap.hs heaps-0.3.5/src/Data/Heap.hs
+--- heaps-0.3.5.orig/src/Data/Heap.hs	2017-07-29 02:34:39.000000000 +0200
++++ heaps-0.3.5/src/Data/Heap.hs	2017-09-17 11:05:14.560727487 +0200
+@@ -94,6 +94,9 @@
+ import qualified Data.List as L
+ import Control.Applicative (Applicative(pure))
+ import Control.Monad (liftM)
++#if MIN_VERSION_base(4,9,0)
++import Data.Semigroup (Semigroup(..))
++#endif
+ import Data.Monoid (Monoid(mappend, mempty))
+ import Data.Foldable hiding (minimum, concatMap)
+ import Data.Function (on)
+@@ -377,11 +380,19 @@
+ sort = toList . fromList
+ {-# INLINE sort #-}
+ 
++#if MIN_VERSION_base(4,9,0)
++instance Semigroup (Heap a) where
++  (<>) = union
++  {-# INLINE (<>) #-}
++#endif
++
+ instance Monoid (Heap a) where
+   mempty = empty
+   {-# INLINE mempty #-}
++#if !(MIN_VERSION_base(4,11,0))
+   mappend = union
+   {-# INLINE mappend #-}
++#endif
+ 
+ -- | /O(n)/. Returns the elements in the heap in some arbitrary, very likely unsorted, order.
+ --

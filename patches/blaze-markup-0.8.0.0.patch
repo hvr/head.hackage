@@ -1,0 +1,79 @@
+diff -ru blaze-markup-0.8.0.0.orig/src/Text/Blaze/Internal.hs blaze-markup-0.8.0.0/src/Text/Blaze/Internal.hs
+--- blaze-markup-0.8.0.0.orig/src/Text/Blaze/Internal.hs	2017-01-30 17:48:00.000000000 +0100
++++ blaze-markup-0.8.0.0/src/Text/Blaze/Internal.hs	2017-09-17 11:21:22.831142651 +0200
+@@ -96,7 +96,7 @@
+ import           GHC.Exts               (IsString (..))
+ 
+ #if MIN_VERSION_base(4,9,0)
+-import           Data.Semigroup         (Semigroup)
++import           Data.Semigroup         (Semigroup(..))
+ #endif
+ 
+ -- | A static string that supports efficient output to all possible backends.
+@@ -134,11 +134,19 @@
+     -- | Empty string
+     | EmptyChoiceString
+ 
++#if MIN_VERSION_base(4,9,0)
++instance Semigroup ChoiceString where
++    (<>) = AppendChoiceString
++    {-# INLINE (<>) #-}
++#endif
++
+ instance Monoid ChoiceString where
+     mempty = EmptyChoiceString
+     {-# INLINE mempty #-}
++#if !(MIN_VERSION_base(4,11,0))
+     mappend = AppendChoiceString
+     {-# INLINE mappend #-}
++#endif
+ 
+ instance IsString ChoiceString where
+     fromString = String
+@@ -178,13 +186,19 @@
+ instance Monoid a => Monoid (MarkupM a) where
+     mempty = Empty mempty
+     {-# INLINE mempty #-}
++#if !(MIN_VERSION_base(4,11,0))
+     mappend x y = Append x y
+     {-# INLINE mappend #-}
+     mconcat = foldr Append (Empty mempty)
+     {-# INLINE mconcat #-}
++#endif
+ 
+ #if MIN_VERSION_base(4,9,0)
+ instance Monoid a => Semigroup (MarkupM a) where
++    x <> y = Append x y
++    {-# INLINE (<>) #-}
++    sconcat = foldr Append (Empty mempty)
++    {-# INLINE sconcat #-}
+ #endif
+ 
+ instance Functor MarkupM where
+@@ -242,14 +256,25 @@
+ --
+ newtype Attribute = Attribute (forall a. MarkupM a -> MarkupM a)
+ 
++#if MIN_VERSION_base(4,9,0)
++instance Semigroup Attribute where
++    Attribute f <> Attribute g = Attribute (g . f)
++#endif
++
+ instance Monoid Attribute where
+     mempty                            = Attribute id
++#if !(MIN_VERSION_base(4,11,0))
+     Attribute f `mappend` Attribute g = Attribute (g . f)
++#endif
+ 
+ -- | The type for the value part of an attribute.
+ --
+ newtype AttributeValue = AttributeValue { unAttributeValue :: ChoiceString }
+-    deriving (IsString, Monoid)
++    deriving (IsString, Monoid
++#if MIN_VERSION_base(4,9,0)
++             ,Semigroup
++#endif
++             )
+ 
+ -- | Create a custom parent element
+ customParent :: Tag     -- ^ Element tag

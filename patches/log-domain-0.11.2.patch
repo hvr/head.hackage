@@ -1,0 +1,239 @@
+diff -ru log-domain-0.11.2.orig/log-domain.cabal log-domain-0.11.2/log-domain.cabal
+--- log-domain-0.11.2.orig/log-domain.cabal	2017-07-29 01:42:50.000000000 +0200
++++ log-domain-0.11.2/log-domain.cabal	2017-09-17 11:17:06.004639027 +0200
+@@ -1,92 +1,93 @@
+-name:          log-domain
+-category:      Numeric
+-version:       0.11.2
+-license:       BSD3
+-cabal-version: >= 1.8
+-license-file:  LICENSE
+-author:        Edward A. Kmett
+-maintainer:    Edward A. Kmett <ekmett@gmail.com>
+-stability:     provisional
+-homepage:      http://github.com/ekmett/log-domain/
+-bug-reports:   http://github.com/ekmett/log-domain/issues
+-copyright:     Copyright (C) 2013-2015 Edward A. Kmett
+-build-type:    Custom
+-tested-with:   GHC == 7.4.2, GHC == 7.6.3, GHC == 7.8.4, GHC == 7.10.3, GHC == 8.0.2
+-synopsis:      Log-domain arithmetic
+-description:   This package provides log-domain floats, doubles and complex numbers.
+-
+-extra-source-files:
+-  .travis.yml
+-  .ghci
+-  .gitignore
+-  .vim.custom
+-  travis/cabal-apt-install
+-  travis/config
+-  AUTHORS.markdown
+-  README.markdown
+-  CHANGELOG.markdown
+-  HLint.hs
+-  Warning.hs
+-
+-source-repository head
+-  type: git
+-  location: https://github.com/analytics/log-domain
+-
+-custom-setup
+-  setup-depends:
+-    base          >= 4 && < 5,
+-    Cabal,
+-    cabal-doctest >= 1 && < 1.1
+-
+--- You can disable the doctests test suite with -f-test-doctests
+-flag test-doctests
+-  default: True
+-  manual: True
+-
+-flag ffi
+-  default: True
+-  manual: True
+-
+-library
+-  build-depends:
+-    base                      >= 4.5      && < 5,
+-    binary                    >= 0.5      && < 0.9,
+-    bytes                     >= 0.7      && < 1,
+-    cereal                    >= 0.3.5    && < 0.6,
+-    comonad                   >= 4        && < 6,
+-    deepseq                   >= 1.3      && < 1.5,
+-    distributive              >= 0.3      && < 1,
+-    hashable                  >= 1.2.5    && < 1.3,
+-    semigroupoids             >= 4        && < 6,
+-    semigroups                >= 0.8.4    && < 1,
+-    safecopy                  >= 0.8.1    && < 0.10,
+-    vector                    >= 0.9      && < 0.13
+-
+-  exposed-modules:
+-    Numeric.Log Numeric.Log.Signed
+-
+-  if impl(ghc < 7.6)
+-    build-depends: ghc-prim
+-
+-  if flag(ffi) && !(os(windows) && !impl(ghc >= 8.0))
+-    cpp-options: -D__USE_FFI__
+-
+-  ghc-options: -Wall -fwarn-tabs -O2
+-  hs-source-dirs: src
+-
+-test-suite doctests
+-  type:           exitcode-stdio-1.0
+-  main-is:        doctests.hs
+-  ghc-options:    -Wall -threaded
+-  hs-source-dirs: tests
+-
+-  if !flag(test-doctests)
+-    buildable: False
+-  else
+-    build-depends:
+-      base,
+-      doctest        >= 0.11.1 && < 0.13,
+-      generic-deriving,
+-      log-domain,
+-      semigroups     >= 0.9,
+-      simple-reflect >= 0.3.1
++name:          log-domain
++category:      Numeric
++version:       0.11.2
++x-revision: 1
++license:       BSD3
++cabal-version: >= 1.8
++license-file:  LICENSE
++author:        Edward A. Kmett
++maintainer:    Edward A. Kmett <ekmett@gmail.com>
++stability:     provisional
++homepage:      http://github.com/ekmett/log-domain/
++bug-reports:   http://github.com/ekmett/log-domain/issues
++copyright:     Copyright (C) 2013-2015 Edward A. Kmett
++build-type:    Custom
++tested-with:   GHC == 7.4.2, GHC == 7.6.3, GHC == 7.8.4, GHC == 7.10.3, GHC == 8.0.2
++synopsis:      Log-domain arithmetic
++description:   This package provides log-domain floats, doubles and complex numbers.
++
++extra-source-files:
++  .travis.yml
++  .ghci
++  .gitignore
++  .vim.custom
++  travis/cabal-apt-install
++  travis/config
++  AUTHORS.markdown
++  README.markdown
++  CHANGELOG.markdown
++  HLint.hs
++  Warning.hs
++
++source-repository head
++  type: git
++  location: https://github.com/analytics/log-domain
++
++custom-setup
++  setup-depends:
++    base          >= 4 && < 5,
++    Cabal,
++    cabal-doctest >= 1 && < 1.1
++
++-- You can disable the doctests test suite with -f-test-doctests
++flag test-doctests
++  default: True
++  manual: True
++
++flag ffi
++  default: True
++  manual: True
++
++library
++  build-depends:
++    base                      >= 4.5      && < 5,
++    binary                    >= 0.5      && < 0.9,
++    bytes                     >= 0.7      && < 1,
++    cereal                    >= 0.3.5    && < 0.6,
++    comonad                   >= 4        && < 6,
++    deepseq                   >= 1.3      && < 1.5,
++    distributive              >= 0.3      && < 1,
++    hashable                  >= 1.2.5    && < 1.3,
++    semigroupoids             >= 4        && < 6,
++    semigroups                >= 0.8.4    && < 1,
++    safecopy                  >= 0.8.1    && < 0.10,
++    vector                    >= 0.9      && < 0.13
++
++  exposed-modules:
++    Numeric.Log Numeric.Log.Signed
++
++  if impl(ghc < 7.6)
++    build-depends: ghc-prim
++
++  if flag(ffi) && !(os(windows) && !impl(ghc >= 8.0))
++    cpp-options: -D__USE_FFI__
++
++  ghc-options: -Wall -fwarn-tabs -O2
++  hs-source-dirs: src
++
++test-suite doctests
++  type:           exitcode-stdio-1.0
++  main-is:        doctests.hs
++  ghc-options:    -Wall -threaded
++  hs-source-dirs: tests
++
++  if !flag(test-doctests)
++    buildable: False
++  else
++    build-depends:
++      base,
++      doctest        >= 0.11.1 && < 0.14,
++      generic-deriving,
++      log-domain,
++      semigroups     >= 0.9,
++      simple-reflect >= 0.3.1
+diff -ru log-domain-0.11.2.orig/src/Numeric/Log.hs log-domain-0.11.2/src/Numeric/Log.hs
+--- log-domain-0.11.2.orig/src/Numeric/Log.hs	2017-07-29 01:42:50.000000000 +0200
++++ log-domain-0.11.2/src/Numeric/Log.hs	2017-09-17 11:17:38.284451478 +0200
+@@ -41,9 +41,8 @@
+ import Data.Hashable.Lifted
+ import Data.Int
+ import Data.List as List hiding (sum)
+-#if __GLASGOW_HASKELL__ < 710
+-import Data.Monoid
+-#endif
++import Data.List.NonEmpty (NonEmpty(..))
++import Data.Semigroup
+ import Data.SafeCopy
+ import Data.Semigroup.Foldable
+ import Data.Semigroup.Traversable
+@@ -421,20 +420,26 @@
+ 
+ data Acc1 a = Acc1 {-# UNPACK #-} !Int64 !a
+ 
+-instance (Precise a, RealFloat a) => Monoid (Log a) where
+-  mempty  = Exp negInf
+-  {-# INLINE mempty #-}
+-  mappend = (+)
+-  {-# INLINE mappend #-}
+-  mconcat [] = 0
+-  mconcat (Exp z:zs) = Exp $ case List.foldl' step1 (Acc1 0 z) zs of
++instance (Precise a, RealFloat a) => Semigroup (Log a) where
++  (<>) = (+)
++  {-# INLINE (<>) #-}
++  sconcat (Exp z :| zs) = Exp $ case List.foldl' step1 (Acc1 0 z) zs of
+     Acc1 nm1 a
+       | isInfinite a -> a
+       | otherwise    -> a + log1p (List.foldl' (step2 a) 0 zs + fromIntegral nm1)
+     where
+       step1 (Acc1 n y) (Exp x) = Acc1 (n + 1) (max x y)
+       step2 a r (Exp x) = r + expm1 (x - a)
+-  {-# INLINE mconcat #-}
++  {-# INLINE sconcat #-}
++
++instance (Precise a, RealFloat a) => Monoid (Log a) where
++  mempty  = Exp negInf
++  {-# INLINE mempty #-}
++#if !(MIN_VERSION_base(4,11,0))
++  mappend = (<>)
++#endif
++  mconcat [] = 0
++  mconcat (x:xs) = sconcat (x :| xs)
+ 
+ logMap :: Floating a => (a -> a) -> Log a -> Log a
+ logMap f = Exp . log . f . exp . ln

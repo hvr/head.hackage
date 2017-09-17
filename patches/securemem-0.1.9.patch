@@ -1,0 +1,35 @@
+diff -ru securemem-0.1.9.orig/Data/SecureMem.hs securemem-0.1.9/Data/SecureMem.hs
+--- securemem-0.1.9.orig/Data/SecureMem.hs	2015-06-02 15:37:32.000000000 +0200
++++ securemem-0.1.9/Data/SecureMem.hs	2017-09-17 11:16:44.700762718 +0200
+@@ -31,7 +31,12 @@
+ import           Foreign.ForeignPtr (withForeignPtr)
+ import           Foreign.Ptr
+ import           Data.Word (Word8)
++#if MIN_VERSION_base(4,9,0)
++import           Data.Semigroup
++import           Data.Foldable (toList)
++#else
+ import           Data.Monoid
++#endif
+ import           Control.Applicative
+ import           Data.Byteable
+ 
+@@ -96,10 +101,18 @@
+ instance Eq SecureMem where
+     (==) = secureMemEq
+ 
++#if MIN_VERSION_base(4,9,0)
++instance Semigroup SecureMem where
++    (<>)    = secureMemAppend
++    sconcat = secureMemConcat . toList
++#endif
++
+ instance Monoid SecureMem where
+     mempty  = unsafeCreateSecureMem 0 (\_ -> return ())
++#if !(MIN_VERSION_base(4,11,0))
+     mappend = secureMemAppend
+     mconcat = secureMemConcat
++#endif
+ 
+ -- | Types that can be converted to a secure mem object.
+ class ToSecureMem a where

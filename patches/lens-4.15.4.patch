@@ -1,0 +1,64 @@
+diff -ru lens-4.15.4.orig/src/Control/Lens/Indexed.hs lens-4.15.4/src/Control/Lens/Indexed.hs
+--- lens-4.15.4.orig/src/Control/Lens/Indexed.hs	2017-08-03 09:08:05.000000000 +0200
++++ lens-4.15.4/src/Control/Lens/Indexed.hs	2017-09-17 11:27:39.341165493 +0200
+@@ -406,7 +406,7 @@
+ -- @
+ -- 'mapM_' ≡ 'imapM' '.' 'const'
+ -- @
+-imapM_ :: (FoldableWithIndex i t, Monad m) => (i -> a -> m b) -> t a -> m ()
++imapM_ :: (FoldableWithIndex i t, Applicative m, Monad m) => (i -> a -> m b) -> t a -> m ()
+ imapM_ f = liftM skip . getSequenced #. ifoldMap (\i -> Sequenced #. f i)
+ {-# INLINE imapM_ #-}
+ 
+diff -ru lens-4.15.4.orig/src/Control/Lens/Internal/Fold.hs lens-4.15.4/src/Control/Lens/Internal/Fold.hs
+--- lens-4.15.4.orig/src/Control/Lens/Internal/Fold.hs	2017-08-03 09:08:05.000000000 +0200
++++ lens-4.15.4/src/Control/Lens/Internal/Fold.hs	2017-09-17 11:27:39.341165493 +0200
+@@ -53,8 +53,8 @@
+ -- | A 'Monoid' for a 'Contravariant' 'Applicative'.
+ newtype Folding f a = Folding { getFolding :: f a }
+ 
+-instance (Contravariant f, Apply f) => Semigroup (Folding f a) where
+-  Folding fr <> Folding fs = Folding (fr .> fs)
++instance (Contravariant f, Applicative f) => Semigroup (Folding f a) where
++  Folding fr <> Folding fs = Folding (fr *> fs)
+   {-# INLINE (<>) #-}
+ 
+ instance (Contravariant f, Applicative f) => Monoid (Folding f a) where
+@@ -72,8 +72,8 @@
+ -- The argument 'a' of the result should not be used!
+ newtype Traversed a f = Traversed { getTraversed :: f a }
+ 
+-instance Apply f => Semigroup (Traversed a f) where
+-  Traversed ma <> Traversed mb = Traversed (ma .> mb)
++instance Applicative f => Semigroup (Traversed a f) where
++  Traversed ma <> Traversed mb = Traversed (ma *> mb)
+   {-# INLINE (<>) #-}
+ 
+ instance Applicative f => Monoid (Traversed a f) where
+@@ -91,11 +91,11 @@
+ -- The argument 'a' of the result should not be used!
+ newtype Sequenced a m = Sequenced { getSequenced :: m a }
+ 
+-instance Apply m => Semigroup (Sequenced a m) where
+-  Sequenced ma <> Sequenced mb = Sequenced (ma .> mb)
++instance Applicative m => Semigroup (Sequenced a m) where
++  Sequenced ma <> Sequenced mb = Sequenced (ma *> mb)
+   {-# INLINE (<>) #-}
+ 
+-instance Monad m => Monoid (Sequenced a m) where
++instance (Applicative m, Monad m) => Monoid (Sequenced a m) where
+   mempty = Sequenced (return (error "Sequenced: value used"))
+   {-# INLINE mempty #-}
+   Sequenced ma `mappend` Sequenced mb = Sequenced (ma >> mb)
+diff -ru lens-4.15.4.orig/src/Control/Lens/Internal/Zoom.hs lens-4.15.4/src/Control/Lens/Internal/Zoom.hs
+--- lens-4.15.4.orig/src/Control/Lens/Internal/Zoom.hs	2017-08-03 09:08:05.000000000 +0200
++++ lens-4.15.4/src/Control/Lens/Internal/Zoom.hs	2017-09-17 11:27:39.341165493 +0200
+@@ -291,7 +291,7 @@
+   Effect ma <> Effect mb = Effect (liftF2 (<>) ma mb)
+   {-# INLINE (<>) #-}
+ 
+-instance (Monad m, Monoid r) => Monoid (Effect m r a) where
++instance (Apply m, Monad m, Monoid r) => Monoid (Effect m r a) where
+   mempty = Effect (return mempty)
+   {-# INLINE mempty #-}
+   Effect ma `mappend` Effect mb = Effect (liftM2 mappend ma mb)
