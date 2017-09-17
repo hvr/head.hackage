@@ -1,0 +1,26 @@
+diff -ru tar-0.5.0.3.orig/Codec/Archive/Tar/Types.hs tar-0.5.0.3/Codec/Archive/Tar/Types.hs
+--- tar-0.5.0.3.orig/Codec/Archive/Tar/Types.hs	2016-05-03 14:23:27.000000000 +0200
++++ tar-0.5.0.3/Codec/Archive/Tar/Types.hs	2017-09-17 12:41:59.881183535 +0200
+@@ -62,6 +62,7 @@
+ 
+ import Data.Int      (Int64)
+ import Data.Monoid   (Monoid(..))
++import Data.Semigroup   (Semigroup(..))
+ import qualified Data.ByteString       as BS
+ import qualified Data.ByteString.Char8 as BS.Char8
+ import qualified Data.ByteString.Lazy  as LBS
+@@ -535,9 +536,12 @@
+ mapEntriesNoFail f =
+   foldEntries (\entry -> Next (f entry)) Done Fail
+ 
++instance Semigroup (Entries e) where
++  a <> b = foldEntries Next b Fail a
++
+ instance Monoid (Entries e) where
+   mempty      = Done
+-  mappend a b = foldEntries Next b Fail a
++  mappend     = (<>)
+ 
+ instance Functor Entries where
+   fmap f = foldEntries Next Done (Fail . f)
+Only in tar-0.5.0.3/Codec/Archive/Tar: Types.hs~
