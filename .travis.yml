@@ -1,3 +1,11 @@
-language: haskell
+language: c
 
+before_install:
+ - echo "$TRAVIS_COMMIT_RANGE"
+ - echo "$TRAVIS_COMMIT"
+ - echo "$TRAVIS_EVENT_TYPE"
+
+install:
+
+script:
 
