@@ -1,0 +1,11 @@
+language: c
+
+before_install:
+ - echo "$TRAVIS_COMMIT_RANGE"
+ - echo "$TRAVIS_EVENT_TYPE"
+
+install:
+ - "true"
+
+script:
+ - scripts/travis.sh
