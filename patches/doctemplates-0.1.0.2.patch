@@ -1,0 +1,21 @@
+diff -ru doctemplates-0.1.0.2.orig/src/Text/DocTemplates.hs doctemplates-0.1.0.2/src/Text/DocTemplates.hs
+--- doctemplates-0.1.0.2.orig/src/Text/DocTemplates.hs	2016-10-02 11:35:52.000000000 +0200
++++ doctemplates-0.1.0.2/src/Text/DocTemplates.hs	2017-09-18 12:16:29.323467451 +0200
+@@ -84,6 +84,7 @@
+ import Text.Parsec.Text (Parser)
+ import qualified Data.Set as Set
+ import Data.Monoid
++import Data.Semigroup (Semigroup(..))
+ import Control.Applicative
+ import qualified Data.Text as T
+ import Data.Text (Text)
+@@ -101,7 +102,7 @@
+ -- | A 'Template' is essentially a function that takes
+ -- a JSON 'Value' and produces 'Text'.
+ newtype Template = Template { unTemplate :: Value -> Text }
+-                 deriving Monoid
++                 deriving (Semigroup,Monoid)
+ 
+ type Variable = [Text]
+ 
+Only in doctemplates-0.1.0.2/src/Text: DocTemplates.hs~

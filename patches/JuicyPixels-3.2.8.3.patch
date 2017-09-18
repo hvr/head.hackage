@@ -1,0 +1,26 @@
+diff -ru JuicyPixels-3.2.8.3.orig/src/Codec/Picture/Metadata.hs JuicyPixels-3.2.8.3/src/Codec/Picture/Metadata.hs
+--- JuicyPixels-3.2.8.3.orig/src/Codec/Picture/Metadata.hs	2016-09-04 14:18:57.000000000 +0200
++++ JuicyPixels-3.2.8.3/src/Codec/Picture/Metadata.hs	2017-09-18 11:42:24.571084437 +0200
+@@ -45,6 +45,7 @@
+ import Data.Monoid( Monoid, mempty, mappend )
+ import Data.Word( Word )
+ #endif
++import Data.Semigroup( Semigroup(..) )
+ 
+ 
+ import Control.DeepSeq( NFData( .. ) )
+@@ -168,9 +169,12 @@
+   }
+   deriving (Show, NFData)
+ 
++instance Semigroup Metadatas where
++  (<>) = union
++
+ instance Monoid Metadatas where
+   mempty = empty
+-  mappend = union
++  mappend = (<>)
+ 
+ -- | Right based union
+ union :: Metadatas -> Metadatas -> Metadatas
+Only in JuicyPixels-3.2.8.3/src/Codec/Picture: Metadata.hs~

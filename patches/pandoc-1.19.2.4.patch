@@ -1,0 +1,170 @@
+diff -ru pandoc-1.19.2.4.orig/src/Text/Pandoc/MediaBag.hs pandoc-1.19.2.4/src/Text/Pandoc/MediaBag.hs
+--- pandoc-1.19.2.4.orig/src/Text/Pandoc/MediaBag.hs	2017-09-10 15:38:42.000000000 +0200
++++ pandoc-1.19.2.4/src/Text/Pandoc/MediaBag.hs	2017-09-18 12:33:20.629769757 +0200
+@@ -48,13 +48,14 @@
+ import System.IO (stderr)
+ import Data.Data (Data)
+ import Data.Typeable (Typeable)
++import Data.Semigroup (Semigroup(..))
+ 
+ -- | A container for a collection of binary resources, with names and
+ -- mime types.  Note that a 'MediaBag' is a Monoid, so 'mempty'
+ -- can be used for an empty 'MediaBag', and '<>' can be used to append
+ -- two 'MediaBag's.
+ newtype MediaBag = MediaBag (M.Map [String] (MimeType, BL.ByteString))
+-        deriving (Monoid, Data, Typeable)
++        deriving (Semigroup, Monoid, Data, Typeable)
+ 
+ instance Show MediaBag where
+   show bag = "MediaBag " ++ show (mediaDirectory bag)
+Only in pandoc-1.19.2.4/src/Text/Pandoc: MediaBag.hs~
+diff -ru pandoc-1.19.2.4.orig/src/Text/Pandoc/Parsing.hs pandoc-1.19.2.4/src/Text/Pandoc/Parsing.hs
+--- pandoc-1.19.2.4.orig/src/Text/Pandoc/Parsing.hs	2017-09-10 15:38:42.000000000 +0200
++++ pandoc-1.19.2.4/src/Text/Pandoc/Parsing.hs	2017-09-18 12:35:29.149053810 +0200
+@@ -192,6 +192,7 @@
+ import Control.Monad.Reader
+ import Control.Monad.Identity
+ import Data.Maybe (catMaybes)
++import Data.Semigroup (Semigroup(..))
+ 
+ import Text.Pandoc.Error
+ 
+@@ -210,9 +211,12 @@
+ asksF :: (ParserState -> a) -> F a
+ asksF f = F $ asks f
+ 
++instance Monoid a => Semigroup (F a) where
++  (<>) = liftM2 mappend
++
+ instance Monoid a => Monoid (F a) where
+   mempty = return mempty
+-  mappend = liftM2 mappend
++  mappend = (<>)
+   mconcat = liftM mconcat . sequence
+ 
+ -- | Parse any line of text
+Only in pandoc-1.19.2.4/src/Text/Pandoc: Parsing.hs~
+diff -ru pandoc-1.19.2.4.orig/src/Text/Pandoc/Pretty.hs pandoc-1.19.2.4/src/Text/Pandoc/Pretty.hs
+--- pandoc-1.19.2.4.orig/src/Text/Pandoc/Pretty.hs	2017-09-10 15:38:42.000000000 +0200
++++ pandoc-1.19.2.4/src/Text/Pandoc/Pretty.hs	2017-09-18 12:30:23.334768812 +0200
+@@ -83,7 +83,7 @@
+ import Data.String
+ import Control.Monad.State
+ import Data.Char (isSpace)
+-import Data.Monoid ((<>))
++import Data.Semigroup (Semigroup(..))
+ 
+ data RenderState a = RenderState{
+          output       :: [a]        -- ^ In reverse order
+@@ -109,7 +109,7 @@
+        deriving (Show)
+ 
+ newtype Doc = Doc { unDoc :: Seq D }
+-              deriving (Monoid, Show)
++              deriving (Semigroup, Monoid, Show)
+ 
+ instance IsString Doc where
+   fromString = text
+Only in pandoc-1.19.2.4/src/Text/Pandoc: Pretty.hs~
+diff -ru pandoc-1.19.2.4.orig/src/Text/Pandoc/Readers/Odt/Arrows/Utils.hs pandoc-1.19.2.4/src/Text/Pandoc/Readers/Odt/Arrows/Utils.hs
+--- pandoc-1.19.2.4.orig/src/Text/Pandoc/Readers/Odt/Arrows/Utils.hs	2017-09-10 15:38:42.000000000 +0200
++++ pandoc-1.19.2.4/src/Text/Pandoc/Readers/Odt/Arrows/Utils.hs	2017-09-18 12:31:56.530242510 +0200
+@@ -268,9 +268,12 @@
+ newtype ParallelArrow a b c = CoEval { evalParallelArrow :: a b c }
+   deriving (Eq, Ord, Show)
+ 
++instance (Arrow a, Monoid m) => Semigroup (ParallelArrow a b m) where
++  (CoEval a) <> (CoEval ~b) = CoEval $ a &&& b >>% mappend
++
+ instance (Arrow a, Monoid m) => Monoid (ParallelArrow a b m) where
+   mempty = CoEval $ returnV mempty
+-  (CoEval a) `mappend` (CoEval ~b) = CoEval $ a &&& b >>% mappend
++  mappend = (<>)
+ 
+ -- | Evaluates a collection of arrows in a parallel fashion.
+ --
+@@ -301,14 +304,18 @@
+ 
+ 
+ instance (ArrowChoice a, Monoid failure)
+-         => Monoid (AlternativeArrow a input failure success) where
+-  mempty = TryArrow $ returnV $ Left mempty
+-  (TryArrow a) `mappend` (TryArrow b)
++         => Semigroup (AlternativeArrow a input failure success) where
++  (TryArrow a) <> (TryArrow b)
+          = TryArrow $ a &&& b
+                       >>^ \(a',~b')
+                           -> ( (\a'' -> left (mappend a'') b') ||| Right )
+                                a'
+ 
++instance (ArrowChoice a, Monoid failure)
++         => Monoid (AlternativeArrow a input failure success) where
++  mempty = TryArrow $ returnV $ Left mempty
++  mappend = (<>)
++
+ -- | Evaluates a collection of fallible arrows, trying each one in succession.
+ -- Left values are interpreted as failures, right values as successes.
+ --
+Only in pandoc-1.19.2.4/src/Text/Pandoc/Readers/Odt/Arrows: Utils.hs~
+diff -ru pandoc-1.19.2.4.orig/src/Text/Pandoc/Readers/Odt/StyleReader.hs pandoc-1.19.2.4/src/Text/Pandoc/Readers/Odt/StyleReader.hs
+--- pandoc-1.19.2.4.orig/src/Text/Pandoc/Readers/Odt/StyleReader.hs	2017-09-10 15:38:42.000000000 +0200
++++ pandoc-1.19.2.4/src/Text/Pandoc/Readers/Odt/StyleReader.hs	2017-09-18 12:33:00.137883841 +0200
+@@ -80,6 +80,7 @@
+ import           Data.Default
+ import           Data.List                                           ( unfoldr )
+ import           Data.Maybe
++import           Data.Semigroup (Semigroup(..))
+ 
+ import qualified Text.XML.Light                               as XML
+ 
+@@ -197,15 +198,18 @@
+                           }
+   deriving ( Show )
+ 
+--- Styles from a monoid under union
+-instance Monoid Styles where
+-  mempty  = Styles M.empty M.empty M.empty
+-  mappend  (Styles sBn1 dSm1 lsBn1)
+-           (Styles sBn2 dSm2 lsBn2)
++instance Semigroup Styles where
++  (Styles sBn1 dSm1 lsBn1) <> (Styles sBn2 dSm2 lsBn2)
+           = Styles (M.union sBn1  sBn2)
+                    (M.union dSm1  dSm2)
+                    (M.union lsBn1 lsBn2)
+ 
++
++-- Styles from a monoid under union
++instance Monoid Styles where
++  mempty  = Styles M.empty M.empty M.empty
++  mappend = (<>)
++
+ -- Not all families from the specifications are implemented, only those we need.
+ -- But there are none that are not mentioned here.
+ data StyleFamily      = FaText    | FaParagraph
+Only in pandoc-1.19.2.4/src/Text/Pandoc/Readers/Odt: StyleReader.hs~
+diff -ru pandoc-1.19.2.4.orig/src/Text/Pandoc/Readers/Org/ParserState.hs pandoc-1.19.2.4/src/Text/Pandoc/Readers/Org/ParserState.hs
+--- pandoc-1.19.2.4.orig/src/Text/Pandoc/Readers/Org/ParserState.hs	2017-09-10 15:38:42.000000000 +0200
++++ pandoc-1.19.2.4/src/Text/Pandoc/Readers/Org/ParserState.hs	2017-09-18 12:38:03.808191278 +0200
+@@ -56,6 +56,7 @@
+ import           Data.Default (Default(..))
+ import qualified Data.Map as M
+ import qualified Data.Set as Set
++import           Data.Semigroup (Semigroup(..))
+ 
+ import           Text.Pandoc.Builder ( Inlines, Blocks, trimInlines )
+ import           Text.Pandoc.Definition ( Meta(..), nullMeta )
+@@ -238,9 +239,12 @@
+ newtype F a = F { unF :: Reader OrgParserState a
+                 } deriving (Functor, Applicative, Monad)
+ 
++instance Monoid a => Semigroup (F a) where
++  (<>) = liftM2 mappend
++
+ instance Monoid a => Monoid (F a) where
+   mempty = return mempty
+-  mappend = liftM2 mappend
++  mappend = (<>)
+   mconcat = fmap mconcat . sequence
+ 
+ runF :: F a -> OrgParserState -> a
+Only in pandoc-1.19.2.4/src/Text/Pandoc/Readers/Org: ParserState.hs~
