@@ -56,7 +56,7 @@ your global cabal configuration.
 
 Instead, you should mix in the `HEAD.hackage` repository on a
 per-project level. Then the packages in the `HEAD.hackage` will
-overlay those from the main packageinde
+overlay those from the main package index, by adding the repository stanza (as shown on http://head.haskell.hackage.org) to the `cabal.project(.local)` file or use `head.hackage.sh init` (see below).
 
 To workaround some current issues in `cabal` and make it more
 convenient, the script
