@@ -64,7 +64,7 @@ index 0684a10..5de2f16 100644
  import Data.Foldable
  import Data.Functor.Identity
  import Data.Monoid
-+#if MIN_VERSION_base(4,9,0) && !(MIN_VERSION_base(4,11,0))
++#if MIN_VERSION_base(4,9,0)
 +import qualified Data.Semigroup as Sem
 +#endif
  import Text.ParserCombinators.ReadPrec
