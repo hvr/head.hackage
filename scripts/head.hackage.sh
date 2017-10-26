@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 die () {
   echo "ERROR: $1" >&2
@@ -28,7 +28,8 @@ check_pkgcache () {
 }
 
 # CABAL executable
-CABAL="cabal"
+# If $CABAL env-var is set, use that; otherwise default to the executable 'cabal'
+CABAL=${CABAL:-cabal}
 
 # GHC handling
 check_ghc () {
@@ -55,7 +56,7 @@ case "X$1" in
   Xupdate)
     check_pkgcache
 
-    if "$CABAL" new-update --help&> /dev/null; then
+    if "$CABAL" new-update --help > /dev/null 2>&1; then
       echo "INFO: '$CABAL' is recent enough and supports 'cabal new-update head.hackage'; you can try using that directly!"
       echo ""
 
@@ -67,7 +68,7 @@ case "X$1" in
 
       echo "http-transport: plain-http" >> "$CFGFILE"
 
-      cabal --project-file="$CFGFILE" new-update head.hackage
+      "$CABAL" --project-file="$CFGFILE" new-update head.hackage
 
       rm "$CFGFILE"
     else
@@ -82,7 +83,7 @@ case "X$1" in
       echo "http-transport: plain-http" >> "$CFGFILE"
       echo "remote-repo-cache: $PKGCACHE" >> "$CFGFILE"
 
-      cabal --config-file="$CFGFILE" update
+      "$CABAL" --config-file="$CFGFILE" update
 
       rm "$CFGFILE"
     fi
