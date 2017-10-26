@@ -72,6 +72,9 @@ The main operations provided are
 
 - `head.hackage.sh init`: generates a new `cabal.project` file with a `repository` stanza enabling the `HEAD.hackage` repo locally. This command also takes an optional list of arguments which are included as `optional-packages:` declarations in the resulting `cabal.project` file.
 
+- `head.hackage.sh init-local`: generate a `cabal.project.local` file instead.
+
+- `head.hackage.sh dump-repo`: print `repository` stanza to stdout
 
 
 ### As an add-on local repository
