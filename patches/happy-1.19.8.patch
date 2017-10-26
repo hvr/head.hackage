@@ -1,0 +1,12 @@
+diff --git a/src/PrettyGrammar.hs b/src/PrettyGrammar.hs
+index 6bfddac..811bd8d 100644
+--- a/src/PrettyGrammar.hs
++++ b/src/PrettyGrammar.hs
+@@ -1,6 +1,7 @@
+ module PrettyGrammar where
+ 
+ import AbsSyn
++import Prelude hiding ((<>))
+ 
+ render :: Doc -> String
+ render = maybe "" ($ "")
