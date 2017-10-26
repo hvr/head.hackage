@@ -16,12 +16,12 @@ EOF
 # this needs to match the `remote-repo-cache` global config setting
 PKGCACHE="${HOME}/.cabal/packages"
 
-# set this to the name or (or full path if not in $PATH) of the GHC HEAD executable
-if [ -x /opt/ghc/head/bin/ghc ]; then
-    GHC=/opt/ghc/head/bin/ghc
-else
-    echo "couldn't find GHC HEAD; please edit script" >&2
-    exit 1
+# set $GHC to the name or (or full path if not in $PATH) of the GHC HEAD executable
+if [ -z "$GHC" ]; then
+  echo "set \$GHC with the path to your GHC HEAD executable"
+  exit 1
+elif [ ! -e "$GHC" ]; then
+  echo "\$GHC does not appear to be a GHC executable"
 fi
 
 if [ ! -d "$PKGCACHE" ]; then
