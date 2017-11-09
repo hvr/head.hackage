@@ -1,0 +1,13 @@
+diff -ru th-desugar-1.7.orig/Language/Haskell/TH/Desugar/Reify.hs th-desugar-1.7/Language/Haskell/TH/Desugar/Reify.hs
+--- th-desugar-1.7.orig/Language/Haskell/TH/Desugar/Reify.hs	2017-06-01 13:21:00.000000000 -0400
++++ th-desugar-1.7/Language/Haskell/TH/Desugar/Reify.hs	2017-11-09 08:59:07.185824504 -0500
+@@ -167,6 +167,9 @@
+ #if __GLASGOW_HASKELL__ >= 800
+            , Fail.MonadFail
+ #endif
++#if __GLASGOW_HASKELL__ >= 803
++           , MonadIO
++#endif
+            )
+ 
+ instance Quasi q => DsMonad (DsM q) where
