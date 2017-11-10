@@ -1,0 +1,169 @@
+Only in tasty-0.11.3: cabal.project
+Only in tasty-0.11.3: dist
+Only in tasty-0.11.3: dist-newstyle
+Only in tasty-0.11.3: .ghc.environment.x86_64-linux-8.2.1
+Only in tasty-0.11.3: .ghc.environment.x86_64-linux-8.3.20171108
+diff -ru tasty-0.11.3.orig/tasty.cabal tasty-0.11.3/tasty.cabal
+--- tasty-0.11.3.orig/tasty.cabal	2017-10-18 16:54:13.000000000 +0200
++++ tasty-0.11.3/tasty.cabal	2017-11-10 20:47:06.974039938 +0100
+@@ -51,6 +51,7 @@
+     stm >= 2.3,
+     containers,
+     mtl,
++    semigroups >= 0.17,
+     tagged >= 0.5,
+     regex-tdfa >= 1.1.8.2,
+     optparse-applicative >= 0.11,
+diff -ru tasty-0.11.3.orig/Test/Tasty/Ingredients/ConsoleReporter.hs tasty-0.11.3/Test/Tasty/Ingredients/ConsoleReporter.hs
+--- tasty-0.11.3.orig/Test/Tasty/Ingredients/ConsoleReporter.hs	2017-10-18 16:54:13.000000000 +0200
++++ tasty-0.11.3/Test/Tasty/Ingredients/ConsoleReporter.hs	2017-11-10 20:47:06.974039938 +0100
+@@ -1,5 +1,5 @@
+ -- vim:fdm=marker:foldtext=foldtext()
+-{-# LANGUAGE BangPatterns, ImplicitParams, MultiParamTypeClasses, DeriveDataTypeable, FlexibleContexts #-}
++{-# LANGUAGE CPP, BangPatterns, ImplicitParams, MultiParamTypeClasses, DeriveDataTypeable, FlexibleContexts #-}
+ -- | Console reporter ingredient
+ module Test.Tasty.Ingredients.ConsoleReporter
+   ( consoleTestReporter
+@@ -37,7 +37,8 @@
+ import qualified Data.IntMap as IntMap
+ import Data.Char
+ import Data.Maybe
+-import Data.Monoid
++import Data.Monoid (Monoid(..), Any(..))
++import Data.Semigroup (Semigroup(..))
+ import Data.Proxy
+ import Data.Tagged
+ import Data.Typeable
+@@ -68,11 +69,16 @@
+   | Skip -- ^ Inactive test (e.g. not matching the current pattern)
+   | Seq TestOutput TestOutput -- ^ Two sets of 'TestOuput' on the same level
+ 
++instance Semigroup TestOutput where
++  (<>) = Seq
++
+ -- The monoid laws should hold observationally w.r.t. the semantics defined
+ -- in this module
+ instance Monoid TestOutput where
+   mempty = Skip
++#if !(MIN_VERSION_base(4,11,0))
+   mappend = Seq
++#endif
+ 
+ type Level = Int
+ 
+@@ -262,9 +268,14 @@
+   , statFailures :: !Int -- ^ Number of active tests that failed.
+   }
+ 
++instance Semigroup Statistics where
++  Statistics t1 f1 <> Statistics t2 f2 = Statistics (t1 + t2) (f1 + f2)
++
+ instance Monoid Statistics where
+-  Statistics t1 f1 `mappend` Statistics t2 f2 = Statistics (t1 + t2) (f1 + f2)
+   mempty = Statistics 0 0
++#if !(MIN_VERSION_base(4,11,0))
++  mappend = (<>)
++#endif
+ 
+ computeStatistics :: StatusMap -> IO Statistics
+ computeStatistics = getApp . foldMap (\var -> Ap $
+@@ -504,12 +515,16 @@
+   = Maximum a
+   | MinusInfinity
+ 
++instance Ord a => Semigroup (Maximum a) where
++  Maximum a <> Maximum b = Maximum (a `max` b)
++  MinusInfinity <> a = a
++  a <> MinusInfinity = a
++
+ instance Ord a => Monoid (Maximum a) where
+   mempty = MinusInfinity
+-
+-  Maximum a `mappend` Maximum b = Maximum (a `max` b)
+-  MinusInfinity `mappend` a = a
+-  a `mappend` MinusInfinity = a
++#if !(MIN_VERSION_base(4,11,0))
++  mappend = (<>)
++#endif
+ 
+ -- | Compute the amount of space needed to align "OK"s and "FAIL"s
+ computeAlignment :: OptionSet -> TestTree -> Int
+Only in tasty-0.11.3/Test/Tasty/Ingredients: ConsoleReporter.hs.orig
+diff -ru tasty-0.11.3.orig/Test/Tasty/Options.hs tasty-0.11.3/Test/Tasty/Options.hs
+--- tasty-0.11.3.orig/Test/Tasty/Options.hs	2017-07-06 09:41:47.000000000 +0200
++++ tasty-0.11.3/Test/Tasty/Options.hs	2017-11-10 20:47:06.974039938 +0100
+@@ -1,7 +1,7 @@
+ {-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable,
+              ExistentialQuantification, GADTs,
+              OverlappingInstances, FlexibleInstances, UndecidableInstances,
+-             TypeOperators #-}
++             TypeOperators, CPP #-}
+ -- | Extensible options. They are used for provider-specific settings,
+ -- ingredient-specific settings and core settings (such as the test name pattern).
+ module Test.Tasty.Options
+@@ -27,7 +27,8 @@
+ import Data.Tagged
+ import Data.Proxy
+ import Data.Typeable
+-import Data.Monoid
++import Data.Semigroup (Semigroup(..))
++import Data.Monoid (Monoid(..))
+ import Data.Foldable
+ import Prelude  -- Silence FTP import warnings
+ 
+@@ -77,11 +78,17 @@
+ -- If some option has not been explicitly set, the default value is used.
+ newtype OptionSet = OptionSet (Map TypeRep OptionValue)
+ 
++instance Semigroup OptionSet where
++  OptionSet a <> OptionSet b =
++    OptionSet $ Map.unionWith (flip const) a b
++
+ -- | Later options override earlier ones
+ instance Monoid OptionSet where
+   mempty = OptionSet mempty
++#if !(MIN_VERSION_base(4,11,0))
+   OptionSet a `mappend` OptionSet b =
+     OptionSet $ Map.unionWith (flip const) a b
++#endif
+ 
+ -- | Set the option value
+ setOption :: IsOption v => v -> OptionSet -> OptionSet
+diff -ru tasty-0.11.3.orig/Test/Tasty/Runners/Reducers.hs tasty-0.11.3/Test/Tasty/Runners/Reducers.hs
+--- tasty-0.11.3.orig/Test/Tasty/Runners/Reducers.hs	2017-08-07 08:53:12.000000000 +0200
++++ tasty-0.11.3/Test/Tasty/Runners/Reducers.hs	2017-11-10 20:47:06.974039938 +0100
+@@ -37,23 +37,33 @@
+ POSSIBILITY OF SUCH DAMAGE.
+ -}
+ 
++{-# LANGUAGE CPP #-}
+ {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+ 
+ module Test.Tasty.Runners.Reducers where
+ 
+-import Data.Monoid
++import Data.Monoid hiding ((<>))
++import Data.Semigroup (Semigroup(..))
+ import Control.Applicative
+ import Prelude  -- Silence AMP import warnings
+ 
+ -- | Monoid generated by '*>'
+ newtype Traversal f = Traversal { getTraversal :: f () }
++instance Applicative f => Semigroup (Traversal f) where
++  Traversal f1 <> Traversal f2 = Traversal $ f1 *> f2
+ instance Applicative f => Monoid (Traversal f) where
+   mempty = Traversal $ pure ()
++#if !(MIN_VERSION_base(4,11,0))
+   Traversal f1 `mappend` Traversal f2 = Traversal $ f1 *> f2
++#endif
+ 
+ -- | Monoid generated by @'liftA2' ('<>')@
+ newtype Ap f a = Ap { getApp :: f a }
+   deriving (Functor, Applicative, Monad)
++instance (Applicative f, Semigroup a) => Semigroup (Ap f a) where
++  (<>) = liftA2 (<>)
+ instance (Applicative f, Monoid a) => Monoid (Ap f a) where
+   mempty = pure mempty
++#if !(MIN_VERSION_base(4,11,0))
+   mappend = liftA2 mappend
++#endif
