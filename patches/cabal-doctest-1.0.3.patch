@@ -1,0 +1,19 @@
+diff -ru cabal-doctest-1.0.3.orig/src/Distribution/Extra/Doctest.hs cabal-doctest-1.0.3/src/Distribution/Extra/Doctest.hs
+--- cabal-doctest-1.0.3.orig/src/Distribution/Extra/Doctest.hs	2017-11-03 10:11:02.000000000 -0400
++++ cabal-doctest-1.0.3/src/Distribution/Extra/Doctest.hs	2017-11-12 08:56:37.336348274 -0500
+@@ -223,8 +223,14 @@
+ #endif
+       createDirectoryIfMissingVerbose verbosity True testAutogenDir
+ 
++#if MIN_VERSION_Cabal(2,1,0)
++      let rewriteFile' = rewriteFile verbosity
++#else
++      let rewriteFile' = rewriteFile
++#endif
++
+       -- write autogen'd file
+-      rewriteFile (testAutogenDir </> "Build_doctests.hs") $ unlines
++      rewriteFile' (testAutogenDir </> "Build_doctests.hs") $ unlines
+         [ "module Build_doctests where"
+         , ""
+         , "import Prelude"
