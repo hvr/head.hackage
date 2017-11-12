@@ -1,0 +1,64 @@
+diff -ru doctest-0.13.0.orig/src/Extract.hs doctest-0.13.0/src/Extract.hs
+--- doctest-0.13.0.orig/src/Extract.hs	2017-08-03 02:24:14.000000000 -0400
++++ doctest-0.13.0/src/Extract.hs	2017-11-12 09:11:52.772371328 -0500
+@@ -76,6 +76,16 @@
+ instance NFData a => NFData (Module a) where
+   rnf (Module name setup content) = name `deepseq` setup `deepseq` content `deepseq` ()
+ 
++#if __GLASGOW_HASKELL__ < 803
++type GhcPs = RdrName
++
++needsTemplateHaskellOrQQ :: ModuleGraph -> Bool
++needsTemplateHaskellOrQQ = needsTemplateHaskell
++
++mapMG :: (ModSummary -> ModSummary) -> ModuleGraph -> ModuleGraph
++mapMG = map
++#endif
++
+ -- | Parse a list of modules.
+ parse :: [String] -> IO [TypecheckedModule]
+ parse args = withGhc args $ \modules_ -> withTempOutputDir $ do
+@@ -86,7 +96,7 @@
+   mapM (`guessTarget` Nothing) modules >>= setTargets
+   mods <- depanal [] False
+ 
+-  mods' <- if needsTemplateHaskell mods then enableCompilation mods else return mods
++  mods' <- if needsTemplateHaskellOrQQ mods then enableCompilation mods else return mods
+ 
+   let sortedMods = flattenSCCs (topSortModuleGraph False mods' Nothing)
+   reverse <$> mapM (parseModule >=> typecheckModule >=> loadModule) sortedMods
+@@ -103,7 +113,7 @@
+       modifySessionDynFlags enableComp
+       -- We need to update the DynFlags of the ModSummaries as well.
+       let upd m = m { ms_hspp_opts = enableComp (ms_hspp_opts m) }
+-      let modGraph' = map upd modGraph
++      let modGraph' = mapMG upd modGraph
+       return modGraph'
+ 
+     -- copied from Haddock/GhcUtils.hs
+@@ -236,7 +246,7 @@
+ #endif
+   )
+   where
+-    fromLHsDecl :: Selector (LHsDecl RdrName)
++    fromLHsDecl :: Selector (LHsDecl GhcPs)
+     fromLHsDecl (L loc decl) = case decl of
+ 
+       -- Top-level documentation has to be treated separately, because it has
+diff -ru doctest-0.13.0.orig/src/Runner.hs doctest-0.13.0/src/Runner.hs
+--- doctest-0.13.0.orig/src/Runner.hs	2017-08-03 02:24:14.000000000 -0400
++++ doctest-0.13.0/src/Runner.hs	2017-11-12 09:14:54.968375916 -0500
+@@ -47,9 +47,12 @@
+     printf "Examples: %d  Tried: %d  Errors: %d  Failures: %d" examples tried errors failures
+ 
+ -- | Sum up summaries.
++instance Semigroup Summary where
++  (Summary x1 x2 x3 x4) <> (Summary y1 y2 y3 y4) = Summary (x1 + y1) (x2 + y2) (x3 + y3) (x4 + y4)
++
++-- | Sum up summaries.
+ instance Monoid Summary where
+   mempty = Summary 0 0 0 0
+-  (Summary x1 x2 x3 x4) `mappend` (Summary y1 y2 y3 y4) = Summary (x1 + y1) (x2 + y2) (x3 + y3) (x4 + y4)
+ 
+ -- | Run all examples from a list of modules.
+ runModules :: Bool -> Bool -> Interpreter -> [Module [Located DocTest]] -> IO Summary
