@@ -1,6 +1,6 @@
 diff -ru colour-2.3.3.orig/colour.cabal colour-2.3.3/colour.cabal
 --- colour-2.3.3.orig/colour.cabal	2012-01-17 16:49:47.000000000 +0100
-+++ colour-2.3.3/colour.cabal	2017-09-14 21:55:11.476312946 +0200
++++ colour-2.3.3/colour.cabal	2017-11-22 19:24:01.955200024 +0100
 @@ -18,7 +18,7 @@
  data-files:          README CHANGELOG
  
@@ -12,7 +12,7 @@ diff -ru colour-2.3.3.orig/colour.cabal colour-2.3.3/colour.cabal
                       Data.Colour.SRGB.Linear
 diff -ru colour-2.3.3.orig/Data/Colour/Internal.hs colour-2.3.3/Data/Colour/Internal.hs
 --- colour-2.3.3.orig/Data/Colour/Internal.hs	2012-01-17 16:49:47.000000000 +0100
-+++ colour-2.3.3/Data/Colour/Internal.hs	2017-09-14 21:53:50.228743518 +0200
++++ colour-2.3.3/Data/Colour/Internal.hs	2017-11-22 19:24:01.955200024 +0100
 @@ -25,7 +25,7 @@
  import Data.List
  import qualified Data.Colour.Chan as Chan
@@ -54,10 +54,18 @@ diff -ru colour-2.3.3.orig/Data/Colour/Internal.hs colour-2.3.3/Data/Colour/Inte
  
  -- | @c1 \`atop\` c2@ returns the 'AlphaColour' produced by covering
  -- the portion of @c2@ visible by @c1@.
-Only in colour-2.3.3/Data/Colour: Internal.hs~
 diff -ru colour-2.3.3.orig/Data/Colour/RGBSpace.hs colour-2.3.3/Data/Colour/RGBSpace.hs
 --- colour-2.3.3.orig/Data/Colour/RGBSpace.hs	2012-01-17 16:49:47.000000000 +0100
-+++ colour-2.3.3/Data/Colour/RGBSpace.hs	2017-09-14 21:54:16.268605613 +0200
++++ colour-2.3.3/Data/Colour/RGBSpace.hs	2017-11-22 19:24:01.955200024 +0100
+@@ -46,7 +46,7 @@
+  )
+ where
+ 
+-import Data.Monoid
++import Data.Semigroup
+ import Data.Colour.CIE.Chromaticity
+ import Data.Colour.Matrix
+ import Data.Colour.RGB
 @@ -109,10 +109,13 @@
  inverseTransferFunction (TransferFunction for rev g) =
    TransferFunction rev for (recip g)
@@ -74,4 +82,3 @@ diff -ru colour-2.3.3.orig/Data/Colour/RGBSpace.hs colour-2.3.3/Data/Colour/RGBS
  
  -- |An 'RGBSpace' is a colour coordinate system for colours laying
  -- 'inGamut' of 'gamut'.
-Only in colour-2.3.3/Data/Colour: RGBSpace.hs~
