@@ -1,0 +1,62 @@
+diff --git a/src/URI/ByteString/Internal.hs b/src/URI/ByteString/Internal.hs
+index c3a93d5..4c64740 100644
+--- a/src/URI/ByteString/Internal.hs
++++ b/src/URI/ByteString/Internal.hs
+@@ -27,6 +27,7 @@ import           Data.List                          (delete, intersperse,
+ import qualified Data.Map.Strict                    as M
+ import           Data.Maybe
+ import           Data.Monoid
++import           Data.Semigroup                     (Semigroup)
+ import           Data.Ord                           (comparing)
+ import           Data.Word
+ import           Text.Read                          (readMaybe)
+@@ -794,6 +795,7 @@ newtype Parser' e a = Parser' { unParser' :: Parser a}
+                              , Alternative
+                              , Monad
+                              , MonadPlus
++                             , Semigroup
+                              , Monoid)
+ 
+ 
+diff --git a/src/URI/ByteString/Types.hs b/src/URI/ByteString/Types.hs
+index 11f69d9..03fc683 100644
+--- a/src/URI/ByteString/Types.hs
++++ b/src/URI/ByteString/Types.hs
+@@ -15,6 +15,7 @@ module URI.ByteString.Types where
+ import           Data.ByteString (ByteString)
+ import qualified Data.Map.Strict as M
+ import           Data.Monoid
++import           Data.Semigroup (Semigroup)
+ import           Data.Typeable
+ import           Data.Word
+ import           GHC.Generics
+@@ -89,7 +90,7 @@ deriving instance Lift Authority
+ 
+ -------------------------------------------------------------------------------
+ newtype Query = Query { queryPairs :: [(ByteString, ByteString)] }
+-              deriving (Show, Eq, Monoid, Generic, Typeable, Ord)
++              deriving (Show, Eq, Semigroup, Monoid, Generic, Typeable, Ord)
+ 
+ #ifdef LIFT_COMPAT
+ deriveLift ''Query
+diff --git a/uri-bytestring.cabal b/uri-bytestring.cabal
+index 316828c..133a178 100644
+--- a/uri-bytestring.cabal
++++ b/uri-bytestring.cabal
+@@ -54,10 +54,11 @@ library
+   if impl(ghc >= 7.8)
+     cpp-options: -DWITH_TYPEABLE
+ 
+-  if impl(ghc < 8)
++  if !impl(ghc >= 8)
+     cpp-options: -DLIFT_COMPAT
+     build-depends:
+-      th-lift >= 0.7.5 && < 0.8
++      th-lift >= 0.7.5 && < 0.8,
++      semigroups >= 0.16.2.2 && <0.19
+ 
+   if flag(lib-Werror)
+     ghc-options: -Werror
+-- 
+2.7.4
+
