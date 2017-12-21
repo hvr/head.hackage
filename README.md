@@ -49,6 +49,7 @@ allowing to maximise sharing via the nix-style package-db cache store.
 
 ## How to use
 
+
 ### As an add-on remote repository
 
 It is *not* recommended to add the `HEAD.hackage` repository index to
@@ -103,3 +104,7 @@ $ cd ..
 ```
 
 TODO: implement script
+
+### Travis CI
+
+The [Travis CI script generator](https://github.com/haskell-hvr/multi-ghc-travis) has recently added support for enabling the `HEAD.hackage` repository automatically for jobs uisng unreleased GHC versions.
