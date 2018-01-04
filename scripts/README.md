@@ -1,12 +1,12 @@
 # Using the nix overrides
 
 The most convenient way to use the nix script is to make a new top level
-attribute for the
+attribute for the overriden package set.
 
 I achieve this using an overlay.
 
 `~/.config/nixpkgs/overlays.nix` contains a list of overlays which augment the
-main package set.
+main package set. I just have one which I keep in my home directory for convenience.
 
 ```
 [ (import ~/overlay.nix) ]
@@ -19,7 +19,7 @@ self: super:
 {
   # An attribute which contains the head overrides.
   patches = super.callPackage <local-path-to-overrides.nix>
-              { patches = <path-to-path-folder>; };
+              { patches = <path-to-patch-folder>; };
 
 
   # A modified package set intented to be used with ghcHEAD
