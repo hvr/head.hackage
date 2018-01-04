@@ -1,5 +1,5 @@
 #! /usr/bin/env nix-shell
-#! nix-shell -i runghc -p "haskellPackages.ghcWithPackages (ps: [ps.hopenssl ps.distribution-nixpkgs])"
+#! nix-shell -i runghc -p "haskellPackages.ghcWithPackages (ps: [])"
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
