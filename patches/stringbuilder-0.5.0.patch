@@ -1,0 +1,14 @@
+diff --git a/src/Data/String/Builder.hs b/src/Data/String/Builder.hs
+index 6e4fa71..7093e6b 100644
+--- a/src/Data/String/Builder.hs
++++ b/src/Data/String/Builder.hs
+@@ -41,6 +41,9 @@ instance Monad BuilderM where
+
+ type Builder = BuilderM ()
+
++instance Semigroup Builder where
++  (<>) = mappend
++
+ instance Monoid Builder where
+   mempty = return ()
+   a `mappend` b = a >> b

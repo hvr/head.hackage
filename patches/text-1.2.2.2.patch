@@ -1,0 +1,37 @@
+diff --git a/Data/Text/Lazy/Builder/Int.hs b/Data/Text/Lazy/Builder/Int.hs
+index e096f19..2a41538 100644
+--- a/Data/Text/Lazy/Builder/Int.hs
++++ b/Data/Text/Lazy/Builder/Int.hs
+@@ -1,5 +1,5 @@
+ {-# LANGUAGE BangPatterns, CPP, MagicHash, RankNTypes, ScopedTypeVariables,
+-    UnboxedTuples #-}
++    UnboxedTuples, NoImplicitPrelude #-}
+ #if __GLASGOW_HASKELL__ >= 702
+ {-# LANGUAGE Trustworthy #-}
+ #endif
+@@ -32,6 +32,7 @@ import GHC.Base (quotInt, remInt)
+ import GHC.Num (quotRemInteger)
+ import GHC.Types (Int(..))
+ import Control.Monad.ST
++import Prelude hiding ((<>))
+ 
+ #ifdef  __GLASGOW_HASKELL__
+ # if defined(INTEGER_GMP)
+diff --git a/Data/Text/Lazy/Builder/RealFloat.hs b/Data/Text/Lazy/Builder/RealFloat.hs
+index 22141cd..720c07e 100644
+--- a/Data/Text/Lazy/Builder/RealFloat.hs
++++ b/Data/Text/Lazy/Builder/RealFloat.hs
+@@ -1,4 +1,4 @@
+-{-# LANGUAGE CPP, OverloadedStrings #-}
++{-# LANGUAGE CPP, OverloadedStrings, NoImplicitPrelude #-}
+ #if __GLASGOW_HASKELL__ >= 702
+ {-# LANGUAGE Trustworthy #-}
+ #endif
+@@ -24,6 +24,7 @@ import Data.Text.Lazy.Builder.Int (decimal)
+ import Data.Text.Internal.Builder.RealFloat.Functions (roundTo)
+ import Data.Text.Lazy.Builder
+ import qualified Data.Text as T
++import Prelude hiding ((<>))
+ 
+ -- | Control the rendering of floating point numbers.
+ data FPFormat = Exponent

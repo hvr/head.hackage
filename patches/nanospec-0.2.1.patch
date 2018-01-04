@@ -1,0 +1,14 @@
+diff --git a/src/Test/Hspec.hs b/src/Test/Hspec.hs
+index de284c5..77f7b26 100644
+--- a/src/Test/Hspec.hs
++++ b/src/Test/Hspec.hs
+@@ -75,6 +75,9 @@ it label = add . SpecExample label . evaluateExpectation
+ -- | Summary of a test run.
+ data Summary = Summary Int Int
+ 
++instance Semigroup Summary where
++  (<>) = mappend
++
+ instance Monoid Summary where
+   mempty = Summary 0 0
+   (Summary x1 x2) `mappend` (Summary y1 y2) = Summary (x1 + y1) (x2 + y2)
