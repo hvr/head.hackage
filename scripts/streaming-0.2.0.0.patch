@@ -1,0 +1,74 @@
+diff -ru streaming-0.2.0.0.orig/src/Data/Functor/Of.hs streaming-0.2.0.0/src/Data/Functor/Of.hs
+--- streaming-0.2.0.0.orig/src/Data/Functor/Of.hs	2017-12-09 10:17:19.000000000 -0500
++++ streaming-0.2.0.0/src/Data/Functor/Of.hs	2018-01-06 17:11:05.816767057 -0500
+@@ -1,7 +1,8 @@
+ {-# LANGUAGE CPP, DeriveDataTypeable, DeriveTraversable, DeriveFoldable,
+        DeriveGeneric #-}
+ module Data.Functor.Of where
+-import Data.Monoid
++import Data.Monoid (Monoid (..))
++import Data.Semigroup (Semigroup (..))
+ import Control.Applicative
+ import Data.Traversable (Traversable)
+ import Data.Foldable (Foldable)
+@@ -19,11 +20,17 @@
+               Read, Show, Traversable, Typeable, Generic, Generic1)
+ infixr 5 :>
+ 
++instance (Semigroup a, Semigroup b) => Semigroup (Of a b) where
++  (m :> w) <> (m' :> w') = (m <> m') :> (w <> w')
++  {-#INLINE (<>) #-}
++
+ instance (Monoid a, Monoid b) => Monoid (Of a b) where
+   mempty = mempty :> mempty
+   {-#INLINE mempty #-}
++#if !(MIN_VERSION_base(4,11,0))
+   mappend (m :> w) (m' :> w') = mappend m m' :> mappend w w'
+   {-#INLINE mappend #-}
++#endif
+ 
+ instance Functor (Of a) where
+   fmap f (a :> x) = a :> f x
+diff -ru streaming-0.2.0.0.orig/src/Streaming/Internal.hs streaming-0.2.0.0/src/Streaming/Internal.hs
+--- streaming-0.2.0.0.orig/src/Streaming/Internal.hs	2017-12-09 12:35:01.000000000 -0500
++++ streaming-0.2.0.0/src/Streaming/Internal.hs	2018-01-06 17:09:49.784765142 -0500
+@@ -94,7 +94,8 @@
+ import Control.Applicative
+ import Data.Function ( on )
+ import Control.Monad.Morph
+-import Data.Monoid (Monoid (..), (<>))
++import Data.Monoid (Monoid (..))
++import Data.Semigroup (Semigroup (..))
+ import Data.Data (Typeable)
+ import Prelude hiding (splitAt)
+ import Data.Functor.Compose
+@@ -295,11 +296,17 @@
+   str <|> str' = zipsWith' liftA2 str str'
+   {-#INLINE (<|>) #-}
+ 
++instance (Functor f, Monad m, Semigroup w) => Semigroup (Stream f m w) where
++  a <> b = a >>= \w -> fmap (w <>) b
++  {-#INLINE (<>) #-}
++
+ instance (Functor f, Monad m, Monoid w) => Monoid (Stream f m w) where
+   mempty = return mempty
+   {-#INLINE mempty #-}
+-  mappend a b = a >>= \w -> fmap (w <>) b
++#if !(MIN_VERSION_base(4,11,0))
++  mappend a b = a >>= \w -> fmap (w `mappend`) b
+   {-#INLINE mappend #-}
++#endif
+ 
+ instance (Applicative f, Monad m) => MonadPlus (Stream f m) where
+   mzero = empty
+diff -ru streaming-0.2.0.0.orig/streaming.cabal streaming-0.2.0.0/streaming.cabal
+--- streaming-0.2.0.0.orig/streaming.cabal	2018-01-06 14:14:32.644500285 -0500
++++ streaming-0.2.0.0/streaming.cabal	2018-01-06 17:06:24.308759968 -0500
+@@ -217,6 +217,7 @@
+       base >=4.8 && <5
+     , mtl >=2.1 && <2.3
+     , mmorph >=1.0 && <1.2
++    , semigroups >= 0.18 && <0.19
+     , transformers >=0.5 && <0.6
+     , transformers-base < 0.5
+     , exceptions > 0.5 && < 0.9

@@ -107,4 +107,4 @@ TODO: implement script
 
 ### Travis CI
 
-The [Travis CI script generator](https://github.com/haskell-hvr/multi-ghc-travis) has recently added support for enabling the `HEAD.hackage` repository automatically for jobs uisng unreleased GHC versions.
+The [Travis CI script generator](https://github.com/haskell-hvr/multi-ghc-travis) has recently added support for enabling the `HEAD.hackage` repository automatically for jobs using unreleased GHC versions.
