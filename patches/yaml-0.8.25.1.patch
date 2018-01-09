@@ -1,0 +1,23 @@
+diff --git a/Data/Yaml/Parser.hs b/Data/Yaml/Parser.hs
+index 2b9ee23..2791f2a 100644
+--- a/Data/Yaml/Parser.hs
++++ b/Data/Yaml/Parser.hs
+@@ -22,6 +22,9 @@ import Data.Text (Text, pack, unpack)
+ import Data.Text.Encoding (decodeUtf8)
+ import Data.Text.Read (signed, decimal)
+ import Data.Typeable (Typeable)
++#if MIN_VERSION_base(4,9,0)
++import Data.Semigroup (Semigroup (..))
++#endif
+ 
+ import Text.Libyaml
+ 
+@@ -36,6 +39,8 @@ instance Applicative YamlParser where
+ instance Alternative YamlParser where
+     empty = fail "empty"
+     (<|>) = mplus
++instance Semigroup (YamlParser a) where
++    (<>) = mplus
+ instance Monoid (YamlParser a) where
+     mempty = fail "mempty"
+     mappend = mplus
