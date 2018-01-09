@@ -1,7 +1,24 @@
 diff -ru gloss-rendering-1.11.1.1.orig/gloss-rendering.cabal gloss-rendering-1.11.1.1/gloss-rendering.cabal
---- gloss-rendering-1.11.1.1.orig/gloss-rendering.cabal	2018-01-09 00:03:55.457742537 -0500
-+++ gloss-rendering-1.11.1.1/gloss-rendering.cabal	2018-01-09 00:09:54.205751572 -0500
-@@ -34,7 +34,8 @@
+--- gloss-rendering-1.11.1.1.orig/gloss-rendering.cabal	2017-03-14 04:24:47.000000000 +0100
++++ gloss-rendering-1.11.1.1/gloss-rendering.cabal	2018-01-09 14:24:04.731122386 +0100
+@@ -17,7 +17,7 @@
+   exposed-modules:
+         Graphics.Gloss.Rendering
+ 
+-  other-modules:       
++  other-modules:
+         Graphics.Gloss.Internals.Data.Color
+         Graphics.Gloss.Internals.Data.Picture
+         Graphics.Gloss.Internals.Rendering.Bitmap
+@@ -27,13 +27,14 @@
+         Graphics.Gloss.Internals.Rendering.Picture
+         Graphics.Gloss.Internals.Rendering.State
+ 
+-  build-depends:       
+-        base       >= 4.8 && < 4.10,
++  build-depends:
++        base       >= 4.8 && < 4.11,
+         containers == 0.5.*,
          bytestring == 0.10.*,
          OpenGL     >= 2.12 && < 3.1,
          GLUT       == 2.7.*,
@@ -12,8 +29,8 @@ diff -ru gloss-rendering-1.11.1.1.orig/gloss-rendering.cabal gloss-rendering-1.1
    ghc-options:
          -Wall -O2
 diff -ru gloss-rendering-1.11.1.1.orig/Graphics/Gloss/Internals/Data/Picture.hs gloss-rendering-1.11.1.1/Graphics/Gloss/Internals/Data/Picture.hs
---- gloss-rendering-1.11.1.1.orig/Graphics/Gloss/Internals/Data/Picture.hs	2017-03-13 23:24:47.000000000 -0400
-+++ gloss-rendering-1.11.1.1/Graphics/Gloss/Internals/Data/Picture.hs	2018-01-09 00:10:42.741752794 -0500
+--- gloss-rendering-1.11.1.1.orig/Graphics/Gloss/Internals/Data/Picture.hs	2017-03-14 04:24:47.000000000 +0100
++++ gloss-rendering-1.11.1.1/Graphics/Gloss/Internals/Data/Picture.hs	2018-01-09 14:21:44.947973336 +0100
 @@ -23,7 +23,8 @@
  import Foreign.Marshal.Utils
  import Foreign.Ptr
