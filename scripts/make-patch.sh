@@ -14,7 +14,7 @@ usage () {
   $ git fetch \$hvr/head.hackage
   $ git checkout -b <name>-<version> \$hvr/head.hackage/master
   $ mv <name>-<version> <name>-<version>-patched
-  $ cabal unpack <name>-<version>
+  $ cabal unpack --pristine <name>-<version>
   $ diff -ru <name>-<version> <name>-<version>-patched > \$head.hackage/patches/<name>-<version>.patch
   $ mv -f <name>-<version>-patched <name>-<version>
   $ git add patches/<name>-<version>.patch
@@ -65,7 +65,7 @@ fi
 
 echo "creating patch..."
 mv "$1" "$1-patched"
-cabal unpack "$1"
+cabal unpack --pristine "$1"
 
 # diff returns 0 for no changes; 1 for some changes; and 2 for trouble
 set +e
