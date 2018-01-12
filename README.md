@@ -108,3 +108,8 @@ TODO: implement script
 ### Travis CI
 
 The [Travis CI script generator](https://github.com/haskell-hvr/multi-ghc-travis) has recently added support for enabling the `HEAD.hackage` repository automatically for jobs using unreleased GHC versions.
+
+### Nix(Os)
+
+The patches maintained for the `head.hackage` project can also be used with [Nix](https://nixos.org/nix/) (not to be confused with [Cabal's Nix-style local builds](http://cabal.readthedocs.io/en/latest/nix-local-build-overview.html)). See the README in the [`script/`](./scripts) folder and/or the
+[*Using a development version of GHC with nix* blogpost](http://mpickering.github.io/posts/2018-01-05-ghchead-nix.html) for more information.
