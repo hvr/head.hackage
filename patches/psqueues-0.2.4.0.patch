@@ -1,0 +1,29 @@
+commit 033a6319fd73edb76f5e87956791f565a1260b18
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Tue Jan 16 13:45:40 2018 -0500
+
+    Fix the build on GHC 8.4
+
+diff --git a/src/Data/OrdPSQ/Internal.hs b/src/Data/OrdPSQ/Internal.hs
+index a895e90..d69a127 100644
+--- a/src/Data/OrdPSQ/Internal.hs
++++ b/src/Data/OrdPSQ/Internal.hs
+@@ -1,4 +1,5 @@
+ {-# LANGUAGE BangPatterns        #-}
++{-# LANGUAGE CPP                 #-}
+ {-# LANGUAGE DeriveFoldable      #-}
+ {-# LANGUAGE DeriveFunctor       #-}
+ {-# LANGUAGE DeriveTraversable   #-}
+@@ -74,7 +75,11 @@ import           Data.Foldable    (Foldable (foldr))
+ import qualified Data.List        as List
+ import           Data.Maybe       (isJust)
+ import           Data.Traversable
+-import           Prelude          hiding (foldr, lookup, map, null)
++import           Prelude          hiding ( foldr, lookup, map, null
++#if MIN_VERSION_base(4,11,0)
++                                         , (<>)
++#endif
++                                         )
+
+ --------------------------------------------------------------------------------
+ -- Types
