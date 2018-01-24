@@ -1,0 +1,48 @@
+From dfda491e3c48bdfbba8ae32528a7d1b3a744c38d Mon Sep 17 00:00:00 2001
+From: Ryan Scott <ryan.gl.scott@gmail.com>
+Date: Tue, 23 Jan 2018 21:57:09 -0500
+Subject: [PATCH] Fix the build with GHC 8.4.1
+
+---
+ language-javascript.cabal                 | 3 +++
+ src/Language/JavaScript/Pretty/Printer.hs | 6 ++----
+ 2 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/language-javascript.cabal b/language-javascript.cabal
+index 3a3092b..c18e016 100644
+--- a/language-javascript.cabal
++++ b/language-javascript.cabal
+@@ -36,6 +36,9 @@ Library
+                    , bytestring       >= 0.9.1
+                    , text             >= 1.2
+                    , utf8-string      >= 0.3.7 && < 2
++  if !impl(ghc>=8.0)
++    build-depends:   semigroups       >= 0.16.1
++
+   if impl(ghc >= 7.10)
+     build-tools:       happy >= 1.19, alex >= 3.1.4
+   else
+diff --git a/src/Language/JavaScript/Pretty/Printer.hs b/src/Language/JavaScript/Pretty/Printer.hs
+index cc2ea36..fd1fbe6 100644
+--- a/src/Language/JavaScript/Pretty/Printer.hs
++++ b/src/Language/JavaScript/Pretty/Printer.hs
+@@ -10,7 +10,8 @@ module Language.JavaScript.Pretty.Printer
+
+ import Blaze.ByteString.Builder (Builder, toLazyByteString)
+ import Data.List
+-import Data.Monoid (mappend, mempty)
++import Data.Monoid (mempty)
++import Data.Semigroup ((<>))
+ import Data.Text.Lazy (Text)
+ import Language.JavaScript.Parser.AST
+ import Language.JavaScript.Parser.SrcLocation
+@@ -27,9 +28,6 @@ data PosAccum = PosAccum (Int, Int) Builder
+ -- ---------------------------------------------------------------------
+ -- Pretty printer stuff via blaze-builder
+
+-(<>) :: Builder -> Builder -> Builder
+-(<>) = mappend
+-
+ str :: String -> Builder
+ str = BS.fromString
+

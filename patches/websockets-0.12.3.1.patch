@@ -1,0 +1,37 @@
+From 11ba6d15cf47bace1936b13a58192e37908b0300 Mon Sep 17 00:00:00 2001
+From: Kosyrev Serge <serge.kosyrev@iohk.io>
+Date: Sun, 14 Jan 2018 02:58:10 +0300
+Subject: [PATCH] Options.hs:SizeLimit:  add Semigroup instance (GHC 8.4
+ compat)
+
+---
+ src/Network/WebSockets/Connection/Options.hs | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/src/Network/WebSockets/Connection/Options.hs b/src/Network/WebSockets/Connection/Options.hs
+index ae9b67f..1bf0168 100644
+--- a/src/Network/WebSockets/Connection/Options.hs
++++ b/src/Network/WebSockets/Connection/Options.hs
+@@ -1,3 +1,4 @@
++{-# LANGUAGE CPP #-}
+ --------------------------------------------------------------------------------
+ module Network.WebSockets.Connection.Options
+     ( ConnectionOptions (..)
+@@ -109,10 +110,16 @@ data SizeLimit
+ instance Monoid SizeLimit where
+     mempty = NoSizeLimit
+
++#if !MIN_VERSION_base(4,11,0)
+     mappend NoSizeLimit   y             = y
+     mappend x             NoSizeLimit   = x
+     mappend (SizeLimit x) (SizeLimit y) = SizeLimit (min x y)
+-
++#else
++instance Semigroup SizeLimit where
++    (<>)    NoSizeLimit   y             = y
++    (<>)    x             NoSizeLimit   = x
++    (<>)    (SizeLimit x) (SizeLimit y) = SizeLimit (min x y)
++#endif
+
+ --------------------------------------------------------------------------------
+ atMostSizeLimit :: Int64 -> SizeLimit -> Bool
