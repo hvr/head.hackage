@@ -1,7 +1,7 @@
 From 176c321ccc49b229ec89fc2e790d8abd74ca3d67 Mon Sep 17 00:00:00 2001
 From: Ryan Scott <ryan.gl.scott@gmail.com>
 Date: Tue, 23 Jan 2018 20:23:18 -0500
-Subject: [PATCH] Fix the build on GHC 8.4
+Subject: [PATCH 1/2] Fix the build on GHC 8.4
 
 ---
  Text/CSS/Render.hs | 6 ++----
@@ -42,3 +42,26 @@ index cd10659..4fa558f 100644
      exposed-modules: Text.CSS.Parse
                       Text.CSS.Render
      ghc-options:     -Wall
+
+From e1b1eaa811ff59329b1cac861c655eb1b8fba869 Mon Sep 17 00:00:00 2001
+From: Ryan Scott <ryan.gl.scott@gmail.com>
+Date: Wed, 24 Jan 2018 11:00:07 -0500
+Subject: [PATCH 2/2] Fix indentation
+
+---
+ css-text.cabal | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/css-text.cabal b/css-text.cabal
+index 4fa558f..a568a57 100644
+--- a/css-text.cabal
++++ b/css-text.cabal
+@@ -18,7 +18,7 @@ library
+                    , attoparsec                >= 0.10.2.0
+
+     if !impl(ghc >= 8.0)
+-    build-depends:   semigroups                >= 0.16.1
++      build-depends: semigroups                >= 0.16.1
+
+     exposed-modules: Text.CSS.Parse
+                      Text.CSS.Render
