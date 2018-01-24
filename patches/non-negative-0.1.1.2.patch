@@ -1,0 +1,58 @@
+diff -ru non-negative-0.1.1.2.orig/src/Numeric/NonNegative/ChunkyPrivate.hs non-negative-0.1.1.2/src/Numeric/NonNegative/ChunkyPrivate.hs
+--- non-negative-0.1.1.2.orig/src/Numeric/NonNegative/ChunkyPrivate.hs	2017-07-31 05:26:02.000000000 -0400
++++ non-negative-0.1.1.2/src/Numeric/NonNegative/ChunkyPrivate.hs	2018-01-24 11:57:00.559457730 -0500
+@@ -1,3 +1,4 @@
++{-# LANGUAGE CPP #-}
+ {- |
+ Copyright   :  (c) Henning Thielemann 2008-2010
+ 
+@@ -21,6 +22,9 @@
+ import Data.Tuple.HT (mapSnd, )
+ 
+ import qualified Data.Monoid as Mn
++#if MIN_VERSION_base(4,9,0) && !(MIN_VERSION_base(4,11,0))
++import Data.Semigroup (Semigroup(..))
++#endif
+ import Test.QuickCheck (Arbitrary(arbitrary, shrink))
+ 
+ {- |
+@@ -192,6 +196,10 @@
+        (cs,rm) = recourse (toChunks x0) 0
+    in  (fromChunks cs, rm)
+ 
++#if MIN_VERSION_base(4,9,0)
++instance Semigroup (T a) where
++   (<>) = lift2 (++)
++#endif
+ 
+ instance Mn.Monoid (T a) where
+    mempty = zero
+diff -ru non-negative-0.1.1.2.orig/src/Numeric/NonNegative/Wrapper.hs non-negative-0.1.1.2/src/Numeric/NonNegative/Wrapper.hs
+--- non-negative-0.1.1.2.orig/src/Numeric/NonNegative/Wrapper.hs	2017-07-31 05:26:02.000000000 -0400
++++ non-negative-0.1.1.2/src/Numeric/NonNegative/Wrapper.hs	2018-01-24 11:58:03.951459326 -0500
+@@ -1,3 +1,4 @@
++{-# LANGUAGE CPP #-}
+ {- |
+ Copyright   :  (c) Henning Thielemann 2007-2010
+ 
+@@ -17,6 +18,9 @@
+ import qualified Numeric.NonNegative.Class as NonNeg
+ import Data.Monoid (Monoid, )
+ import qualified Data.Monoid as Monoid
++#if MIN_VERSION_base(4,9,0) && !(MIN_VERSION_base(4,11,0))
++import Data.Semigroup (Semigroup(..))
++#endif
+ 
+ import Test.QuickCheck (Arbitrary(arbitrary, shrink))
+ import Data.Tuple.HT (mapPair, mapSnd, )
+@@ -104,6 +108,10 @@
+ lift2 :: (a -> a -> a) -> (T a -> T a -> T a)
+ lift2 f (Cons x) (Cons y) = Cons $ f x y
+ 
++#if MIN_VERSION_base(4,9,0)
++instance (Num a) => Semigroup (T a) where
++   Cons x <> Cons y = Cons (x+y)
++#endif
+ 
+ instance (Num a) => Monoid (T a) where
+    mempty = Cons 0
