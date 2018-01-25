@@ -1,0 +1,19 @@
+commit e3e6be2e963a4ee26c432ce3472b9f27c711a985
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Thu Jan 25 11:05:12 2018 -0500
+
+    Add a Semigroup instnce for SegTree
+
+diff --git a/src/Diagrams/Trail.hs b/src/Diagrams/Trail.hs
+index e5123cd..1401866 100644
+--- a/src/Diagrams/Trail.hs
++++ b/src/Diagrams/Trail.hs
+@@ -174,7 +174,7 @@ instance (FT.Measured m a, FT.Measured n b)
+ --   beginning which have a combined arc length of at least 5).
+ 
+ newtype SegTree v n = SegTree (FingerTree (SegMeasure v n) (Segment Closed v n))
+-  deriving (Eq, Ord, Show, Monoid, Transformable, FT.Measured (SegMeasure v n))
++  deriving (Eq, Ord, Show, Monoid, Semigroup, Transformable, FT.Measured (SegMeasure v n))
+ 
+ instance Wrapped (SegTree v n) where
+   type Unwrapped (SegTree v n) = FingerTree (SegMeasure v n) (Segment Closed v n)

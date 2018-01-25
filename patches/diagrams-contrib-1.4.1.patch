@@ -1,0 +1,19 @@
+commit ee6a976add3f2596824a272e3b01d02cd7898537
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Thu Jan 25 12:59:48 2018 -0500
+
+    Add a Semigroup instance for Following
+
+diff --git a/src/Diagrams/TwoD/Path/Follow.hs b/src/Diagrams/TwoD/Path/Follow.hs
+index 585913b..412acdf 100644
+--- a/src/Diagrams/TwoD/Path/Follow.hs
++++ b/src/Diagrams/TwoD/Path/Follow.hs
+@@ -61,7 +61,7 @@ import           Data.Monoid.SemiDirectProduct.Strict
+ --
+ newtype Following n
+   = Following { unFollowing :: Semi (Trail' Line V2 n) (Angle n) }
+-  deriving (Monoid)
++  deriving (Monoid, Semigroup)
+ 
+ -- | Note this is only an iso when considering trails equivalent up to
+ --   rotation.

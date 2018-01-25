@@ -1,0 +1,25 @@
+diff -ru JuicyPixels-3.2.9.3.orig/src/Codec/Picture/Metadata.hs JuicyPixels-3.2.9.3/src/Codec/Picture/Metadata.hs
+--- JuicyPixels-3.2.9.3.orig/src/Codec/Picture/Metadata.hs	2017-11-11 04:35:34.000000000 -0500
++++ JuicyPixels-3.2.9.3/src/Codec/Picture/Metadata.hs	2018-01-25 10:20:07.641487188 -0500
+@@ -38,7 +38,7 @@
+ 
+                                -- * Conversion functions
+                              , dotsPerMeterToDotPerInch
+-                             , dotPerInchToDotsPerMeter 
++                             , dotPerInchToDotsPerMeter
+                              , dotsPerCentiMeterToDotPerInch
+                              ) where
+ 
+@@ -171,7 +171,12 @@
+ 
+ instance Monoid Metadatas where
+   mempty = empty
++#if !MIN_VERSION_base(4,11,0)
+   mappend = union
++#else
++instance Semigroup Metadatas where
++  (<>) = union
++#endif
+ 
+ -- | Right based union
+ union :: Metadatas -> Metadatas -> Metadatas

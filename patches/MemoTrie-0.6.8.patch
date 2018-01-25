@@ -1,0 +1,26 @@
+From 11f8791c3b29db3351c89cc85faa2dc8068a55ce Mon Sep 17 00:00:00 2001
+From: Kosyrev Serge <serge.kosyrev@iohk.io>
+Date: Sat, 13 Jan 2018 19:51:44 +0300
+Subject: [PATCH] Data.Memotrie:  Semigroup instane for :->: (GHC 8.4 compat)
+
+---
+ src/Data/MemoTrie.hs | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/src/Data/MemoTrie.hs b/src/Data/MemoTrie.hs
+index 8ea692e..fafe16d 100644
+--- a/src/Data/MemoTrie.hs
++++ b/src/Data/MemoTrie.hs
+@@ -587,7 +587,12 @@ instance HasTrie a => Monad ((:->:) a) where
+
+ instance (HasTrie a, Monoid b) => Monoid (a :->: b) where
+   mempty  = trie mempty
++#if !MIN_VERSION_base(4,11,0)
+   mappend = inTrie2 mappend
++#else
++instance (HasTrie a, Semigroup b) => Semigroup (a :->: b) where
++  (<>)    = inTrie2 (<>)
++#endif
+
+ instance HasTrie a => Functor ((:->:) a) where
+   fmap f = inTrie (fmap f)

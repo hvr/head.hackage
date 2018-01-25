@@ -1,0 +1,31 @@
+commit fff85f0069f2539c1f51427803ec8ca1cd7b8bd7
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Thu Jan 25 11:20:41 2018 -0500
+
+    Add a Semigroup (Render Canvas V2 Double) instance
+
+diff --git a/src/Diagrams/Backend/Canvas.hs b/src/Diagrams/Backend/Canvas.hs
+index 154cf45..67f5309 100644
+--- a/src/Diagrams/Backend/Canvas.hs
++++ b/src/Diagrams/Backend/Canvas.hs
+@@ -1,3 +1,4 @@
++{-# LANGUAGE CPP                   #-}
+ {-# LANGUAGE TypeFamilies          #-}
+ {-# LANGUAGE MultiParamTypeClasses #-}
+ {-# LANGUAGE FlexibleInstances     #-}
+@@ -136,9 +137,14 @@ liftC = lift
+ runRenderM :: RenderM a -> BC.Canvas a
+ runRenderM = flip SS.evalStateStackT def
+ 
++instance Semigroup (Render Canvas V2 Double) where
++  C c1 <> C c2 = C (c1 >> c2)
++
+ instance Monoid (Render Canvas V2 Double) where
+   mempty  = C $ return ()
+-  (C c1) `mappend` (C c2) = C (c1 >> c2)
++#if !MIN_VERSION_base(4,11,0)
++  mappend = (<>)
++#endif
+ 
+ instance Backend Canvas V2 Double where
+   data Render  Canvas V2 Double = C (RenderM ())

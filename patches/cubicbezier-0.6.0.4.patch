@@ -1,0 +1,75 @@
+From 6aa4e9511a7aa3e03e0464790e419e1b266974b3 Mon Sep 17 00:00:00 2001
+From: Ryan Scott <ryan.gl.scott@gmail.com>
+Date: Thu, 25 Jan 2018 12:42:46 -0500
+Subject: [PATCH 1/2] Add a Semigroup instance for OpenPath
+
+---
+ Geom2D/CubicBezier/Basic.hs | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
+
+diff --git a/Geom2D/CubicBezier/Basic.hs b/Geom2D/CubicBezier/Basic.hs
+index 92de359..87b63d6 100644
+--- a/Geom2D/CubicBezier/Basic.hs
++++ b/Geom2D/CubicBezier/Basic.hs
+@@ -1,5 +1,5 @@
+ {-# LANGUAGE PatternGuards #-}
+-{-# LANGUAGE BangPatterns, FlexibleInstances, MultiParamTypeClasses, DeriveTraversable, ViewPatterns, PatternSynonyms, MultiWayIf #-}
++{-# LANGUAGE BangPatterns, CPP, FlexibleInstances, MultiParamTypeClasses, DeriveTraversable, ViewPatterns, PatternSynonyms, MultiWayIf #-}
+ module Geom2D.CubicBezier.Basic
+        (CubicBezier (..), QuadBezier (..), AnyBezier (..), GenericBezier(..),
+         PathJoin (..), ClosedPath(..), OpenPath (..), AffineTransform (..), anyToCubic, anyToQuad,
+@@ -16,6 +16,9 @@ import Geom2D.CubicBezier.Numeric
+ import Math.BernsteinPoly
+ import Numeric.Integration.TanhSinh
+ import Data.Monoid ()
++#if !MIN_VERSION_base(4,11,0)
++import Data.Semigroup (Semigroup(..))
++#endif
+ import Data.List (minimumBy)
+ import Data.Function (on)
+ import Data.VectorSpace
+@@ -93,12 +96,17 @@ data OpenPath a = OpenPath [(Point a, PathJoin a)] (Point a)
+ data ClosedPath a = ClosedPath [(Point a, PathJoin a)]
+                   deriving (Show, Functor, Foldable, Traversable)
+ 
++instance Semigroup (OpenPath a) where
++  p1 <> OpenPath [] _ = p1
++  OpenPath [] _ <> p2 = p2
++  OpenPath joins1 _ <> OpenPath joins2 p =
++    OpenPath (joins1 ++ joins2) p
++
+ instance Monoid (OpenPath a) where
+   mempty = OpenPath [] (error "empty path")
+-  mappend p1 (OpenPath [] _) = p1
+-  mappend (OpenPath [] _) p2 = p2
+-  mappend (OpenPath joins1 _) (OpenPath joins2 p) =
+-    OpenPath (joins1 ++ joins2) p
++#if !MIN_VERSION_base(4,11,0)
++  mappend = (<>)
++#endif
+ 
+ instance (Num a) => AffineTransform (PathJoin a) a where
+   transform _ JoinLine = JoinLine
+
+From 6660bc91cb7511a58cb44cf81f91e037d2777381 Mon Sep 17 00:00:00 2001
+From: Ryan Scott <ryan.gl.scott@gmail.com>
+Date: Thu, 25 Jan 2018 12:47:04 -0500
+Subject: [PATCH 2/2] Depend on semigroups for compatibility
+
+---
+ cubicbezier.cabal | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/cubicbezier.cabal b/cubicbezier.cabal
+index 8f8642b..a2cecf8 100644
+--- a/cubicbezier.cabal
++++ b/cubicbezier.cabal
+@@ -36,6 +36,8 @@ Library
+   Build-depends: base >= 4.8 && < 5, containers >= 0.5.3, integration >= 0.1.1, vector >= 0.10,
+                  matrices >= 0.4.1, microlens >= 0.1.2, microlens-th >= 0.1.2, microlens-mtl >= 0.1.2, mtl >= 2.1.1,
+                  fast-math >= 1.0.0, vector-space >= 0.10.4
++  if !impl(ghc>=8.0)
++    Build-depends: semigroups >= 0.16
+   Exposed-Modules:
+     Geom2D
+     Geom2D.CubicBezier
