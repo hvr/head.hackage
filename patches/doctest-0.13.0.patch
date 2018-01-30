@@ -1,6 +1,6 @@
 diff -ru doctest-0.13.0.orig/src/Extract.hs doctest-0.13.0/src/Extract.hs
---- doctest-0.13.0.orig/src/Extract.hs	2017-08-03 02:24:14.000000000 -0400
-+++ doctest-0.13.0/src/Extract.hs	2017-11-12 09:11:52.772371328 -0500
+--- doctest-0.13.0.orig/src/Extract.hs	2017-08-03 08:24:14.000000000 +0200
++++ doctest-0.13.0/src/Extract.hs	2018-01-30 23:51:31.816872058 +0100
 @@ -76,6 +76,16 @@
  instance NFData a => NFData (Module a) where
    rnf (Module name setup content) = name `deepseq` setup `deepseq` content `deepseq` ()
@@ -46,9 +46,18 @@ diff -ru doctest-0.13.0.orig/src/Extract.hs doctest-0.13.0/src/Extract.hs
  
        -- Top-level documentation has to be treated separately, because it has
 diff -ru doctest-0.13.0.orig/src/Runner.hs doctest-0.13.0/src/Runner.hs
---- doctest-0.13.0.orig/src/Runner.hs	2017-08-03 02:24:14.000000000 -0400
-+++ doctest-0.13.0/src/Runner.hs	2017-11-12 09:14:54.968375916 -0500
-@@ -47,9 +47,12 @@
+--- doctest-0.13.0.orig/src/Runner.hs	2017-08-03 08:24:14.000000000 +0200
++++ doctest-0.13.0/src/Runner.hs	2018-01-30 23:52:43.276570633 +0100
+@@ -16,6 +16,8 @@
+ #if __GLASGOW_HASKELL__ < 710
+ import           Data.Monoid
+ import           Control.Applicative
++#else
++import Data.Semigroup
+ #endif
+ 
+ import           Control.Monad hiding (forM_)
+@@ -47,9 +49,13 @@
      printf "Examples: %d  Tried: %d  Errors: %d  Failures: %d" examples tried errors failures
  
  -- | Sum up summaries.
@@ -59,6 +68,7 @@ diff -ru doctest-0.13.0.orig/src/Runner.hs doctest-0.13.0/src/Runner.hs
  instance Monoid Summary where
    mempty = Summary 0 0 0 0
 -  (Summary x1 x2 x3 x4) `mappend` (Summary y1 y2 y3 y4) = Summary (x1 + y1) (x2 + y2) (x3 + y3) (x4 + y4)
++  mappend = (<>)
  
  -- | Run all examples from a list of modules.
  runModules :: Bool -> Bool -> Interpreter -> [Module [Located DocTest]] -> IO Summary
