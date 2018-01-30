@@ -1,7 +1,16 @@
 diff -ru singletons-2.3.1.orig/src/Data/Singletons/Partition.hs singletons-2.3.1/src/Data/Singletons/Partition.hs
---- singletons-2.3.1.orig/src/Data/Singletons/Partition.hs	2017-07-31 09:27:02.000000000 -0400
-+++ singletons-2.3.1/src/Data/Singletons/Partition.hs	2017-11-09 09:40:25.529886917 -0500
-@@ -37,10 +37,12 @@
+--- singletons-2.3.1.orig/src/Data/Singletons/Partition.hs	2017-07-31 15:27:02.000000000 +0200
++++ singletons-2.3.1/src/Data/Singletons/Partition.hs	2018-01-30 21:45:13.777063841 +0100
+@@ -26,7 +26,7 @@
+ import Language.Haskell.TH.Desugar
+ import Data.Singletons.Util
+ 
+-import Data.Monoid
++import Data.Semigroup
+ import Control.Monad
+ import Data.Maybe
+ 
+@@ -37,10 +37,13 @@
          , pd_data_decs :: [DataDecl]
          }
  
@@ -13,37 +22,74 @@ diff -ru singletons-2.3.1.orig/src/Data/Singletons/Partition.hs singletons-2.3.1
    mempty = PDecs [] [] [] []
 -  mappend (PDecs a1 b1 c1 d1) (PDecs a2 b2 c2 d2) =
 -    PDecs (a1 <> a2) (b1 <> b2) (c1 <> c2) (d1 <> d2)
++  mappend = (<>)
  
  -- | Split up a @[DDec]@ into its pieces, extracting 'Ord' instances
  -- from deriving clauses
 diff -ru singletons-2.3.1.orig/src/Data/Singletons/Promote/Monad.hs singletons-2.3.1/src/Data/Singletons/Promote/Monad.hs
---- singletons-2.3.1.orig/src/Data/Singletons/Promote/Monad.hs	2017-07-31 09:27:02.000000000 -0400
-+++ singletons-2.3.1/src/Data/Singletons/Promote/Monad.hs	2017-11-09 09:39:11.073885042 -0500
-@@ -46,7 +46,7 @@
+--- singletons-2.3.1.orig/src/Data/Singletons/Promote/Monad.hs	2017-07-31 15:27:02.000000000 +0200
++++ singletons-2.3.1/src/Data/Singletons/Promote/Monad.hs	2018-01-30 21:43:58.001392685 +0100
+@@ -9,7 +9,7 @@
+ of DDec, and is wrapped around a Q.
+ -}
+ 
+-{-# LANGUAGE GeneralizedNewtypeDeriving, StandaloneDeriving,
++{-# LANGUAGE CPP, GeneralizedNewtypeDeriving, StandaloneDeriving,
+              FlexibleContexts, TypeFamilies, KindSignatures #-}
+ 
+ module Data.Singletons.Promote.Monad (
+@@ -46,7 +46,12 @@
  newtype PrM a = PrM (ReaderT PrEnv (WriterT [DDec] Q) a)
    deriving ( Functor, Applicative, Monad, Quasi
             , MonadReader PrEnv, MonadWriter [DDec]
 -           , MonadFail )
-+           , MonadFail, MonadIO )
++           , MonadFail
++#if MIN_VERSION_base(4,11,0)
++           , MonadIO
++#endif
++           )
++
  
  instance DsMonad PrM where
    localDeclarations = asks pr_local_decls
 diff -ru singletons-2.3.1.orig/src/Data/Singletons/Single/Monad.hs singletons-2.3.1/src/Data/Singletons/Single/Monad.hs
---- singletons-2.3.1.orig/src/Data/Singletons/Single/Monad.hs	2017-07-31 09:27:02.000000000 -0400
-+++ singletons-2.3.1/src/Data/Singletons/Single/Monad.hs	2017-11-09 09:39:33.501885607 -0500
-@@ -46,7 +46,7 @@
+--- singletons-2.3.1.orig/src/Data/Singletons/Single/Monad.hs	2017-07-31 15:27:02.000000000 +0200
++++ singletons-2.3.1/src/Data/Singletons/Single/Monad.hs	2018-01-30 21:44:55.425143522 +0100
+@@ -8,7 +8,7 @@
+ The SgM monad allows reading from a SgEnv environment and is wrapped around a Q.
+ -}
+ 
+-{-# LANGUAGE GeneralizedNewtypeDeriving, ParallelListComp, TemplateHaskell #-}
++{-# LANGUAGE CPP, GeneralizedNewtypeDeriving, ParallelListComp, TemplateHaskell #-}
+ 
+ module Data.Singletons.Single.Monad (
+   SgM, bindLets, lookupVarE, lookupConE,
+@@ -46,7 +46,11 @@
  newtype SgM a = SgM (ReaderT SgEnv (WriterT [DDec] Q) a)
    deriving ( Functor, Applicative, Monad
             , MonadReader SgEnv, MonadWriter [DDec]
 -           , MonadFail )
-+           , MonadFail, MonadIO )
++           , MonadFail
++#if MIN_VERSION_base(4,11,0)
++           , MonadIO
++#endif
++           )
  
  liftSgM :: Q a -> SgM a
  liftSgM = SgM . lift . lift
 diff -ru singletons-2.3.1.orig/src/Data/Singletons/Syntax.hs singletons-2.3.1/src/Data/Singletons/Syntax.hs
---- singletons-2.3.1.orig/src/Data/Singletons/Syntax.hs	2017-07-31 09:27:02.000000000 -0400
-+++ singletons-2.3.1/src/Data/Singletons/Syntax.hs	2017-11-09 09:38:02.461883314 -0500
-@@ -99,10 +99,12 @@
+--- singletons-2.3.1.orig/src/Data/Singletons/Syntax.hs	2017-07-31 15:27:02.000000000 +0200
++++ singletons-2.3.1/src/Data/Singletons/Syntax.hs	2018-01-30 21:42:20.681814485 +0100
+@@ -13,7 +13,7 @@
+ module Data.Singletons.Syntax where
+ 
+ import Prelude hiding ( exp )
+-import Data.Monoid
++import Data.Semigroup
+ import Language.Haskell.TH.Syntax
+ import Language.Haskell.TH.Desugar
+ import Data.Map.Strict ( Map )
+@@ -99,10 +99,13 @@
  type ALetDecEnv = LetDecEnv Annotated
  type ULetDecEnv = LetDecEnv Unannotated
  
@@ -55,12 +101,13 @@ diff -ru singletons-2.3.1.orig/src/Data/Singletons/Syntax.hs singletons-2.3.1/sr
    mempty = LetDecEnv Map.empty Map.empty [] ()
 -  mappend (LetDecEnv defns1 types1 infx1 _) (LetDecEnv defns2 types2 infx2 _) =
 -    LetDecEnv (defns1 <> defns2) (types1 <> types2) (infx1 <> infx2) ()
++  mappend = (<>)
  
  valueBinding :: Name -> ULetDecRHS -> ULetDecEnv
  valueBinding n v = emptyLetDecEnv { lde_defns = Map.singleton n v }
 diff -ru singletons-2.3.1.orig/src/Data/Singletons/TypeRepStar.hs singletons-2.3.1/src/Data/Singletons/TypeRepStar.hs
---- singletons-2.3.1.orig/src/Data/Singletons/TypeRepStar.hs	2017-07-31 09:27:02.000000000 -0400
-+++ singletons-2.3.1/src/Data/Singletons/TypeRepStar.hs	2017-11-09 10:06:22.245926121 -0500
+--- singletons-2.3.1.orig/src/Data/Singletons/TypeRepStar.hs	2017-07-31 15:27:02.000000000 +0200
++++ singletons-2.3.1/src/Data/Singletons/TypeRepStar.hs	2018-01-30 21:37:38.371039144 +0100
 @@ -39,7 +39,6 @@
  import Data.Kind
  import GHC.Exts ( Proxy# )
@@ -83,8 +130,8 @@ diff -ru singletons-2.3.1.orig/src/Data/Singletons/TypeRepStar.hs singletons-2.3
  instance SEq Type where
    (STypeRep :: Sing a) %:== (STypeRep :: Sing b) =
 diff -ru singletons-2.3.1.orig/src/Data/Singletons/Util.hs singletons-2.3.1/src/Data/Singletons/Util.hs
---- singletons-2.3.1.orig/src/Data/Singletons/Util.hs	2017-07-31 09:27:02.000000000 -0400
-+++ singletons-2.3.1/src/Data/Singletons/Util.hs	2017-11-09 09:38:50.957884536 -0500
+--- singletons-2.3.1.orig/src/Data/Singletons/Util.hs	2017-07-31 15:27:02.000000000 +0200
++++ singletons-2.3.1/src/Data/Singletons/Util.hs	2018-01-30 21:37:38.371039144 +0100
 @@ -353,7 +353,7 @@
  newtype QWithAux m q a = QWA { runQWA :: WriterT m q a }
    deriving ( Functor, Applicative, Monad, MonadTrans
