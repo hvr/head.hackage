@@ -1,0 +1,28 @@
+From c5d27e2a64a6ecbe2466ce8867bf834fcea5f79c Mon Sep 17 00:00:00 2001
+From: Ryan Scott <ryan.gl.scott@gmail.com>
+Date: Sun, 4 Feb 2018 15:16:11 -0500
+Subject: [PATCH] Fix the build on GHC 8.4
+
+---
+ Language/Java/Pretty.hs | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/Language/Java/Pretty.hs b/Language/Java/Pretty.hs
+index 6986283..558f53e 100644
+--- a/Language/Java/Pretty.hs
++++ b/Language/Java/Pretty.hs
+@@ -1,3 +1,4 @@
++{-# LANGUAGE CPP #-}
+ module Language.Java.Pretty where
+
+ import Text.PrettyPrint
+@@ -7,6 +8,9 @@ import Data.List (intersperse)
+
+ import Language.Java.Syntax
+
++#if MIN_VERSION_base(4,11,0)
++import Prelude hiding ((<>))
++#endif
+
+ prettyPrint :: Pretty a => a -> String
+ prettyPrint = show . pretty
