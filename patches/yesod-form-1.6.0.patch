@@ -1,0 +1,48 @@
+commit 3408e1e630f593ca93b5e79e7e7121a1fa813307
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Sun Feb 4 19:49:16 2018 -0500
+
+    Adapt to Semigroup changes in base-4.11
+
+diff --git a/ChangeLog.md b/ChangeLog.md
+index 9af79a5..79a704b 100644
+--- a/ChangeLog.md
++++ b/ChangeLog.md
+@@ -1,3 +1,7 @@
++## 1.6.1
++
++* Explicitly define `(<>)` in the `Semigroup` instance for `Enctype`
++
+ ## 1.6.0
+
+ * Upgrade to yesod-core 1.6.0
+diff --git a/Yesod/Form/Types.hs b/Yesod/Form/Types.hs
+index bd4e91d..898e319 100644
+--- a/Yesod/Form/Types.hs
++++ b/Yesod/Form/Types.hs
+@@ -104,9 +104,12 @@ instance ToValue Enctype where
+     toValue Multipart = "multipart/form-data"
+ instance Monoid Enctype where
+     mempty = UrlEncoded
+-    mappend UrlEncoded UrlEncoded = UrlEncoded
+-    mappend _ _ = Multipart
+-instance Semigroup Enctype
++#if !(MIN_VERSION_base(4,11,0))
++    mappend = (<>)
++#endif
++instance Semigroup Enctype where
++    UrlEncoded <> UrlEncoded = UrlEncoded
++    _          <> _          = Multipart
+
+ data Ints = IntCons Int Ints | IntSingle Int
+ instance Show Ints where
+diff --git a/yesod-form.cabal b/yesod-form.cabal
+index aa54488..adfcd2a 100644
+--- a/yesod-form.cabal
++++ b/yesod-form.cabal
+@@ -1,5 +1,5 @@
+ name:            yesod-form
+-version:         1.6.0
++version:         1.6.1
+ license:         MIT
+ license-file:    LICENSE
