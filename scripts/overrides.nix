@@ -33,7 +33,7 @@ stdenv.mkDerivation {
 
   installPhase = ''
     cp patches.nix $out
-    ensureDir $script/patches
+    mkdir -p $script/patches
     cp -r patches $script/patches
   '';
 
