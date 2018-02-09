@@ -26,7 +26,7 @@ generateOverrides prefix patchDir = do
 mkOverride :: (PackageName, [([Int], String)]) -> String
 mkOverride (display -> pName, patches) =
   unlines $
-    [unwords [pName, "= if false then", superPname]]
+    [unwords [pName, "= if", superPname, "== null then", superPname]]
      ++ packages ++
     [ "else", superPname, ";"]
   where
