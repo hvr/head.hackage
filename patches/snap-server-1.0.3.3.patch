@@ -1,0 +1,104 @@
+commit 31212777f14163e9870fd0aec4ac00f914fc710a
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Mon Feb 26 19:24:29 2018 -0500
+
+    Add a Semigroup instance for Config
+
+diff --git a/snap-server.cabal b/snap-server.cabal
+index b821bae..c9d4b9b 100644
+--- a/snap-server.cabal
++++ b/snap-server.cabal
+@@ -129,6 +129,9 @@ Library
+     EmptyDataDecls,
+     GeneralizedNewtypeDeriving
+ 
++  if !impl(ghc >= 8.0)
++    build-depends: semigroups >= 0.16 && < 0.19
++
+   if flag(portable) || os(windows)
+     cpp-options: -DPORTABLE
+   else
+diff --git a/src/Snap/Internal/Http/Server/Config.hs b/src/Snap/Internal/Http/Server/Config.hs
+index 4809d16..0345f88 100644
+--- a/src/Snap/Internal/Http/Server/Config.hs
++++ b/src/Snap/Internal/Http/Server/Config.hs
+@@ -92,6 +92,9 @@ import           Data.Maybe                 (isJust, isNothing)
+ import           Data.Monoid                (Monoid (..))
+ #endif
+ import           Data.Monoid                (Last (Last, getLast))
++#if !MIN_VERSION_base(4,11,0)
++import           Data.Semigroup             (Semigroup (..))
++#endif
+ import qualified Data.Text                  as T
+ import qualified Data.Text.Encoding         as T
+ #if MIN_VERSION_base(4,7,0)
+@@ -286,31 +289,8 @@ emptyConfig = mempty
+ 
+ 
+ ------------------------------------------------------------------------------
+-instance Monoid (Config m a) where
+-    mempty = Config
+-        { hostname       = Nothing
+-        , accessLog      = Nothing
+-        , errorLog       = Nothing
+-        , locale         = Nothing
+-        , port           = Nothing
+-        , bind           = Nothing
+-        , sslport        = Nothing
+-        , sslbind        = Nothing
+-        , sslcert        = Nothing
+-        , sslchaincert   = Nothing
+-        , sslkey         = Nothing
+-        , unixsocket     = Nothing
+-        , unixaccessmode = Nothing
+-        , compression    = Nothing
+-        , verbose        = Nothing
+-        , errorHandler   = Nothing
+-        , defaultTimeout = Nothing
+-        , other          = Nothing
+-        , proxyType      = Nothing
+-        , startupHook    = Nothing
+-        }
+-
+-    a `mappend` b = Config
++instance Semigroup (Config m a) where
++    a <> b = Config
+         { hostname       = ov hostname
+         , accessLog      = ov accessLog
+         , errorLog       = ov errorLog
+@@ -337,6 +317,35 @@ instance Monoid (Config m a) where
+         ov f = getLast $! (mappend `on` (Last . f)) a b
+ 
+ 
++instance Monoid (Config m a) where
++    mempty = Config
++        { hostname       = Nothing
++        , accessLog      = Nothing
++        , errorLog       = Nothing
++        , locale         = Nothing
++        , port           = Nothing
++        , bind           = Nothing
++        , sslport        = Nothing
++        , sslbind        = Nothing
++        , sslcert        = Nothing
++        , sslchaincert   = Nothing
++        , sslkey         = Nothing
++        , unixsocket     = Nothing
++        , unixaccessmode = Nothing
++        , compression    = Nothing
++        , verbose        = Nothing
++        , errorHandler   = Nothing
++        , defaultTimeout = Nothing
++        , other          = Nothing
++        , proxyType      = Nothing
++        , startupHook    = Nothing
++        }
++
++#if !MIN_VERSION_base(4,11,0)
++    mappend = (<>)
++#endif
++
++
+ ------------------------------------------------------------------------------
+ -- | These are the default values for the options
+ defaultConfig :: MonadSnap m => Config m a
