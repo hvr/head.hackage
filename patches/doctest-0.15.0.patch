@@ -1,0 +1,15 @@
+diff -ru doctest-0.15.0.orig/src/Extract.hs doctest-0.15.0/src/Extract.hs
+--- doctest-0.15.0.orig/src/Extract.hs	2018-03-13 01:00:03.000000000 -0400
++++ doctest-0.15.0/src/Extract.hs	2018-04-07 07:53:40.409732877 -0400
+@@ -151,7 +151,11 @@
+         objectDir  = Just f
+       , hiDir      = Just f
+       , stubDir    = Just f
++#if __GLASGOW_HASKELL__ >= 805
++      , includePaths = addGlobalInclude (includePaths d) [f]
++#else
+       , includePaths = f : includePaths d
++#endif
+       }
+ 
+ -- | Extract all docstrings from given list of files/modules.
