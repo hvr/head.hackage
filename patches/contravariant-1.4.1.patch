@@ -1,0 +1,117 @@
+From 2ba79e6a8b249783eddbebe124e5cd0382a4107b Mon Sep 17 00:00:00 2001
+From: Ryan Scott <ryan.gl.scott@gmail.com>
+Date: Fri, 20 Apr 2018 10:20:29 -0400
+Subject: [PATCH] Support building with GHC 8.5 (#45)
+
+* Support building with GHC 8.5
+
+* Require a Contravariant-supporting StateVar
+---
+ CHANGELOG.markdown                             |  5 +++++
+ contravariant.cabal                            |  7 +++++--
+ {src => old-src}/Data/Functor/Contravariant.hs | 12 ++++++------
+ 4 files changed, 36 insertions(+), 9 deletions(-)
+ rename {src => old-src}/Data/Functor/Contravariant.hs (98%)
+
+diff --git a/CHANGELOG.markdown b/CHANGELOG.markdown
+index a12e8bf..a8b83a9 100644
+--- a/CHANGELOG.markdown
++++ b/CHANGELOG.markdown
+@@ -1,3 +1,8 @@
++next [????.??.??]
++-----------------
++* Support building with GHC 8.6, where `Data.Functor.Contravariant` has been
++  moved into `base`.
++
+ 1.4.1 [2018.01.18]
+ ------------------
+ * Add `Semigroup` and `Monoid` instances for `Predicate`.
+diff --git a/contravariant.cabal b/contravariant.cabal
+index 70df61e..f4459c9 100644
+--- a/contravariant.cabal
++++ b/contravariant.cabal
+@@ -78,7 +78,7 @@ library
+     build-depends: semigroups >= 0.15.2 && < 1
+
+   if flag(StateVar)
+-    build-depends: StateVar >= 1.1 && < 1.2
++    build-depends: StateVar >= 1.1.1 && < 1.2
+
+   if impl(ghc >= 7.2 && < 7.6)
+     build-depends: ghc-prim
+@@ -87,10 +87,13 @@ library
+     cpp-options: -DSAFE
+
+   exposed-modules:
+-    Data.Functor.Contravariant
+     Data.Functor.Contravariant.Compose
+     Data.Functor.Contravariant.Divisible
+
++  if impl(ghc < 8.5)
++    hs-source-dirs: old-src
++    exposed-modules: Data.Functor.Contravariant
++
+   if impl(ghc >= 7.4)
+     exposed-modules: Data.Functor.Contravariant.Generic
+
+diff --git a/src/Data/Functor/Contravariant.hs b/old-src/Data/Functor/Contravariant.hs
+similarity index 98%
+rename from src/Data/Functor/Contravariant.hs
+rename to old-src/Data/Functor/Contravariant.hs
+index 8096afd..a2be28d 100644
+--- a/src/Data/Functor/Contravariant.hs
++++ b/old-src/Data/Functor/Contravariant.hs
+@@ -181,7 +181,7 @@ infixl 4 >$, $<, >$<, >$$<
+ ($<) = flip (>$)
+ {-# INLINE ($<) #-}
+
+--- | This is an infix alias for 'contramap'
++-- | This is an infix alias for 'contramap'.
+ (>$<) :: Contravariant f => (a -> b) -> f b -> f a
+ (>$<) = contramap
+ {-# INLINE (>$<) #-}
+@@ -201,7 +201,7 @@ instance Contravariant V1 where
+   contramap _ x = x `seq` undefined
+
+ instance Contravariant U1 where
+-  contramap _ U1 = U1
++  contramap _ _ = U1
+
+ instance Contravariant f => Contravariant (Rec1 f) where
+   contramap f (Rec1 fp)= Rec1 (contramap f fp)
+@@ -297,7 +297,7 @@ instance Contravariant SettableStateVar where
+
+ #if (__GLASGOW_HASKELL__ >= 707) || defined(VERSION_tagged)
+ instance Contravariant Proxy where
+-  contramap _ Proxy = Proxy
++  contramap _ _ = Proxy
+ #endif
+
+ newtype Predicate a = Predicate { getPredicate :: a -> Bool }
+@@ -323,7 +323,7 @@ instance Monoid (Predicate a) where
+   mappend (Predicate p) (Predicate q) = Predicate $ \a -> p a && q a
+ #endif
+
+--- | Defines a total ordering on a type as per 'compare'
++-- | Defines a total ordering on a type as per 'compare'.
+ --
+ -- This condition is not checked by the types. You must ensure that the supplied
+ -- values are valid total orderings yourself.
+@@ -346,7 +346,7 @@ instance Monoid (Comparison a) where
+   mempty = Comparison (\_ _ -> EQ)
+   mappend (Comparison p) (Comparison q) = Comparison $ mappend p q
+
+--- | Compare using 'compare'
++-- | Compare using 'compare'.
+ defaultComparison :: Ord a => Comparison a
+ defaultComparison = Comparison compare
+
+@@ -391,7 +391,7 @@ instance Monoid (Equivalence a) where
+   mempty = Equivalence (\_ _ -> True)
+   mappend (Equivalence p) (Equivalence q) = Equivalence $ \a b -> p a b && q a b
+
+--- | Check for equivalence with '=='
++-- | Check for equivalence with '=='.
+ --
+ -- Note: The instances for 'Double' and 'Float' violate reflexivity for @NaN@.
+ defaultEquivalence :: Eq a => Equivalence a
