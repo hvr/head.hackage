@@ -1,0 +1,54 @@
+commit e212bc7fba4b874234b5c901c98418cd9c0bfbac
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Mon May 7 16:17:34 2018 -0400
+
+    Allow building with unix-2.8
+
+diff --git a/System/EntropyNix.hs b/System/EntropyNix.hs
+index 01a7bc4..3f5bd5b 100644
+--- a/System/EntropyNix.hs
++++ b/System/EntropyNix.hs
+@@ -64,7 +64,11 @@ openHandle :: IO CryptHandle
+ openHandle = do CH `fmap` nonRDRandHandle
+  where
+   nonRDRandHandle :: IO Fd
+-  nonRDRandHandle = openFd source ReadOnly Nothing defaultFileFlags
++  nonRDRandHandle = openFd source ReadOnly
++#if !(MIN_VERSION_unix(2,8,0))
++                           Nothing
++#endif
++                           defaultFileFlags
+ 
+ -- |Close the `CryptHandle`
+ closeHandle :: CryptHandle -> IO ()
+
+commit c682fcd6cc2bcaa5cab9f6e59a93faf8c9938221
+Merge: 74fed23 fa82202
+Author: Thomas M. DuBuisson <thomas.dubuisson@gmail.com>
+Date:   Mon May 7 09:07:46 2018 -0700
+
+    Merge pull request #39 from RyanGlScott/master
+    
+    Use ghcProgram in Setup.hs script
+
+
+commit fa822029cf7ae838dba8b9b6e2f51d897089ea50
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Mon May 7 09:55:43 2018 -0400
+
+    Use ghcProgram in Setup.hs script
+
+diff --git a/Setup.hs b/Setup.hs
+index 49b693f..61f116a 100644
+--- a/Setup.hs
++++ b/Setup.hs
+@@ -17,8 +17,7 @@ main = defaultMainWithHooks hk
+  where
+  hk = simpleUserHooks { buildHook = \pd lbi uh bf -> do
+                                         -- let ccProg = Program "gcc" undefined undefined undefined
+-                                        let hcProg = Program "ghc" undefined undefined undefined
+-                                            mConf  = lookupProgram hcProg (withPrograms lbi)
++                                        let mConf  = lookupProgram ghcProgram (withPrograms lbi)
+                                             err    = error "Could not determine C compiler"
+                                             cc     = locationPath . programLocation  . maybe err id $ mConf
+                                         b <- canUseRDRAND cc
