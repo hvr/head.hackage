@@ -1,0 +1,17 @@
+diff --git a/src/Snap/Internal/Http/Server/Socket.hs b/src/Snap/Internal/Http/Server/Socket.hs
+index cb64f74..48b23da 100644
+--- a/src/Snap/Internal/Http/Server/Socket.hs
++++ b/src/Snap/Internal/Http/Server/Socket.hs
+@@ -163,7 +163,11 @@ sendFileFunc :: Socket -> SendFileHandler
+ sendFileFunc sock !_ builder fPath offset nbytes = bracket acquire closeFd go
+   where
+     sockFd    = Fd (fdSocket sock)
+-    acquire   = openFd fPath ReadOnly Nothing defaultFileFlags
++    acquire   = openFd fPath ReadOnly
++#if !(MIN_VERSION_unix(2,8,0))
++                       Nothing
++#endif
++                       defaultFileFlags
+     go fileFd = do sendHeaders builder sockFd
+                    sendFile sockFd fileFd offset nbytes
+ 
