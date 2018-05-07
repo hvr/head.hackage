@@ -1,6 +1,6 @@
 diff -ru doctest-0.15.0.orig/src/Extract.hs doctest-0.15.0/src/Extract.hs
 --- doctest-0.15.0.orig/src/Extract.hs	2018-03-13 01:00:03.000000000 -0400
-+++ doctest-0.15.0/src/Extract.hs	2018-04-07 07:53:40.409732877 -0400
++++ doctest-0.15.0/src/Extract.hs	2018-05-07 08:57:19.407104487 -0400
 @@ -151,7 +151,11 @@
          objectDir  = Just f
        , hiDir      = Just f
@@ -11,5 +11,31 @@ diff -ru doctest-0.15.0.orig/src/Extract.hs doctest-0.15.0/src/Extract.hs
        , includePaths = f : includePaths d
 +#endif
        }
- 
+
  -- | Extract all docstrings from given list of files/modules.
+@@ -197,8 +201,10 @@
+     header  = [(Nothing, x) | Just x <- [hsmodHaddockModHeader source]]
+ #if __GLASGOW_HASKELL__ < 710
+     exports = [(Nothing, L loc doc) | L loc (IEDoc doc) <- concat (hsmodExports source)]
+-#else
++#elif __GLASGOW_HASKELL__ < 805
+     exports = [(Nothing, L loc doc) | L loc (IEDoc doc) <- maybe [] unLoc (hsmodExports source)]
++#else
++    exports = [(Nothing, L loc doc) | L loc (IEDoc _ doc) <- maybe [] unLoc (hsmodExports source)]
+ #endif
+     decls   = extractDocStrings (hsmodDecls source)
+
+@@ -252,7 +258,12 @@
+       -- Top-level documentation has to be treated separately, because it has
+       -- no location information attached.  The location information is
+       -- attached to HsDecl instead.
+-      DocD x -> select (fromDocDecl loc x)
++#if __GLASGOW_HASKELL__ >= 805
++      DocD _ x
++#else
++      DocD x
++#endif
++             -> select (fromDocDecl loc x)
+
+       _ -> (extractDocStrings decl, True)
+
