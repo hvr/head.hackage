@@ -1,0 +1,59 @@
+diff --git a/Network/Sendfile/BSD.hsc b/Network/Sendfile/BSD.hsc
+index e8377c5..2b179d5 100644
+--- a/Network/Sendfile/BSD.hsc
++++ b/Network/Sendfile/BSD.hsc
+@@ -43,7 +43,11 @@ sendfile :: Socket -> FilePath -> FileRange -> IO () -> IO ()
+ sendfile sock path range hook = bracket setup teardown $ \fd ->
+     sendfileFd sock fd range hook
+   where
+-    setup = openFd path ReadOnly Nothing defaultFileFlags{nonBlock=True}
++    setup = openFd path ReadOnly
++#if !(MIN_VERSION_unix(2,8,0))
++                   Nothing
++#endif
++                   defaultFileFlags{nonBlock=True}
+     teardown = closeFd
+ 
+ -- |
+@@ -104,7 +108,11 @@ sendfileWithHeader :: Socket -> FilePath -> FileRange -> IO () -> [ByteString] -
+ sendfileWithHeader sock path range hook hdr =
+     bracket setup teardown $ \fd -> sendfileFdWithHeader sock fd range hook hdr
+   where
+-    setup = openFd path ReadOnly Nothing defaultFileFlags{nonBlock=True}
++    setup = openFd path ReadOnly
++#if !(MIN_VERSION_unix(2,8,0))
++                   Nothing
++#endif
++                   defaultFileFlags{nonBlock=True}
+     teardown = closeFd
+ 
+ -- |
+diff --git a/Network/Sendfile/Linux.hsc b/Network/Sendfile/Linux.hsc
+index 3714202..ce29f4a 100644
+--- a/Network/Sendfile/Linux.hsc
++++ b/Network/Sendfile/Linux.hsc
+@@ -65,14 +65,22 @@ sendfile :: Socket -> FilePath -> FileRange -> IO () -> IO ()
+ sendfile sock path range hook = bracket setup teardown $ \fd ->
+     sendfileFd sock fd range hook
+   where
+-    setup = openFd path ReadOnly Nothing defaultFileFlags{nonBlock=True}
++    setup = openFd path ReadOnly
++#if !(MIN_VERSION_unix(2,8,0))
++                   Nothing
++#endif
++                   defaultFileFlags{nonBlock=True}
+     teardown = closeFd
+ 
+ sendfile' :: Fd -> ByteString -> FileRange -> IO () -> IO ()
+ sendfile' dst path range hook = bracket setup teardown $ \src ->
+     sendfileFd' dst src range hook
+   where
+-    setup = B.openFd path ReadOnly Nothing defaultFileFlags{nonBlock=True}
++    setup = B.openFd path ReadOnly
++#if !(MIN_VERSION_unix(2,8,0))
++                     Nothing
++#endif
++                     defaultFileFlags{nonBlock=True}
+     teardown = closeFd
+ 
+ -- |
