@@ -1,0 +1,37 @@
+diff -ru crypto-random-0.0.9.orig/Crypto/Random/Entropy/Unix.hs crypto-random-0.0.9/Crypto/Random/Entropy/Unix.hs
+--- crypto-random-0.0.9.orig/Crypto/Random/Entropy/Unix.hs	2015-03-18 09:42:48.000000000 -0400
++++ crypto-random-0.0.9/Crypto/Random/Entropy/Unix.hs	2018-05-07 10:10:49.039215536 -0400
+@@ -5,6 +5,7 @@
+ -- Stability   : experimental
+ -- Portability : Good
+ --
++{-# LANGUAGE CPP #-}
+ {-# LANGUAGE ScopedTypeVariables #-}
+ module Crypto.Random.Entropy.Unix
+     ( DevRandom
+@@ -22,10 +23,10 @@
+ type H = Fd
+ type DeviceName = String
+ 
+--- | Entropy device /dev/random on unix system 
++-- | Entropy device /dev/random on unix system
+ newtype DevRandom  = DevRandom DeviceName
+ 
+--- | Entropy device /dev/urandom on unix system 
++-- | Entropy device /dev/urandom on unix system
+ newtype DevURandom = DevURandom DeviceName
+ 
+ instance EntropySource DevRandom where
+@@ -48,7 +49,11 @@
+         Just h  -> closeDev h >> return (Just filepath)
+ 
+ openDev :: String -> IO (Maybe H)
+-openDev filepath = (Just `fmap` openFd filepath ReadOnly Nothing fileFlags)
++openDev filepath = (Just `fmap` openFd filepath ReadOnly
++#if !(MIN_VERSION_unix(2,8,0))
++                                       Nothing
++#endif
++                                       fileFlags)
+     `E.catch` \(_ :: IOException) -> return Nothing
+   where fileFlags = defaultFileFlags { nonBlock = True }
+ 
