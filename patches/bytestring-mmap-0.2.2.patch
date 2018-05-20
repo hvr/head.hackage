@@ -1,0 +1,38 @@
+diff -ru bytestring-mmap-0.2.2.orig/System/IO/Posix/MMap/Lazy.hs bytestring-mmap-0.2.2/System/IO/Posix/MMap/Lazy.hs
+--- bytestring-mmap-0.2.2.orig/System/IO/Posix/MMap/Lazy.hs	2011-04-29 15:58:05.000000000 -0400
++++ bytestring-mmap-0.2.2/System/IO/Posix/MMap/Lazy.hs	2018-05-20 14:44:47.123915525 -0400
+@@ -91,7 +91,11 @@
+ --
+ unsafeMMapFile :: FilePath -> IO ByteString
+ unsafeMMapFile path = do
+-    fd   <- openFd path ReadOnly Nothing defaultFileFlags
++    fd   <- openFd path ReadOnly
++#if !(MIN_VERSION_unix(2,8,0))
++                   Nothing
++#endif
++                   defaultFileFlags
+     always (closeFd fd) $ do
+         stat <- getFdStatus fd
+         let size = fromIntegral (fileSize stat)
+diff -ru bytestring-mmap-0.2.2.orig/System/IO/Posix/MMap.hs bytestring-mmap-0.2.2/System/IO/Posix/MMap.hs
+--- bytestring-mmap-0.2.2.orig/System/IO/Posix/MMap.hs	2011-04-29 15:58:05.000000000 -0400
++++ bytestring-mmap-0.2.2/System/IO/Posix/MMap.hs	2018-05-20 14:44:17.671914783 -0400
+@@ -1,4 +1,4 @@
+-{-# LANGUAGE ForeignFunctionInterface #-}
++{-# LANGUAGE CPP, ForeignFunctionInterface #-}
+ --------------------------------------------------------------------
+ -- |
+ -- Module    :  System.IO.Posix.MMap
+@@ -98,7 +98,11 @@
+ --
+ unsafeMMapFile :: FilePath -> IO ByteString
+ unsafeMMapFile f = do
+-    fd   <- openFd f ReadOnly Nothing defaultFileFlags
++    fd   <- openFd f ReadOnly
++#if !(MIN_VERSION_unix(2,8,0))
++                   Nothing
++#endif
++                   defaultFileFlags
+     always (closeFd fd) $ do
+         stat <- getFdStatus fd
+         let size = fromIntegral (fileSize stat)
