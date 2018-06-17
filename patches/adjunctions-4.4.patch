@@ -1,0 +1,28 @@
+diff -ru adjunctions-4.4.orig/src/Data/Functor/Contravariant/Rep.hs adjunctions-4.4/src/Data/Functor/Contravariant/Rep.hs
+--- adjunctions-4.4.orig/src/Data/Functor/Contravariant/Rep.hs	2018-01-28 09:49:01.000000000 -0500
++++ adjunctions-4.4/src/Data/Functor/Contravariant/Rep.hs	2018-06-17 15:47:29.634812139 -0400
+@@ -1,7 +1,11 @@
++{-# LANGUAGE CPP #-}
+ {-# LANGUAGE FlexibleContexts #-}
+ {-# LANGUAGE FlexibleInstances #-}
+ {-# LANGUAGE TypeFamilies #-}
+ {-# LANGUAGE TypeOperators #-}
++#if __GLASGOW_HASKELL__ >= 805
++{-# LANGUAGE StarIsType #-}
++#endif
+ {-# OPTIONS_GHC -fenable-rewrite-rules #-}
+ ----------------------------------------------------------------------
+ -- |
+diff -ru adjunctions-4.4.orig/src/Data/Functor/Rep.hs adjunctions-4.4/src/Data/Functor/Rep.hs
+--- adjunctions-4.4.orig/src/Data/Functor/Rep.hs	2018-01-28 09:49:01.000000000 -0500
++++ adjunctions-4.4/src/Data/Functor/Rep.hs	2018-06-17 15:47:46.526812565 -0400
+@@ -11,6 +11,9 @@
+ {-# LANGUAGE DefaultSignatures #-}
+ {-# LANGUAGE Trustworthy #-}
+ {-# LANGUAGE TypeOperators #-}
++#if __GLASGOW_HASKELL__ >= 805
++{-# LANGUAGE StarIsType #-}
++#endif
+ {-# OPTIONS_GHC -fenable-rewrite-rules #-}
+ ----------------------------------------------------------------------
+ -- |

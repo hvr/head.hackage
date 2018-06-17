@@ -1,0 +1,31 @@
+diff -ru reflection-2.1.3.orig/fast/Data/Reflection.hs reflection-2.1.3/fast/Data/Reflection.hs
+--- reflection-2.1.3.orig/fast/Data/Reflection.hs	2018-01-18 19:35:38.000000000 -0500
++++ reflection-2.1.3/fast/Data/Reflection.hs	2018-06-17 16:11:06.662847825 -0400
+@@ -23,6 +23,10 @@
+ # endif
+ #endif
+ 
++#if __GLASGOW_HASKELL__ >= 805
++{-# LANGUAGE StarIsType #-}
++#endif
++
+ {-# LANGUAGE TypeFamilies #-}
+ {-# LANGUAGE DeriveDataTypeable #-}
+ {-# LANGUAGE UndecidableInstances #-}
+@@ -126,6 +130,7 @@
+ import Data.Traversable
+ #endif
+ 
++import qualified Data.Kind as Kind
+ import Data.Typeable
+ import Data.Word
+ import Foreign.Ptr
+@@ -330,7 +335,7 @@
+   a + b = AppT (AppT (VarT ''(+)) a) b
+ 
+   LitT (NumTyLit a) * LitT (NumTyLit b) = LitT (NumTyLit (a*b))
+-  (*) a b = AppT (AppT (VarT ''(*)) a) b
++  (*) a b = AppT (AppT (VarT ''(GHC.TypeLits.*)) a) b
+ #if MIN_VERSION_base(4,8,0)
+   a - b = AppT (AppT (VarT ''(-)) a) b
+ #else
