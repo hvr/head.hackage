@@ -1,14 +1,33 @@
-commit 470dcb77200a60701907ad958af04e5b9e18d7a3
-Author: Ryan Scott <ryan.gl.scott@gmail.com>
-Date:   Tue Apr 3 14:45:48 2018 -0400
-
-    Allow building with template-haskell-2.14
-
-diff --git a/src/Data/Singletons/Single/Monad.hs b/src/Data/Singletons/Single/Monad.hs
-index 7da2a7b..b1928b2 100644
---- a/src/Data/Singletons/Single/Monad.hs
-+++ b/src/Data/Singletons/Single/Monad.hs
-@@ -8,7 +8,7 @@ This file defines the SgM monad and its operations, for use during singling.
+diff -ru singletons-2.4.1.orig/src/Data/Singletons/Internal.hs singletons-2.4.1/src/Data/Singletons/Internal.hs
+--- singletons-2.4.1.orig/src/Data/Singletons/Internal.hs	2018-01-08 11:09:19.000000000 -0500
++++ singletons-2.4.1/src/Data/Singletons/Internal.hs	2018-06-17 15:14:39.710762530 -0400
+@@ -88,7 +88,7 @@
+   -- | Get a base type from the promoted kind. For example,
+   -- @Demote Bool@ will be the type @Bool@. Rarely, the type and kind do not
+   -- match. For example, @Demote Nat@ is @Natural@.
+-  type Demote k = (r :: *) | r -> k
++  type Demote k = (r :: Type) | r -> k
+ 
+   -- | Convert a singleton to its unrefined version.
+   fromSing :: Sing (a :: k) -> Demote k
+@@ -167,11 +167,11 @@
+ -- between term-level arrows and this type-level arrow is that at the term
+ -- level applications can be unsaturated, whereas at the type level all
+ -- applications have to be fully saturated.
+-data TyFun :: * -> * -> *
++data TyFun :: Type -> Type -> Type
+ 
+ -- | Something of kind `a ~> b` is a defunctionalized type function that is
+ -- not necessarily generative or injective.
+-type a ~> b = TyFun a b -> *
++type a ~> b = TyFun a b -> Type
+ infixr 0 ~>
+ 
+ -- | Type level function application
+diff -ru singletons-2.4.1.orig/src/Data/Singletons/Single/Monad.hs singletons-2.4.1/src/Data/Singletons/Single/Monad.hs
+--- singletons-2.4.1.orig/src/Data/Singletons/Single/Monad.hs	2018-01-08 11:09:19.000000000 -0500
++++ singletons-2.4.1/src/Data/Singletons/Single/Monad.hs	2018-06-17 15:13:26.514760687 -0400
+@@ -8,7 +8,7 @@
  The SgM monad allows reading from a SgEnv environment and is wrapped around a Q.
  -}
  
@@ -17,7 +36,7 @@ index 7da2a7b..b1928b2 100644
  
  module Data.Singletons.Single.Monad (
    SgM, bindLets, lookupVarE, lookupConE,
-@@ -72,7 +72,12 @@ instance Quasi SgM where
+@@ -72,7 +72,12 @@
    qReifyConStrictness = liftSgM `comp1` qReifyConStrictness
    qIsExtEnabled       = liftSgM `comp1` qIsExtEnabled
    qExtsEnabled        = liftSgM qExtsEnabled
@@ -30,11 +49,40 @@ index 7da2a7b..b1928b2 100644
    qAddCorePlugin      = liftSgM `comp1` qAddCorePlugin
  
    qRecover (SgM handler) (SgM body) = do
-diff --git a/src/Data/Singletons/Util.hs b/src/Data/Singletons/Util.hs
-index f11bc7e..1a30765 100644
---- a/src/Data/Singletons/Util.hs
-+++ b/src/Data/Singletons/Util.hs
-@@ -11,7 +11,7 @@ Users of the package should not need to consult this file.
+diff -ru singletons-2.4.1.orig/src/Data/Singletons/TypeRepStar.hs singletons-2.4.1/src/Data/Singletons/TypeRepStar.hs
+--- singletons-2.4.1.orig/src/Data/Singletons/TypeRepStar.hs	2018-01-08 11:09:19.000000000 -0500
++++ singletons-2.4.1/src/Data/Singletons/TypeRepStar.hs	2018-06-17 15:15:54.770764420 -0400
+@@ -50,7 +50,7 @@
+ -- | A variant of 'SomeTypeRep' whose underlying 'TypeRep' is restricted to
+ -- kind @*@.
+ data SomeTypeRepStar where
+-  SomeTypeRepStar :: forall (a :: *). !(TypeRep a) -> SomeTypeRepStar
++  SomeTypeRepStar :: forall (a :: Type). !(TypeRep a) -> SomeTypeRepStar
+ 
+ instance Eq SomeTypeRepStar where
+   SomeTypeRepStar a == SomeTypeRepStar b =
+@@ -65,7 +65,7 @@
+ instance Show SomeTypeRepStar where
+   showsPrec p (SomeTypeRepStar ty) = showsPrec p ty
+ 
+-instance Typeable a => SingI (a :: *) where
++instance Typeable a => SingI (a :: Type) where
+   sing = STypeRep typeRep
+ instance SingKind Type where
+   type Demote Type = SomeTypeRepStar
+@@ -73,7 +73,7 @@
+   toSing (SomeTypeRepStar tr) = SomeSing $ STypeRep tr
+ 
+ instance PEq Type where
+-  type (a :: *) == (b :: *) = EqType a b
++  type (a :: Type) == (b :: Type) = EqType a b
+ 
+ type family EqType (a :: Type) (b :: Type) where
+   EqType a a = 'True
+diff -ru singletons-2.4.1.orig/src/Data/Singletons/Util.hs singletons-2.4.1/src/Data/Singletons/Util.hs
+--- singletons-2.4.1.orig/src/Data/Singletons/Util.hs	2018-01-08 11:09:19.000000000 -0500
++++ singletons-2.4.1/src/Data/Singletons/Util.hs	2018-06-17 15:13:26.514760687 -0400
+@@ -11,7 +11,7 @@
               TemplateHaskell, GeneralizedNewtypeDeriving,
               MultiParamTypeClasses, StandaloneDeriving,
               UndecidableInstances, MagicHash, UnboxedTuples,
@@ -43,7 +91,7 @@ index f11bc7e..1a30765 100644
  
  module Data.Singletons.Util where
  
-@@ -404,7 +404,12 @@ instance (Quasi q, Monoid m) => Quasi (QWithAux m q) where
+@@ -404,7 +404,12 @@
    qReifyConStrictness = lift `comp1` qReifyConStrictness
    qIsExtEnabled       = lift `comp1` qIsExtEnabled
    qExtsEnabled        = lift qExtsEnabled

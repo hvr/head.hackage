@@ -1,0 +1,14 @@
+diff -ru cereal-0.5.5.0.orig/src/Data/Serialize.hs cereal-0.5.5.0/src/Data/Serialize.hs
+--- cereal-0.5.5.0.orig/src/Data/Serialize.hs	2018-01-22 17:50:15.000000000 -0500
++++ cereal-0.5.5.0/src/Data/Serialize.hs	2018-06-17 15:23:44.358776246 -0400
+@@ -7,6 +7,10 @@
+            , KindSignatures
+            , ScopedTypeVariables #-}
+ 
++#if __GLASGOW_HASKELL__ >= 805
++{-# LANGUAGE StarIsType #-}
++#endif
++
+ #ifndef MIN_VERSION_base
+ #define MIN_VERSION_base(x,y,z) 1
+ #endif
