@@ -1,0 +1,34 @@
+diff -ru basement-0.0.7.orig/Basement/Nat.hs basement-0.0.7/Basement/Nat.hs
+--- basement-0.0.7.orig/Basement/Nat.hs	2017-11-11 04:52:31.000000000 -0500
++++ basement-0.0.7/Basement/Nat.hs	2018-06-24 17:54:55.038235612 -0400
+@@ -8,6 +8,9 @@
+ {-# LANGUAGE ScopedTypeVariables       #-}
+ {-# LANGUAGE UndecidableInstances      #-}
+ {-# LANGUAGE ConstraintKinds           #-}
++#if __GLASGOW_HASKELL__ >= 805
++{-# LANGUAGE NoStarIsType #-}
++#endif
+ module Basement.Nat
+     ( Nat
+     , KnownNat
+diff -ru basement-0.0.7.orig/Basement/Sized/Block.hs basement-0.0.7/Basement/Sized/Block.hs
+--- basement-0.0.7.orig/Basement/Sized/Block.hs	2018-02-12 09:24:12.000000000 -0500
++++ basement-0.0.7/Basement/Sized/Block.hs	2018-06-24 17:56:02.506237311 -0400
+@@ -5,13 +5,16 @@
+ --
+ -- A Nat-sized version of Block
+ {-# LANGUAGE AllowAmbiguousTypes        #-}
++{-# LANGUAGE CPP                        #-}
+ {-# LANGUAGE DataKinds                  #-}
+ {-# LANGUAGE TypeOperators              #-}
+ {-# LANGUAGE TypeApplications           #-}
+ {-# LANGUAGE ScopedTypeVariables        #-}
+ {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+ {-# LANGUAGE ConstraintKinds            #-}
+-
++#if __GLASGOW_HASKELL__ >= 805
++{-# LANGUAGE NoStarIsType #-}
++#endif
+ module Basement.Sized.Block
+     ( BlockN
+     , MutableBlockN

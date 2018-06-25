@@ -1,0 +1,13 @@
+diff -ru constraints-0.10.orig/src/Data/Constraint/Nat.hs constraints-0.10/src/Data/Constraint/Nat.hs
+--- constraints-0.10.orig/src/Data/Constraint/Nat.hs	2018-01-18 14:26:31.000000000 -0500
++++ constraints-0.10/src/Data/Constraint/Nat.hs	2018-06-24 18:17:26.938269657 -0400
+@@ -10,6 +10,9 @@
+ {-# LANGUAGE ScopedTypeVariables #-}
+ {-# LANGUAGE AllowAmbiguousTypes #-}
+ {-# LANGUAGE Trustworthy #-}
++#if __GLASGOW_HASKELL__ >= 805
++{-# LANGUAGE NoStarIsType #-}
++#endif
+ -- | Utilities for working with 'KnownNat' constraints.
+ --
+ -- This module is only available on GHC 8.0 or later.
