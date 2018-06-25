@@ -1,8 +1,12 @@
-commit 470dcb77200a60701907ad958af04e5b9e18d7a3
+commit 6eb213390729706e1840eaa67124caf26ac839f3
 Author: Ryan Scott <ryan.gl.scott@gmail.com>
 Date:   Tue Apr 3 14:45:48 2018 -0400
 
     Allow building with template-haskell-2.14
+    
+    This requires adding some CPP to temporarily support two versions of
+    GHC (8.4 and HEAD). I'll file an issue as a reminder to remove this
+    CPP once we drop support for GHC 8.4.
 
 diff --git a/src/Data/Singletons/Single/Monad.hs b/src/Data/Singletons/Single/Monad.hs
 index 7da2a7b..b1928b2 100644
@@ -31,7 +35,7 @@ index 7da2a7b..b1928b2 100644
  
    qRecover (SgM handler) (SgM body) = do
 diff --git a/src/Data/Singletons/Util.hs b/src/Data/Singletons/Util.hs
-index f11bc7e..1a30765 100644
+index 271ade3..fb64fad 100644
 --- a/src/Data/Singletons/Util.hs
 +++ b/src/Data/Singletons/Util.hs
 @@ -11,7 +11,7 @@ Users of the package should not need to consult this file.
@@ -43,7 +47,7 @@ index f11bc7e..1a30765 100644
  
  module Data.Singletons.Util where
  
-@@ -404,7 +404,12 @@ instance (Quasi q, Monoid m) => Quasi (QWithAux m q) where
+@@ -417,7 +417,12 @@ instance (Quasi q, Monoid m) => Quasi (QWithAux m q) where
    qReifyConStrictness = lift `comp1` qReifyConStrictness
    qIsExtEnabled       = lift `comp1` qIsExtEnabled
    qExtsEnabled        = lift qExtsEnabled
@@ -56,3 +60,29 @@ index f11bc7e..1a30765 100644
    qAddCorePlugin      = lift `comp1` qAddCorePlugin
  
    qRecover exp handler = do
+
+commit ddd353afa3c92a53c00f22919611f734eaa0f29f
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Sat Jun 30 18:51:48 2018 -0400
+
+    PNum(type (*)) requires NoStarIsType
+    
+    This requires adding some CPP to temporarily support two versions of
+    GHC (8.4 and HEAD). I'll amend #324 as a reminder to remove this
+    CPP once we drop support for GHC 8.4.
+
+diff --git a/src/Data/Singletons/Prelude/Num.hs b/src/Data/Singletons/Prelude/Num.hs
+index 9381afc..f1d00ab 100644
+--- a/src/Data/Singletons/Prelude/Num.hs
++++ b/src/Data/Singletons/Prelude/Num.hs
+@@ -2,6 +2,10 @@
+              TypeOperators, GADTs, ScopedTypeVariables, UndecidableInstances,
+              DefaultSignatures, FlexibleContexts, InstanceSigs
+   #-}
++{-# LANGUAGE CPP #-}
++#if __GLASGOW_HASKELL__ >= 805
++{-# LANGUAGE NoStarIsType #-}
++#endif
+ 
+ -----------------------------------------------------------------------------
+ -- |

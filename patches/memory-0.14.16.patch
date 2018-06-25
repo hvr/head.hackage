@@ -1,0 +1,14 @@
+diff -ru memory-0.14.16.orig/Data/ByteArray/Sized.hs memory-0.14.16/Data/ByteArray/Sized.hs
+--- memory-0.14.16.orig/Data/ByteArray/Sized.hs	2018-02-26 05:46:08.000000000 -0500
++++ memory-0.14.16/Data/ByteArray/Sized.hs	2018-06-24 17:59:32.450242598 -0400
+@@ -21,7 +21,9 @@
+ {-# LANGUAGE MultiParamTypeClasses #-}
+ {-# LANGUAGE FunctionalDependencies #-}
+ {-# LANGUAGE UndecidableInstances #-}
+-
++#if __GLASGOW_HASKELL__ >= 805
++{-# LANGUAGE NoStarIsType #-}
++#endif
+ module Data.ByteArray.Sized
+     ( ByteArrayN(..)
+     , SizedByteArray
