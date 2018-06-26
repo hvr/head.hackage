@@ -4,7 +4,7 @@
 
 set -e
 
-patches_dir=$(realpath patches)
+patches_dir=$(realpath $(dirname $0)/../patches)
 
 split_pkg_version() {
     package=$(echo $1 | sed 's/\(.\+\)-\([0-9]\+\(\.[0-9]\+\)*\)/\1/')
