@@ -78,7 +78,7 @@ unpack_pkg() {
 update_patches() {
     for p in packages/*; do
         local patch_path=$patches_dir/$(basename $p).patch
-        git -C $p diff upstream..HEAD > $patch_path
+        git -C $p diff upstream > $patch_path
         git -C $patches_dir add $patch_path
     done
     git -C $patches_dir status .
