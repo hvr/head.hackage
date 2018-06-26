@@ -1,0 +1,19 @@
+diff --git a/th-lift.cabal b/th-lift.cabal
+index 8103e0c..d42e6e4 100644
+--- a/th-lift.cabal
++++ b/th-lift.cabal
+@@ -31,7 +31,7 @@ Library
+     Build-Depends: packedstring == 0.1.*,
+                    template-haskell >= 2.2 && < 2.4
+   else
+-    Build-Depends: template-haskell >= 2.4 && < 2.14
++    Build-Depends: template-haskell >= 2.4 && < 2.15
+ 
+ Test-Suite test
+   Type:             exitcode-stdio-1.0
+@@ -46,4 +46,4 @@ Test-Suite test
+     Build-Depends: packedstring == 0.1.*,
+                    template-haskell >= 2.2 && < 2.4
+   else
+-    Build-Depends: template-haskell >= 2.4 && < 2.14
++    Build-Depends: template-haskell >= 2.4 && < 2.15
