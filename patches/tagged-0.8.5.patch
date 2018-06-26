@@ -1,0 +1,13 @@
+diff --git a/tagged.cabal b/tagged.cabal
+index 1d211a3..075889c 100644
+--- a/tagged.cabal
++++ b/tagged.cabal
+@@ -58,7 +58,7 @@ library
+ 
+   if impl(ghc>=7.6)
+     exposed-modules: Data.Proxy.TH
+-    build-depends: template-haskell >= 2.8 && < 2.14
++    build-depends: template-haskell >= 2.8 && < 2.15
+ 
+   if flag(deepseq)
+     build-depends: deepseq >= 1.1 && < 1.5
