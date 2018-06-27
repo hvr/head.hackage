@@ -105,6 +105,23 @@ $ cd ..
 
 TODO: implement script
 
+### Adding a patch
+
+The `scripts/unpack.sh` script is a tool for conveniently authoring and updating
+patches. For instance, if you find that the `doctest` package needs to be
+patched first run:
+```
+$ scripts/unpack.sh unpack doctest
+```
+This will extract a `doctest` source tree to `packages/doctest-$version` and
+initialize it as a git repository. You can now proceed to edit the tree as
+necessary and run
+```
+$ scripts/unpack.sh update-patches
+```
+This will create an appropriately-named patch in `patches/` from the edits in
+the `doctest` tree.
+
 ### Travis CI
 
 The [Travis CI script generator](https://github.com/haskell-hvr/multi-ghc-travis) has recently added support for enabling the `HEAD.hackage` repository automatically for jobs using unreleased GHC versions.
