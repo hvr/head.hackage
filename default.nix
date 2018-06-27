@@ -31,7 +31,7 @@ let
           patches = self.callPackage (import ./scripts/overrides.nix) { patches = ./patches; };
           overrides = self.lib.composeExtensions patchesOverrides jailbreakOverrides;
 
-          haskellPackages = self.callPackage "${baseNixpkgs}/pkgs/development/haskell-modules" {
+          baseHaskellPackages = self.callPackage "${baseNixpkgs}/pkgs/development/haskell-modules" {
             haskellLib = import "${baseNixpkgs}/pkgs/development/haskell-modules/lib.nix" {
               inherit (self) lib;
               pkgs = self;
@@ -70,10 +70,13 @@ let
               transformers = null;
               unix = null;
 
+              doctest = haskellPackages.callPackage ./doctest.nix {};
+              http-api-data = haskellPackages.callPackage ./http-api-data.nix {};
+
               jailbreak-cabal = self.haskell.packages.ghc802.jailbreak-cabal;
             };
           };
-      in haskellPackages.extend overrides;
+      in baseHaskellPackages.extend overrides;
   };
 
   baseNixpkgs = (import <nixpkgs> {}).fetchFromGitHub {
