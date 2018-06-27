@@ -7,9 +7,17 @@
 #   Build using GHC built from source tree $GHC_TREE:
 #       nix build -f --arg ghc "(import build.nix {ghc-path=$GHC_TREE;})"
 #
+let
+  baseNixpkgs = (import <nixpkgs> {}).fetchFromGitHub {
+    owner = "nixos";
+    repo = "nixpkgs";
+    rev = "ff0641ceea9e652e0f21f6805a2b618cde6597a2";
+    sha256 = null;
+  };
+in
 
 # ghc: path to a GHC source tree
-{ ghc ? (pkgs: pkgs.haskell.compiler.ghcHEAD) }:
+{ ghc ? import ./ghc.nix }:
 
 let
   jailbreakOverrides = self: super: {
@@ -17,6 +25,7 @@ let
   };
 
   overrides = self: super: rec {
+    # Should this be self?
     ghcHEAD = ghc super;
 
     haskellPackages =
@@ -70,12 +79,5 @@ let
             };
           };
       in baseHaskellPackages.extend overrides;
-  };
-
-  baseNixpkgs = (import <nixpkgs> {}).fetchFromGitHub {
-    owner = "nixos";
-    repo = "nixpkgs";
-    rev = "ff0641ceea9e652e0f21f6805a2b618cde6597a2";
-    sha256 = null;
   };
 in import baseNixpkgs { overlays = [ overrides ]; }
