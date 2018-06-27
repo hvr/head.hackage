@@ -1,30 +1,23 @@
-{ ghcTree }:
+# Build head.hackage packages
+#
+# Usage:
+#   Build using nixpkgs' ghcHEAD:
+#       nix build -f ./.
+#
+#   Build using GHC built from source tree $GHC_TREE:
+#       nix build -f --arg ghc "(import build.nix {ghc-path=$GHC_TREE;})"
+#
+
+# ghc: path to a GHC source tree
+{ ghc ? (pkgs: pkgs.haskell.compiler.ghcHEAD) }:
 
 let
   jailbreakOverrides = self: super: {
-    mkDerivation = drv: super.mkDerivation (drv // { jailbreak = true; doHaddock = false; });
+    mkDerivation = drv: super.mkDerivation (drv // { jailbreak = true; doCheck = false; });
   };
 
   overrides = self: super: rec {
-    ghcHEAD =
-      let
-        base = self.callPackage "${baseNixpkgs}/pkgs/development/compilers/ghc/head.nix" rec {
-          bootPkgs = self.haskell.packages.ghc843;
-          inherit (bootPkgs) alex happy hscolour;
-          buildLlvmPackages = self.buildPackages.llvmPackages_6;
-          llvmPackages = self.llvmPackages_6;
-          version = "8.6.0";
-        };
-      in base.overrideAttrs (oldAttrs: {
-        #preConfigure = oldAttrs.preConfigure + "\nrm mk/build.mk\n";
-        src = with self.lib; cleanSourceWith {
-          src = ghcTree;
-          filter = name: type: cleanSourceFilter name type
-            && ! hasSuffix "are-validating.mk" name
-            && ! hasSuffix "_build" name;
-            # && ! hasSuffix "bindisttest/" name;
-        };
-      });
+    ghcHEAD = ghc super;
 
     haskellPackages =
       let patchesOverrides = self.callPackage patches {};
