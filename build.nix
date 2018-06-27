@@ -5,7 +5,6 @@
 { ghcTree }: pkgs:
 
 let
-  #base = pkgs.haskell.compiler.ghcHEAD;
   base = pkgs.callPackage "${pkgs.path}/pkgs/development/compilers/ghc/head.nix" rec {
     bootPkgs = pkgs.haskell.packages.ghc843;
     inherit (bootPkgs) alex happy hscolour;
@@ -19,6 +18,5 @@ in base.overrideAttrs (oldAttrs: {
     filter = name: type: cleanSourceFilter name type
       && ! hasSuffix "are-validating.mk" name
       && ! hasSuffix "_build" name;
-      # && ! hasSuffix "bindisttest/" name;
   };
 })
