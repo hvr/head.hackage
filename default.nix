@@ -11,7 +11,7 @@ let
   baseNixpkgs = (import <nixpkgs> {}).fetchFromGitHub {
     owner = "nixos";
     repo = "nixpkgs";
-    rev = "ff0641ceea9e652e0f21f6805a2b618cde6597a2";
+    rev = "140ad12d71c57716b3ee3b777d53c27b019360f0";
     sha256 = null;
   };
 in
