@@ -78,6 +78,7 @@ let
               http-api-data = haskellPackages.callPackage ./http-api-data.nix {};
 
               jailbreak-cabal = self.haskell.packages.ghc802.jailbreak-cabal;
+              cabal2nix = self.haskell.packages.ghc843.cabal2nix;
             };
           };
       in baseHaskellPackages.extend overrides;
