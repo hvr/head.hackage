@@ -25,6 +25,8 @@ let
   };
 
   overrides = self: super: rec {
+    all-cabal-hashes = self.fetchurl (import ./all-cabal-hashes.nix);
+
     # Should this be self?
     ghcHEAD = ghc super;
 
