@@ -47,7 +47,7 @@ generateOverride prefix patchDir patch = do
   let pname = display (packageName pid)
       version = versionNumbers (packageVersion pid)
   return $ (packageName pid, (version,
-    unwords [ "haskell.lib.appendPatch", "super."++pname, prefix </> patchDir </> patch ]))
+    unwords [ "dontRevise(", "haskell.lib.appendPatch", "super."++pname, prefix </> patchDir </> patch, ")"]))
 
 main :: IO ()
 main = do
@@ -58,6 +58,8 @@ main = do
                 [prefix, dir] -> return (prefix, dir)
                 _     -> fail "Usage: generate-nix-overrides [<prefix>, patchdir]"
   overrides <- generateOverrides prefix patchDir
-  putStrLn "{haskell}: self: super: {\n"
+  putStrLn "{haskell}:"
+  putStrLn "let dontRevise = pkg: haskell.lib.overrideCabal pkg (old: { editedCabalFile = null; }); in"
+  putStrLn "self: super: {\n"
   putStrLn overrides
   putStrLn "}"
