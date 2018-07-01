@@ -82,5 +82,20 @@ let
             };
           };
       in baseHaskellPackages.extend overrides;
+
+    headHackageScripts = self.stdenv.mkDerivation {
+      name = "head-hackage-scripts";
+      nativeBuildInputs = [ self.makeWrapper ];
+      buildCommand = ''
+        mkdir -p $out/bin
+        makeWrapper ${scripts/patch-tool} $out/bin/patch-tool \
+          --prefix PATH : ${super.haskellPackages.cabal-install}/bin \
+          --prefix PATH : ${self.jq}/bin \
+          --prefix PATH : ${self.curl}/bin
+
+        makeWrapper ${scripts/head.hackage.sh} $out/bin/head.hackage.sh \
+          --set CABAL ${super.haskellPackages.cabal-install}/bin/cabal
+      '';
+    };
   };
 in import baseNixpkgs { overlays = [ overrides ]; }
