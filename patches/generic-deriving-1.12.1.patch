@@ -1,0 +1,28 @@
+diff --git a/generic-deriving.cabal b/generic-deriving.cabal
+index fa54f54..fc7687c 100644
+--- a/generic-deriving.cabal
++++ b/generic-deriving.cabal
+@@ -84,6 +84,7 @@ library
+   ghc-options:          -Wall
+ 
+ test-suite spec
++  buildable: False
+   type:                 exitcode-stdio-1.0
+   main-is:              Spec.hs
+   other-modules:        EmptyCaseSpec
+diff --git a/src/Generics/Deriving/TH/Internal.hs b/src/Generics/Deriving/TH/Internal.hs
+index dc8cf20..f53c132 100644
+--- a/src/Generics/Deriving/TH/Internal.hs
++++ b/src/Generics/Deriving/TH/Internal.hs
+@@ -983,7 +983,10 @@ falseDataName = mkGHCPrimName_d "GHC.Bool"  "False"
+ #endif
+ 
+ nothingDataName, justDataName :: Name
+-#if MIN_VERSION_base(4,8,0)
++#if MIN_VERSION_base(4,12,0)
++nothingDataName = mkBaseName_d "GHC.Maybe"  "Nothing"
++justDataName    = mkBaseName_d "GHC.Maybe"  "Just"
++#elif MIN_VERSION_base(4,8,0)
+ nothingDataName = mkBaseName_d "GHC.Base"   "Nothing"
+ justDataName    = mkBaseName_d "GHC.Base"   "Just"
+ #else

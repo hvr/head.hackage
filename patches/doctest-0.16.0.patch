@@ -1,0 +1,498 @@
+diff --git a/.ghci b/.ghci
+new file mode 100644
+index 0000000..227d59b
+--- /dev/null
++++ b/.ghci
+@@ -0,0 +1,2 @@
++:set -DTEST -isrc -itest -idist/build/autogen -packageghc -optP-include -optPdist/build/autogen/cabal_macros.h
++:set -ighci-wrapper/src
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..178135c
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1 @@
++/dist/
+diff --git a/.travis.yml b/.travis.yml
+new file mode 100644
+index 0000000..b5a08c1
+--- /dev/null
++++ b/.travis.yml
+@@ -0,0 +1,91 @@
++sudo: false
++
++language: c
++
++matrix:
++  include:
++    - env: GHCVER=7.6.3 CABALVER=1.24
++      addons:
++        apt:
++          sources:
++            - hvr-ghc
++          packages:
++            - ghc-7.6.3
++            - cabal-install-1.24
++    - env: GHCVER=7.8.4 CABALVER=1.24
++      addons:
++        apt:
++          sources:
++            - hvr-ghc
++          packages:
++            - ghc-7.8.4
++            - cabal-install-1.24
++    - env: GHCVER=7.10.3 CABALVER=1.24
++      addons:
++        apt:
++          sources:
++            - hvr-ghc
++          packages:
++            - ghc-7.10.3
++            - cabal-install-1.24
++    - env: GHCVER=8.0.2 CABALVER=1.24
++      addons:
++        apt:
++          sources:
++            - hvr-ghc
++          packages:
++            - ghc-8.0.2
++            - cabal-install-1.24
++    - env: GHCVER=8.2.1 CABALVER=1.24
++      addons:
++        apt:
++          sources:
++            - hvr-ghc
++          packages:
++            - ghc-8.2.1
++            - cabal-install-1.24
++    - env: GHCVER=8.4.1 CABALVER=head
++      addons:
++        apt:
++          sources:
++            - hvr-ghc
++          packages:
++            - ghc-8.4.1
++            - cabal-install-head
++    - env: GHCVER=8.6.1 CABALVER=head
++      addons:
++        apt:
++          sources:
++            - hvr-ghc
++          packages:
++            - ghc-8.6.1
++            - cabal-install-head
++    - env: GHCVER=head CABALVER=head
++      addons:
++        apt:
++          sources:
++            - hvr-ghc
++          packages:
++            - ghc-head
++            - cabal-install-head
++  allow_failures:
++    - env: GHCVER=head CABALVER=head
++
++before_install:
++  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
++  - CABAL_OPTS=""
++  - |
++    case "$GHCVER" in
++    head | 8.6.*)
++      CABAL_OPTS="$CABAL_OPTS --allow-newer"
++      ;;
++    esac
++  - ghc --version
++  - cabal --version
++  - travis_retry cabal update
++  - sed -i 's/^jobs:/-- jobs:/' ${HOME}/.cabal/config
++  - cabal install --enable-tests --only-dep $CABAL_OPTS
++
++script:
++  - (cd ghci-wrapper && cabal configure --enable-tests --ghc-options=-Werror $CABAL_OPTS && cabal build && cabal test)
++  - cabal configure --enable-tests --ghc-options=-Werror $CABAL_OPTS && cabal build && cabal test
+diff --git a/KNOWN_ISSUES b/KNOWN_ISSUES
+new file mode 100644
+index 0000000..ea7d2ae
+--- /dev/null
++++ b/KNOWN_ISSUES
+@@ -0,0 +1,19 @@
++(1) Result lines that only contain the string "<BLANKLINE>" are interpreted as
++    empty lines.  Consequently we can not test expressions that evaluates to
++    "<BLANKLINE>".  Let me know if you really need this feature, and we will
++    work something out.
++
++(2) Lines that start with ">>>" introduce a new expression.  Consequently we
++    can not test expressions that evaluate to something that starts with ">>>".
++    Again, let me know if you really need this, and we will probably work
++    something out.
++ 
++(3) Currently we do not care whether the output produced by an expression is
++    terminated with a newline or not.  So both of the following examples will
++    pass:
++
++    >>> putStr "foo"
++    foo
++
++    >>> putStrLn "foo"
++    foo
+diff --git a/Setup.lhs b/Setup.lhs
+old mode 100644
+new mode 100755
+diff --git a/bash_completion.d/doctest-haskell b/bash_completion.d/doctest-haskell
+new file mode 100644
+index 0000000..d2e437a
+--- /dev/null
++++ b/bash_completion.d/doctest-haskell
+@@ -0,0 +1,26 @@
++#!/bin/bash
++#
++# put into /etc/bash_completion.d/
++#
++_doctest() 
++{
++    local cur prev opts
++    COMPREPLY=()
++    cur="${COMP_WORDS[COMP_CWORD]}"
++    prev="${COMP_WORDS[COMP_CWORD-1]}"
++
++    opts='--help --version'
++
++    case "${prev}" in
++        *)
++            ;;
++    esac
++
++    if [[ ${cur} == -* ]]; then
++        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
++        return 0
++    else
++        _filedir
++    fi
++}
++complete -F _doctest doctest
+diff --git a/doctest.cabal b/doctest.cabal
+index 3be0cad..aa098f7 100644
+--- a/doctest.cabal
++++ b/doctest.cabal
+@@ -1,11 +1,11 @@
+--- This file has been generated from package.yaml by hpack version 0.28.2.
++-- This file has been generated from package.yaml by hpack version 0.27.0.
+ --
+ -- see: https://github.com/sol/hpack
+ --
+--- hash: 3f2294fd9f8fe9ae2eb369fd4a69655cb28a2ba502010c947eaf4f71d450abf8
++-- hash: 03a9b0f4a629d8ae1361038b83b10eb6e4847761565ed78ae4d1b2046e6d0c0f
+ 
+ name:           doctest
+-version:        0.16.0
++version:        0.15.0
+ synopsis:       Test interactive Haskell examples
+ description:    The doctest program checks examples in source code comments.  It is modeled
+                 after doctest for Python (<http://docs.python.org/library/doctest.html>).
+@@ -21,6 +21,7 @@ author:         Simon Hengel <sol@typeful.net>
+ maintainer:     Simon Hengel <sol@typeful.net>
+ build-type:     Simple
+ cabal-version:  >= 1.10
++
+ extra-source-files:
+     CHANGES
+     example/example.cabal
+diff --git a/ghci-wrapper/.ghci b/ghci-wrapper/.ghci
+new file mode 100644
+index 0000000..11102c1
+--- /dev/null
++++ b/ghci-wrapper/.ghci
+@@ -0,0 +1 @@
++:set -isrc -itest
+diff --git a/ghci-wrapper/.gitignore b/ghci-wrapper/.gitignore
+new file mode 100644
+index 0000000..178135c
+--- /dev/null
++++ b/ghci-wrapper/.gitignore
+@@ -0,0 +1 @@
++/dist/
+diff --git a/ghci-wrapper/ghci-wrapper.cabal b/ghci-wrapper/ghci-wrapper.cabal
+new file mode 100644
+index 0000000..8f9aa50
+--- /dev/null
++++ b/ghci-wrapper/ghci-wrapper.cabal
+@@ -0,0 +1,32 @@
++-- This file has been generated from package.yaml by Cabalize.
++--
++-- see: https://github.com/sol/cabalize
++
++name:           ghci-wrapper
++version:        0.0.0
++build-type:     Simple
++cabal-version:  >= 1.10
++
++library
++  hs-source-dirs: src
++  exposed-modules:
++      Language.Haskell.GhciWrapper
++  build-depends:
++      base == 4.*
++    , process
++  default-language: Haskell2010
++
++test-suite spec
++  type: exitcode-stdio-1.0
++  hs-source-dirs: test
++  main-is: Spec.hs
++  other-modules:
++      Language.Haskell.GhciWrapperSpec
++  build-depends:
++      base == 4.*
++    , process
++
++    , ghci-wrapper
++    , hspec == 2.*
++    , silently
++  default-language: Haskell2010
+diff --git a/ghci-wrapper/package.yaml b/ghci-wrapper/package.yaml
+new file mode 100644
+index 0000000..d094d4f
+--- /dev/null
++++ b/ghci-wrapper/package.yaml
+@@ -0,0 +1,15 @@
++dependencies:
++  - base == 4.*
++  - process
++
++library:
++  source-dirs: src
++
++tests:
++  spec:
++    main: Spec.hs
++    source-dirs: test
++    dependencies:
++      - ghci-wrapper
++      - hspec == 2.*
++      - silently
+diff --git a/ghci-wrapper/test/Language/Haskell/GhciWrapperSpec.hs b/ghci-wrapper/test/Language/Haskell/GhciWrapperSpec.hs
+new file mode 100644
+index 0000000..a61c78e
+--- /dev/null
++++ b/ghci-wrapper/test/Language/Haskell/GhciWrapperSpec.hs
+@@ -0,0 +1,93 @@
++{-# LANGUAGE CPP #-}
++module Language.Haskell.GhciWrapperSpec (main, spec) where
++
++import           Test.Hspec
++import           System.IO.Silently
++
++import           Control.Exception
++import           Data.List (isSuffixOf)
++
++import           Language.Haskell.GhciWrapper (Interpreter, Config(..), defaultConfig)
++import qualified Language.Haskell.GhciWrapper as Interpreter
++
++main :: IO ()
++main = hspec spec
++
++withInterpreterConfig :: Config -> (Interpreter -> IO a) -> IO a
++withInterpreterConfig config = bracket (Interpreter.new config []) Interpreter.close
++
++withInterpreter :: ((String -> IO String) -> IO a) -> IO a
++withInterpreter action = withInterpreterConfig defaultConfig $ action . Interpreter.eval
++
++spec :: Spec
++spec = do
++  describe "evalEcho" $ do
++    it "prints result to stdout" $ do
++      withInterpreterConfig defaultConfig $ \ghci -> do
++        (capture $ Interpreter.evalEcho ghci ("putStr" ++ show "foo\nbar")) `shouldReturn` ("foo\nbar", "foo\nbar")
++
++  describe "evalIt" $ do
++    it "preserves it" $ do
++      withInterpreterConfig defaultConfig $ \ghci -> do
++        Interpreter.evalIt ghci "23" `shouldReturn` "23\n"
++        Interpreter.eval ghci "it" `shouldReturn` "23\n"
++
++  describe "eval" $ do
++    it "shows literals" $ withInterpreter $ \ghci -> do
++      ghci "23" `shouldReturn` "23\n"
++
++    it "shows string literals containing Unicode" $ withInterpreter $ \ghci -> do
++      ghci "\"λ\"" `shouldReturn` "\"\\955\"\n"
++
++    it "evaluates simple expressions" $ withInterpreter $ \ghci -> do
++      ghci "23 + 42" `shouldReturn` "65\n"
++
++    it "supports let bindings" $ withInterpreter $ \ghci -> do
++      ghci "let x = 10" `shouldReturn` ""
++      ghci "x" `shouldReturn` "10\n"
++
++    it "allows import statements" $ withInterpreter $ \ghci -> do
++      ghci "import Data.Maybe" `shouldReturn` ""
++      ghci "fromJust (Just 20)" `shouldReturn` "20\n"
++
++    it "captures stdout" $ withInterpreter $ \ghci -> do
++      ghci "putStr \"foo\"" `shouldReturn` "foo"
++
++    it "captures stdout (Unicode)" $ withInterpreter $ \ghci -> do
++      ghci "putStrLn \"λ\"" `shouldReturn` "λ\n"
++
++    it "captures stdout (empty line)" $ withInterpreter $ \ghci -> do
++      ghci "putStrLn \"\"" `shouldReturn` "\n"
++
++    it "captures stdout (multiple lines)" $ withInterpreter $ \ghci -> do
++      ghci "putStrLn \"foo\" >> putStrLn \"bar\" >> putStrLn \"baz\""
++        `shouldReturn` "foo\nbar\nbaz\n"
++
++    it "captures stderr" $ withInterpreter $ \ghci -> do
++      ghci "import System.IO" `shouldReturn` ""
++      ghci "hPutStrLn stderr \"foo\"" `shouldReturn` "foo\n"
++
++    it "captures stderr (Unicode)" $ withInterpreter $ \ghci -> do
++      ghci "import System.IO" `shouldReturn` ""
++      ghci "hPutStrLn stderr \"λ\"" `shouldReturn` "λ\n"
++
++    it "shows exceptions" $ withInterpreter $ \ghci -> do
++      ghci "import Control.Exception" `shouldReturn` ""
++      ghci "throwIO DivideByZero" `shouldReturn` "*** Exception: divide by zero\n"
++
++    it "shows exceptions (ExitCode)" $ withInterpreter $ \ghci -> do
++      ghci "import System.Exit" `shouldReturn` ""
++      ghci "exitWith $ ExitFailure 10" `shouldReturn` "*** Exception: ExitFailure 10\n"
++
++    it "gives an error message for identifiers that are not in scope" $ withInterpreter $ \ghci -> do
++#if __GLASGOW_HASKELL__ >= 800
++      ghci "foo" >>= (`shouldSatisfy` isSuffixOf "Variable not in scope: foo\n")
++#elif __GLASGOW_HASKELL__ >= 707
++      ghci "foo" >>= (`shouldSatisfy` isSuffixOf "Not in scope: \8216foo\8217\n")
++#else
++      ghci "foo" >>= (`shouldSatisfy` isSuffixOf "Not in scope: `foo'\n")
++#endif
++    context "when configVerbose is True" $ do
++      it "prints prompt" $ do
++        withInterpreterConfig defaultConfig{configVerbose = True} $ \ghci -> do
++          Interpreter.eval ghci "print 23" `shouldReturn` "Prelude> 23\nPrelude> "
+diff --git a/ghci-wrapper/test/Spec.hs b/ghci-wrapper/test/Spec.hs
+new file mode 100644
+index 0000000..a824f8c
+--- /dev/null
++++ b/ghci-wrapper/test/Spec.hs
+@@ -0,0 +1 @@
++{-# OPTIONS_GHC -F -pgmF hspec-discover #-}
+diff --git a/package.yaml b/package.yaml
+new file mode 100644
+index 0000000..6498cf5
+--- /dev/null
++++ b/package.yaml
+@@ -0,0 +1,80 @@
++name:             doctest
++version:          0.15.0
++synopsis:         Test interactive Haskell examples
++description: |
++  The doctest program checks examples in source code comments.  It is modeled
++  after doctest for Python (<http://docs.python.org/library/doctest.html>).
++
++  Documentation is at <https://github.com/sol/doctest#readme>.
++category:         Testing
++license:          MIT
++copyright:        (c) 2009-2018 Simon Hengel
++author:           Simon Hengel <sol@typeful.net>
++maintainer:       Simon Hengel <sol@typeful.net>
++
++
++github: sol/doctest
++
++extra-source-files:
++- example/**/*
++- test/parse/**/*
++- test/extract/**/*
++- test/integration/**/*
++- test/sandbox/*
++- CHANGES
++- README.markdown
++
++ghc-options: -Wall
++
++dependencies:
++- base >= 4.5 && < 5
++- base-compat >= 0.7.0
++- ghc >= 7.0 && < 8.6
++- syb >= 0.3
++- code-page >= 0.1
++- deepseq
++- directory
++- filepath
++- process
++- ghc-paths >= 0.1.0.9
++- transformers
++
++library:
++  source-dirs:
++  - src
++  - ghci-wrapper/src
++  exposed-modules:
++  - Test.DocTest
++
++executable:
++  main: Main.hs
++  ghc-options: -threaded
++  source-dirs: driver
++  dependencies: doctest
++
++tests:
++  spec:
++    main: Spec.hs
++    ghc-options: -threaded
++    cpp-options: -DTEST
++    source-dirs:
++      - test
++      - src
++      - ghci-wrapper/src
++    c-sources: test/integration/with-cbits/foo.c
++    dependencies:
++    - HUnit
++    - hspec         >= 1.5.1
++    - QuickCheck    >= 2.11.3
++    - stringbuilder >= 0.4
++    - silently      >= 1.2.4
++    - setenv
++    - with-location
++    - mockery
++
++  doctests:
++    main: doctests.hs
++    other-modules: []
++    ghc-options: -threaded
++    source-dirs: test
++    dependencies: doctest
+diff --git a/src/Runner.hs b/src/Runner.hs
+index 921bf4d..c520275 100644
+--- a/src/Runner.hs
++++ b/src/Runner.hs
+@@ -158,14 +158,14 @@ reportStart loc expression testType = do
+ 
+ reportFailure :: Location -> Expression -> [String] -> Report ()
+ reportFailure loc expression err = do
+-  report (printf "%s: failure in expression `%s'" (show loc) expression)
++  report (printf "### Failure in %s: expression `%s'" (show loc) expression)
+   mapM_ report err
+   report ""
+   updateSummary (Summary 0 1 0 1)
+ 
+ reportError :: Location -> Expression -> String -> Report ()
+ reportError loc expression err = do
+-  report (printf "%s: error in expression `%s'" (show loc) expression)
++  report (printf "### Error in %s: expression `%s'" (show loc) expression)
+   report err
+   report ""
+   updateSummary (Summary 0 1 1 0)
+diff --git a/test/RunSpec.hs b/test/RunSpec.hs
+index 8aa3f53..da75895 100644
+--- a/test/RunSpec.hs
++++ b/test/RunSpec.hs
+@@ -128,7 +128,7 @@ spec = do
+               "### Started execution at test/integration/failing/Foo.hs:5."
+             , "### example:"
+             , "23"
+-            , "test/integration/failing/Foo.hs:5: failure in expression `23'"
++            , "### Failure in test/integration/failing/Foo.hs:5: expression `23'"
+             , "expected: 42"
+             , " but got: 23"
+             , ""

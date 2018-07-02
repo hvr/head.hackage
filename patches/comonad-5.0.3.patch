@@ -1,0 +1,13 @@
+diff --git a/comonad.cabal b/comonad.cabal
+index a5b8dfc..cfa2020 100644
+--- a/comonad.cabal
++++ b/comonad.cabal
+@@ -87,7 +87,7 @@ library
+     transformers-compat >= 0.3     && < 1
+ 
+   if flag(containers)
+-    build-depends: containers >= 0.3 && < 0.6
++    build-depends: containers >= 0.3 && < 0.7
+ 
+   if flag(contravariant)
+     build-depends: contravariant >= 0.2.0.1 && < 2

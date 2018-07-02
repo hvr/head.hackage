@@ -1,0 +1,12 @@
+diff -ru reflection-2.1.3.orig/fast/Data/Reflection.hs reflection-2.1.3/fast/Data/Reflection.hs
+--- reflection-2.1.3.orig/fast/Data/Reflection.hs	2018-01-18 19:35:38.000000000 -0500
++++ reflection-2.1.3/fast/Data/Reflection.hs	2018-06-24 17:43:32.206218416 -0400
+@@ -330,7 +330,7 @@
+   a + b = AppT (AppT (VarT ''(+)) a) b
+ 
+   LitT (NumTyLit a) * LitT (NumTyLit b) = LitT (NumTyLit (a*b))
+-  (*) a b = AppT (AppT (VarT ''(*)) a) b
++  (*) a b = AppT (AppT (VarT ''(GHC.TypeLits.*)) a) b
+ #if MIN_VERSION_base(4,8,0)
+   a - b = AppT (AppT (VarT ''(-)) a) b
+ #else

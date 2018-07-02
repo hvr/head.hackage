@@ -1,0 +1,19 @@
+diff --git a/Setup.hs b/Setup.hs
+index 7bb2d4d..dbac51b 100755
+--- a/Setup.hs
++++ b/Setup.hs
+@@ -35,9 +35,13 @@ unqualComponentName :: String -> String
+ unqualComponentName = id
+ #endif
+ 
++#if !MIN_VERSION_Cabal(2,1,0)
++lookupFlagAssignment = lookup
++#endif
++
+ main = defaultMainWithHooks simpleUserHooks {
+   confHook = \pkg flags -> do
+-    if lookup (flag "use-pkg-config")
++    if lookupFlagAssignment (flag "use-pkg-config")
+               (configConfigurationsFlags flags) == Just True
+     then do
+       confHook simpleUserHooks pkg flags
