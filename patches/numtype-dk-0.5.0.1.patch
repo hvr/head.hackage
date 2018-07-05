@@ -1,0 +1,48 @@
+diff -ru numtype-dk-0.5.0.1.orig/Numeric/NumType/DK/Integers.hs numtype-dk-0.5.0.1/Numeric/NumType/DK/Integers.hs
+--- numtype-dk-0.5.0.1.orig/Numeric/NumType/DK/Integers.hs	2016-05-16 09:14:04.000000000 -0400
++++ numtype-dk-0.5.0.1/Numeric/NumType/DK/Integers.hs	2018-07-04 21:27:12.448314861 -0400
+@@ -7,6 +7,9 @@
+ {-# LANGUAGE TypeFamilies #-}
+ {-# LANGUAGE TypeOperators #-}
+ {-# LANGUAGE UndecidableInstances #-}
++#if __GLASGOW_HASKELL__ >= 805
++{-# LANGUAGE NoStarIsType #-}
++#endif
+ 
+ {- |
+    Copyright  : Copyright (C) 2006-2015 Bjorn Buckwalter
+@@ -20,7 +23,7 @@
+ 
+ Type-level integers for GHC 7.8+.
+ 
+-We provide type level arithmetic operations. We also provide term-level arithmetic operations on proxys, 
++We provide type level arithmetic operations. We also provide term-level arithmetic operations on proxys,
+ and conversion from the type level to the term level.
+ 
+ = Planned Obsolesence
+@@ -268,7 +271,7 @@
+ -- | TypeInt division.
+ type family (i::TypeInt) / (i'::TypeInt) :: TypeInt
+   where
+- 
++
+     i / 'Pos1 = i
+     i / 'Neg1 = Negate i
+     -- @Zero / n = Zero@ would allow division by zero.
+diff -ru numtype-dk-0.5.0.1.orig/Numeric/NumType/DK/Naturals.hs numtype-dk-0.5.0.1/Numeric/NumType/DK/Naturals.hs
+--- numtype-dk-0.5.0.1.orig/Numeric/NumType/DK/Naturals.hs	2015-05-11 09:10:15.000000000 -0400
++++ numtype-dk-0.5.0.1/Numeric/NumType/DK/Naturals.hs	2018-07-04 21:27:41.472315592 -0400
+@@ -1,9 +1,13 @@
+ {-# LANGUAGE AutoDeriveTypeable #-}
++{-# LANGUAGE CPP #-}
+ {-# LANGUAGE DataKinds #-}
+ {-# LANGUAGE FlexibleInstances #-}
+ {-# LANGUAGE TypeFamilies #-}
+ {-# LANGUAGE TypeOperators #-}
+ {-# LANGUAGE UndecidableInstances #-}
++#if __GLASGOW_HASKELL__ >= 805
++{-# LANGUAGE NoStarIsType #-}
++#endif
+ 
+ module Numeric.NumType.DK.Naturals where
+ 

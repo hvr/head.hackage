@@ -1,0 +1,22 @@
+diff -ru Unixutils-1.54.1.orig/System/Unix/Chroot.hs Unixutils-1.54.1/System/Unix/Chroot.hs
+--- Unixutils-1.54.1.orig/System/Unix/Chroot.hs	2015-08-11 16:02:44.000000000 -0400
++++ Unixutils-1.54.1/System/Unix/Chroot.hs	2018-07-04 21:18:53.544302297 -0400
+@@ -1,4 +1,4 @@
+-{-# LANGUAGE ForeignFunctionInterface #-}
++{-# LANGUAGE CPP, ForeignFunctionInterface #-}
+ -- | This module, except for useEnv, is copied from the build-env package.
+ module System.Unix.Chroot
+     ( fchroot
+@@ -45,7 +45,11 @@
+ fchroot :: (MonadIO m, MonadMask m) => FilePath -> m a -> m a
+ fchroot path action =
+     do origWd <- liftIO $ getWorkingDirectory
+-       rootFd <- liftIO $ openFd "/" ReadOnly Nothing defaultFileFlags
++       rootFd <- liftIO $ openFd "/" ReadOnly
++#if !(MIN_VERSION_unix(2,8,0))
++                                 Nothing
++#endif
++                                 defaultFileFlags
+        liftIO $ chroot path
+        liftIO $ changeWorkingDirectory "/"
+        action `finally` (liftIO $ breakFree origWd rootFd)
