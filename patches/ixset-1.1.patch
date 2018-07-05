@@ -1,0 +1,20 @@
+diff -ru ixset-1.1.orig/src/Data/IxSet/Ix.hs ixset-1.1/src/Data/IxSet/Ix.hs
+--- ixset-1.1.orig/src/Data/IxSet/Ix.hs	2018-05-28 12:25:24.000000000 -0400
++++ ixset-1.1/src/Data/IxSet/Ix.hs	2018-07-04 21:43:13.920339074 -0400
+@@ -24,6 +24,7 @@
+ import           Data.List  (foldl')
+ import           Data.Map   (Map)
+ import qualified Data.Map   as Map
++import qualified Data.Map.Strict as MapS
+ import           Data.Set   (Set)
+ import qualified Data.Set   as Set
+ 
+@@ -66,7 +67,7 @@
+ -- 'Map', then a new 'Set' is added transparently.
+ insert :: (Ord a, Ord k)
+        => k -> a -> Map k (Set a) -> Map k (Set a)
+-insert k v index = Map.insertWith' Set.union k (Set.singleton v) index
++insert k v index = MapS.insertWith Set.union k (Set.singleton v) index
+ 
+ -- | Helper function to 'insert' a list of elements into a set.
+ insertList :: (Ord a, Ord k)

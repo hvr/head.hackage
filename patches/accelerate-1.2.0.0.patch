@@ -1,0 +1,33 @@
+diff -ru accelerate-1.2.0.0.orig/src/Data/Array/Accelerate/Data/Monoid.hs accelerate-1.2.0.0/src/Data/Array/Accelerate/Data/Monoid.hs
+--- accelerate-1.2.0.0.orig/src/Data/Array/Accelerate/Data/Monoid.hs	2018-03-20 23:21:17.000000000 -0400
++++ accelerate-1.2.0.0/src/Data/Array/Accelerate/Data/Monoid.hs	2018-07-04 21:51:33.816351664 -0400
+@@ -5,6 +5,7 @@
+ {-# LANGUAGE MultiParamTypeClasses #-}
+ {-# LANGUAGE ScopedTypeVariables   #-}
+ {-# LANGUAGE TypeFamilies          #-}
++{-# LANGUAGE UndecidableInstances  #-}
+ {-# OPTIONS_GHC -fno-warn-orphans #-}
+ -- |
+ -- Module      : Data.Array.Accelerate.Data.Monoid
+diff -ru accelerate-1.2.0.0.orig/src/Data/Array/Accelerate/Data/Semigroup.hs accelerate-1.2.0.0/src/Data/Array/Accelerate/Data/Semigroup.hs
+--- accelerate-1.2.0.0.orig/src/Data/Array/Accelerate/Data/Semigroup.hs	2018-03-19 00:08:29.000000000 -0400
++++ accelerate-1.2.0.0/src/Data/Array/Accelerate/Data/Semigroup.hs	2018-07-04 21:51:12.028351115 -0400
+@@ -5,6 +5,7 @@
+ {-# LANGUAGE RebindableSyntax      #-}
+ {-# LANGUAGE ScopedTypeVariables   #-}
+ {-# LANGUAGE TypeFamilies          #-}
++{-# LANGUAGE UndecidableInstances  #-}
+ {-# LANGUAGE ViewPatterns          #-}
+ {-# OPTIONS_GHC -fno-warn-orphans #-}
+ -- |
+diff -ru accelerate-1.2.0.0.orig/src/Data/Array/Accelerate/Lift.hs accelerate-1.2.0.0/src/Data/Array/Accelerate/Lift.hs
+--- accelerate-1.2.0.0.orig/src/Data/Array/Accelerate/Lift.hs	2018-03-19 00:08:29.000000000 -0400
++++ accelerate-1.2.0.0/src/Data/Array/Accelerate/Lift.hs	2018-07-04 21:50:26.520349969 -0400
+@@ -4,6 +4,7 @@
+ {-# LANGUAGE MultiParamTypeClasses #-}
+ {-# LANGUAGE TypeFamilies          #-}
+ {-# LANGUAGE TypeOperators         #-}
++{-# LANGUAGE UndecidableInstances  #-}
+ #if __GLASGOW_HASKELL__ <= 708
+ {-# LANGUAGE OverlappingInstances  #-}
+ {-# OPTIONS_GHC -fno-warn-unrecognised-pragmas #-}
