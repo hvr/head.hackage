@@ -64,8 +64,10 @@ library
     Data.Vector.Algorithms.Common
 
   ghc-options:
-    -Odph
     -funbox-strict-fields
+
+  if !impl(ghc >= 8.5)
+    ghc-options: -Odph
 
   include-dirs:
     include
