@@ -1,0 +1,10 @@
+diff -ru vector-space-0.13.orig/src/Data/Cross.hs vector-space-0.13/src/Data/Cross.hs
+--- vector-space-0.13.orig/src/Data/Cross.hs	2018-01-25 15:08:37.000000000 -0500
++++ vector-space-0.13/src/Data/Cross.hs	2018-07-09 11:31:01.810293273 -0400
+@@ -1,5 +1,5 @@
+ {-# LANGUAGE FlexibleInstances, FlexibleContexts, TypeOperators
+-           , TypeFamilies, TypeSynonymInstances  #-}
++           , TypeFamilies, TypeSynonymInstances, UndecidableInstances  #-}
+ {-# OPTIONS_GHC -Wall #-}
+ ----------------------------------------------------------------------
+ -- |

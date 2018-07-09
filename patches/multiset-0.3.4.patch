@@ -1,0 +1,37 @@
+diff -ru multiset-0.3.4.orig/Data/IntMultiSet.hs multiset-0.3.4/Data/IntMultiSet.hs
+--- multiset-0.3.4.orig/Data/IntMultiSet.hs	2018-05-28 16:34:34.000000000 -0400
++++ multiset-0.3.4/Data/IntMultiSet.hs	2018-07-09 11:14:01.674267583 -0400
+@@ -146,6 +146,7 @@
+ import Data.IntSet (IntSet)
+ import Data.MultiSet (MultiSet)
+ import qualified Data.IntMap.Strict as Map
++import qualified Data.IntMap.Internal.Debug as MapDebug
+ import qualified Data.IntSet as Set
+ import qualified Data.List as List
+ import qualified Data.MultiSet as MultiSet
+@@ -771,4 +772,4 @@
+ 
+ -}
+ showTreeWith :: Bool -> Bool -> IntMultiSet -> String
+-showTreeWith hang wide = Map.showTreeWith hang wide . unMS
++showTreeWith hang wide = MapDebug.showTreeWith hang wide . unMS
+diff -ru multiset-0.3.4.orig/Data/MultiSet.hs multiset-0.3.4/Data/MultiSet.hs
+--- multiset-0.3.4.orig/Data/MultiSet.hs	2018-05-28 16:34:34.000000000 -0400
++++ multiset-0.3.4/Data/MultiSet.hs	2018-07-09 11:13:33.618266876 -0400
+@@ -152,6 +152,7 @@
+ import Data.Map.Strict (Map)
+ import Data.Set (Set)
+ import qualified Data.Map.Strict as Map
++import qualified Data.Map.Internal.Debug as MapDebug
+ import qualified Data.Set as Set
+ import qualified Data.List as List
+ import Control.DeepSeq (NFData(..))
+@@ -762,7 +763,7 @@
+ 
+ -}
+ showTreeWith :: Show a => Bool -> Bool -> MultiSet a -> String
+-showTreeWith hang wide = Map.showTreeWith s hang wide . unMS
++showTreeWith hang wide = MapDebug.showTreeWith s hang wide . unMS
+   where s a n = showChar '(' . shows n . showString "*)" . shows a $ ""
+ 
+ {--------------------------------------------------------------------
