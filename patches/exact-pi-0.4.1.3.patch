@@ -1,0 +1,46 @@
+diff -ru exact-pi-0.4.1.3.orig/src/Data/ExactPi/TypeLevel.hs exact-pi-0.4.1.3/src/Data/ExactPi/TypeLevel.hs
+--- exact-pi-0.4.1.3.orig/src/Data/ExactPi/TypeLevel.hs	2018-01-30 16:41:26.000000000 -0500
++++ exact-pi-0.4.1.3/src/Data/ExactPi/TypeLevel.hs	2018-07-09 10:39:23.714215253 -0400
+@@ -1,12 +1,16 @@
+ {-# OPTIONS_HADDOCK show-extensions #-}
+ 
+ {-# LANGUAGE ConstraintKinds #-}
++{-# LANGUAGE CPP #-}
+ {-# LANGUAGE DataKinds #-}
+ {-# LANGUAGE FlexibleContexts #-}
+ {-# LANGUAGE KindSignatures #-}
+ {-# LANGUAGE ScopedTypeVariables #-}
+ {-# LANGUAGE TypeFamilies #-}
+ {-# LANGUAGE TypeOperators #-}
++#if __GLASGOW_HASKELL__ >= 805
++{-# LANGUAGE NoStarIsType #-}
++#endif
+ 
+ {-|
+ Module      : Data.ExactPi.TypeLevel
+@@ -34,6 +38,7 @@
+ where
+ 
+ import Data.ExactPi
++import Data.Kind (Type)
+ import Data.Maybe (fromJust)
+ import Data.Proxy
+ import Data.Ratio
+@@ -69,7 +74,7 @@
+ 
+ -- | Determines the minimum context required for a numeric type to hold the value
+ -- associated with a specific 'ExactPi'' type.
+-type family MinCtxt' (v :: ExactPi') :: * -> Constraint where
++type family MinCtxt' (v :: ExactPi') :: Type -> Constraint where
+   MinCtxt' ('ExactPi' 'Zero p 1) = Num
+   MinCtxt' ('ExactPi' 'Zero p q) = Fractional
+   MinCtxt' ('ExactPi' z p q)     = Floating
+@@ -78,7 +83,7 @@
+ 
+ -- | A KnownMinCtxt is a contraint on values sufficient to allow us to inject certain
+ -- 'ExactPi' values into types that satisfy the constraint.
+-class KnownMinCtxt (c :: * -> Constraint) where
++class KnownMinCtxt (c :: Type -> Constraint) where
+   -- | Injects an 'ExactPi' value into a specified type satisfying this constraint.
+   -- 
+   -- The injection is permitted to fail if type constraint does not entail the 'MinCtxt'
