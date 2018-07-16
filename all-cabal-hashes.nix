@@ -1,4 +1,6 @@
+let rev = "e8e76bc26a994aee313e571dc4e6701398d17a42";
+in
 {
-  url    = "https://github.com/commercialhaskell/all-cabal-hashes/archive/1cffa6859368bfc497187e0279ffed4227cdcf07.tar.gz";
-  sha256 = "0f785zs7qv8b2fpq0h4knyqypd0xrkf5lkm4lirz88z0051v1891";
+  url    = "https://github.com/commercialhaskell/all-cabal-hashes/archive/${rev}.tar.gz";
+  sha256 = "16rnyxqmr93ahml0fjfa6hmjpmx8sbpfdr52krd2sd6ic9n5p5ix";
 }
