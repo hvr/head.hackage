@@ -76,6 +76,7 @@ let
 
               doctest = haskellPackages.callPackage ./doctest.nix {};
               http-api-data = haskellPackages.callPackage ./http-api-data.nix {};
+              tagged = self1.callHackage "tagged" "0.8.6" {};
 
               jailbreak-cabal = self.haskell.packages.ghc802.jailbreak-cabal;
               cabal2nix = self.haskell.packages.ghc843.cabal2nix;
