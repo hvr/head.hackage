@@ -8,11 +8,11 @@
 #       nix build -f --arg ghc "(import build.nix {ghc-path=$GHC_TREE;})"
 #
 let
-  rev = "140ad12d71c57716b3ee3b777d53c27b019360f0";
+  rev = "f2632f5c60f574d787fc5490efb3f43f9e6209b7";
   baseNixpkgs =
     builtins.fetchTarball {
     url = "https://github.com/NixOS/nixpkgs/archive/${rev}.tar.gz";
-    sha256 = "088wzwgm7nqjv2bpirmjsncysjvzjd237z7d0lm2jzng81f4a6ll";
+    sha256 = "1c36p7w36i38gng3yp1nd5vz0p2dwrax5szjkvnmdxfklggs7knf";
   };
 in
 
@@ -76,6 +76,7 @@ let
 
               doctest = haskellPackages.callPackage ./doctest.nix {};
               http-api-data = haskellPackages.callPackage ./http-api-data.nix {};
+              tagged = self1.callHackage "tagged" "0.8.6" {};
 
               jailbreak-cabal = self.haskell.packages.ghc802.jailbreak-cabal;
               cabal2nix = self.haskell.packages.ghc843.cabal2nix;
