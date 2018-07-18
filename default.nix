@@ -17,7 +17,7 @@ let
 in
 
 # ghc: path to a GHC source tree
-{ ghc ? import ./ghc.nix }:
+{ ghc ? import ./ghc-prerelease.nix }:
 
 let
   jailbreakOverrides = self: super: {
