@@ -125,14 +125,14 @@ the `doctest` tree.
 ### Usage with `nix`
 
 `default.nix` is a [Nix](https://nixos.org/nix/) expression which can be used to
-build `head.hackage` packages using either `nixpkgs.haskell.compiler.ghcHEAD`:
+build `head.hackage` packages using GHC 8.6.1-alpha2:
 ```
 $ nix build -f ./. haskellPackages.servant
 ```
 It can also be used to build a compiler from a local source tree and use this to
 build `head.hackage` packages:
 ```
-$ nix build -f --arg ghc "(import build.nix {ghc-path=$GHC_TREE;})"
+$ nix build -f ./. --arg ghc "(import build.nix {ghc-path=$GHC_TREE;})"
 ```
 
 ### Travis CI
