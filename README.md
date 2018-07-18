@@ -132,7 +132,7 @@ $ nix build -f ./. haskellPackages.servant
 It can also be used to build a compiler from a local source tree and use this to
 build `head.hackage` packages:
 ```
-$ nix build -f ./. --arg ghc "(import build.nix {ghc-path=$GHC_TREE;})"
+$ nix build -f ./. --arg ghc "(import ghc-from-source.nix {ghc-path=$GHC_TREE;})"
 ```
 
 ### Travis CI
