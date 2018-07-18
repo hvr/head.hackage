@@ -1,0 +1,13 @@
+diff --git a/tests/HashMapProperties.hs b/tests/HashMapProperties.hs
+index d10e3e6..510e33b 100644
+--- a/tests/HashMapProperties.hs
++++ b/tests/HashMapProperties.hs
+@@ -227,7 +227,7 @@ pIntersectionWithKey xs ys = M.intersectionWithKey go (M.fromList xs) `eq_`
+ -- ** Folds
+ 
+ pFoldr :: [(Int, Int)] -> Bool
+-pFoldr = (L.sort . M.fold (:) []) `eq` (L.sort . HM.foldr (:) [])
++pFoldr = (L.sort . M.foldr (:) []) `eq` (L.sort . HM.foldr (:) [])
+ 
+ pFoldrWithKey :: [(Int, Int)] -> Bool
+ pFoldrWithKey = (sortByKey . M.foldrWithKey f []) `eq`
