@@ -74,7 +74,7 @@ let
               transformers = null;
               unix = null;
 
-              doctest = haskellPackages.callPackage ./doctest.nix {};
+              doctest = haskellPackages.callHackage "doctest" "0.16.0" {};
               http-api-data = haskellPackages.callPackage ./http-api-data.nix {};
               tagged = self1.callHackage "tagged" "0.8.6" {};
 
