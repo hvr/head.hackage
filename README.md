@@ -122,6 +122,19 @@ $ scripts/patch-tool update-patches
 This will create an appropriately-named patch in `patches/` from the edits in
 the `doctest` tree.
 
+### Usage with `nix`
+
+`default.nix` is a [Nix](https://nixos.org/nix/) expression which can be used to
+build `head.hackage` packages using GHC 8.6.1-alpha2:
+```
+$ nix build -f ./. haskellPackages.servant
+```
+It can also be used to build a compiler from a local source tree and use this to
+build `head.hackage` packages:
+```
+$ nix build -f ./. --arg ghc "(import ghc-from-source.nix {ghc-path=$GHC_TREE;})"
+```
+
 ### Travis CI
 
 The [Travis CI script generator](https://github.com/haskell-hvr/multi-ghc-travis) has recently added support for enabling the `HEAD.hackage` repository automatically for jobs using unreleased GHC versions.
