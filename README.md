@@ -143,3 +143,10 @@ The [Travis CI script generator](https://github.com/haskell-hvr/multi-ghc-travis
 
 The patches maintained for the `head.hackage` project can also be used with [Nix](https://nixos.org/nix/) (not to be confused with [Cabal's Nix-style local builds](http://cabal.readthedocs.io/en/latest/nix-local-build-overview.html)). See the README in the [`script/`](./scripts) folder and/or the
 [*Using a development version of GHC with nix* blogpost](http://mpickering.github.io/posts/2018-01-05-ghchead-nix.html) for more information.
+
+## Other Package Index Overlays
+
+- [Experimental mobile haskell hackage overlay](http://hackage.mobilehaskell.org/)
+- [GHCJS package overlay for Hackage](http://hackage-ghcjs-overlay.nomeata.de/)
+- [Hackage Package Candidate Overlay](http://cand.hackage.haskell.org/)
+
