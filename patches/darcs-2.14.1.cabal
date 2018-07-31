@@ -1,0 +1,610 @@
+Name:           darcs
+version:        2.14.1
+License:        GPL-2
+License-file:   COPYING
+Author:         David Roundy <droundy@darcs.net>, <darcs-devel@darcs.net>
+Maintainer:     <darcs-devel@darcs.net>
+
+Stability:      Experimental
+Category:       Development
+Synopsis:       a distributed, interactive, smart revision control system
+Description:    Darcs is a free, open source revision control
+                system. It is:
+                .
+                * Distributed: Every user has access to the full
+                  command set, removing boundaries between server and
+                  client or committer and non-committers.
+                .
+                * Interactive: Darcs is easy to learn and efficient to
+                  use because it asks you questions in response to
+                  simple commands, giving you choices in your work
+                  flow. You can choose to record one change in a file,
+                  while ignoring another. As you update from upstream,
+                  you can review each patch name, even the full "diff"
+                  for interesting patches.
+                .
+                * Smart: Originally developed by physicist David
+                  Roundy, darcs is based on a unique algebra of
+                  patches.
+                .
+                  This smartness lets you respond to changing demands
+                  in ways that would otherwise not be possible. Learn
+                  more about spontaneous branches with darcs.
+Homepage:       http://darcs.net/
+
+Build-Type:     Custom
+Cabal-Version:  >= 1.24
+
+extra-source-files:
+  -- C headers
+  src/*.h
+  src/win32/send_email.h src/win32/sys/mman.h
+
+  -- The contrib directory would make a sensible 'darcs-contrib' package
+  contrib/_darcs.zsh, contrib/darcs_completion,
+  contrib/cygwin-wrapper.bash, contrib/update_roundup.pl, contrib/upload.cgi,
+  contrib/darcs-errors.hlint,
+  contrib/runHLint.sh,
+
+  README.md, CHANGELOG
+
+  -- release data
+  release/distributed-version, release/distributed-context
+
+  -- testsuite
+  tests/data/*.tgz tests/data/README
+  tests/data/*.dpatch
+  tests/data/example_binary.png
+  tests/data/convert/darcs1/*.dpatch tests/data/convert/darcs2/*.dpatch
+  tests/*.sh
+  tests/README.test_maintainers.txt
+  tests/bin/*.hs
+  tests/network/sshlib
+  tests/network/*.sh
+  tests/lib
+  harness/hstestdata.zip
+
+  GNUmakefile
+
+source-repository head
+  type:     darcs
+  location: http://darcs.net/
+
+flag curl
+  description: Use libcurl for HTTP support.
+
+-- in future this could extend to any other external libraries,
+-- e.g. libiconv 
+flag pkgconfig
+  description: Use pkgconfig to configure libcurl
+  default: False
+
+flag static
+  description: Build static binary
+  default:     False
+
+flag terminfo
+  description: Use the terminfo package for enhanced console support.
+
+flag threaded
+  description: Use threading and SMP support.
+  default:     True
+
+flag executable
+  description: Build darcs executable
+  default:     True
+
+flag rts
+  default:     False
+
+-- We need optimizations by default, regardless of what Hackage says
+flag optimize
+  default:     True
+  description: Build with optimizations (-O2)
+
+flag warn-as-error
+  default:     False
+  manual:      True
+  description: Build with warnings-as-errors
+
+-- ----------------------------------------------------------------------
+-- setup
+-- ----------------------------------------------------------------------
+
+custom-setup
+    setup-depends: base      >= 4.9 && < 4.12,
+                   Cabal     >= 1.24,
+                   process   >= 1.2.3.0 && < 1.7,
+                   filepath  >= 1.4.1 && < 1.5.0.0,
+                   directory >= 1.2.6.2 && < 1.4
+
+-- ----------------------------------------------------------------------
+-- darcs library
+-- ----------------------------------------------------------------------
+
+Library
+    default-language: Haskell2010
+
+    hs-source-dirs:   src
+    include-dirs:     src
+
+    exposed-modules:
+                      Darcs.Patch
+                      Darcs.Patch.Annotate
+                      Darcs.Patch.Apply
+                      Darcs.Patch.ApplyMonad
+                      Darcs.Patch.ApplyPatches
+                      Darcs.Patch.Bracketed
+                      Darcs.Patch.Bracketed.Instances
+                      Darcs.Patch.Bundle
+                      Darcs.Patch.Choices
+                      Darcs.Patch.Commute
+                      Darcs.Patch.CommuteFn
+                      Darcs.Patch.Conflict
+                      Darcs.Patch.Debug
+                      Darcs.Patch.Depends
+                      Darcs.Patch.Dummy
+                      Darcs.Patch.Effect
+                      Darcs.Patch.FileHunk
+                      Darcs.Patch.Index.Monad
+                      Darcs.Patch.Index.Types
+                      Darcs.Patch.Format
+                      Darcs.Patch.Info
+                      Darcs.Patch.Inspect
+                      Darcs.Patch.Invert
+                      Darcs.Patch.Match
+                      Darcs.Patch.Matchable
+                      Darcs.Patch.Merge
+                      Darcs.Patch.MonadProgress
+                      Darcs.Patch.Named
+                      Darcs.Patch.Named.Wrapped
+                      Darcs.Patch.PatchInfoAnd
+                      Darcs.Patch.Permutations
+                      Darcs.Patch.Prim
+                      Darcs.Patch.Prim.Class
+                      Darcs.Patch.Prim.V1
+                      Darcs.Patch.Prim.V1.Apply
+                      Darcs.Patch.Prim.V1.Coalesce
+                      Darcs.Patch.Prim.V1.Commute
+                      Darcs.Patch.Prim.V1.Core
+                      Darcs.Patch.Prim.V1.Details
+                      Darcs.Patch.Prim.V1.Read
+                      Darcs.Patch.Prim.V1.Show
+                      Darcs.Patch.Prim.FileUUID
+                      Darcs.Patch.Prim.FileUUID.ObjectMap
+                      Darcs.Patch.Prim.FileUUID.Apply
+                      Darcs.Patch.Prim.FileUUID.Coalesce
+                      Darcs.Patch.Prim.FileUUID.Commute
+                      Darcs.Patch.Prim.FileUUID.Core
+                      Darcs.Patch.Prim.FileUUID.Details
+                      Darcs.Patch.Prim.FileUUID.Read
+                      Darcs.Patch.Prim.FileUUID.Show
+                      Darcs.Patch.Progress
+                      Darcs.Patch.Read
+                      Darcs.Patch.Rebase
+                      Darcs.Patch.Rebase.Container
+                      Darcs.Patch.Rebase.Fixup
+                      Darcs.Patch.Rebase.Item
+                      Darcs.Patch.Rebase.Name
+                      Darcs.Patch.Rebase.Viewing
+                      Darcs.Patch.ReadMonads
+                      Darcs.Patch.RegChars
+                      Darcs.Patch.Repair
+                      Darcs.Patch.RepoPatch
+                      Darcs.Patch.RepoType
+                      Darcs.Patch.Set
+                      Darcs.Patch.Show
+                      Darcs.Patch.Split
+                      Darcs.Patch.Summary
+                      Darcs.Patch.SummaryData
+                      Darcs.Patch.TokenReplace
+                      Darcs.Patch.TouchesFiles
+                      Darcs.Patch.Type
+                      Darcs.Patch.Viewing
+                      Darcs.Patch.V1
+                      Darcs.Patch.V1.Apply
+                      Darcs.Patch.V1.Commute
+                      Darcs.Patch.V1.Core
+                      Darcs.Patch.V1.Prim
+                      Darcs.Patch.V1.Read
+                      Darcs.Patch.V1.Show
+                      Darcs.Patch.V1.Viewing
+                      Darcs.Patch.V2
+                      Darcs.Patch.V2.Non
+                      Darcs.Patch.V2.Prim
+                      Darcs.Patch.V2.RepoPatch
+                      Darcs.Patch.Witnesses.Eq
+                      Darcs.Patch.Witnesses.Ordered
+                      Darcs.Patch.Witnesses.Sealed
+                      Darcs.Patch.Witnesses.Show
+                      Darcs.Patch.Witnesses.Unsafe
+                      Darcs.Patch.Witnesses.WZipper
+                      Darcs.Prelude
+                      Darcs.Repository
+                      Darcs.Repository.ApplyPatches
+                      Darcs.Repository.Cache
+                      Darcs.Repository.Clone
+                      Darcs.Repository.Create
+                      Darcs.Repository.PatchIndex
+                      Darcs.Repository.Diff
+                      Darcs.Repository.Flags
+                      Darcs.Repository.Format
+                      Darcs.Repository.HashedIO
+                      Darcs.Repository.Hashed
+                      Darcs.Repository.Inventory
+                      Darcs.Repository.Identify
+                      Darcs.Repository.Job
+                      Darcs.Repository.Merge
+                      Darcs.Repository.InternalTypes
+                      Darcs.Repository.Match
+                      Darcs.Repository.Old
+                      Darcs.Repository.Packs
+                      Darcs.Repository.Pending
+                      Darcs.Repository.Prefs
+                      Darcs.Repository.Rebase
+                      Darcs.Repository.Repair
+                      Darcs.Repository.Resolution
+                      Darcs.Repository.State
+                      Darcs.Repository.Test
+                      Darcs.Repository.Working
+                      Darcs.UI.ApplyPatches
+                      Darcs.UI.Commands
+                      Darcs.UI.Commands.Add
+                      Darcs.UI.Commands.Amend
+                      Darcs.UI.Commands.Annotate
+                      Darcs.UI.Commands.Apply
+                      Darcs.UI.CommandsAux
+                      Darcs.UI.Commands.Clone
+                      Darcs.UI.Commands.Convert
+                      Darcs.UI.Commands.Diff
+                      Darcs.UI.Commands.Dist
+                      Darcs.UI.Commands.GZCRCs
+                      Darcs.UI.Commands.Help
+                      Darcs.UI.Commands.Init
+                      Darcs.UI.Commands.Log
+                      Darcs.UI.Commands.MarkConflicts
+                      Darcs.UI.Commands.Move
+                      Darcs.UI.Commands.Optimize
+                      Darcs.UI.Commands.Pull
+                      Darcs.UI.Commands.Push
+                      Darcs.UI.Commands.Rebase
+                      Darcs.UI.Commands.Record
+                      Darcs.UI.Commands.Remove
+                      Darcs.UI.Commands.Repair
+                      Darcs.UI.Commands.Replace
+                      Darcs.UI.Commands.Revert
+                      Darcs.UI.Commands.Rollback
+                      Darcs.UI.Commands.Send
+                      Darcs.UI.Commands.SetPref
+                      Darcs.UI.Commands.Show
+                      Darcs.UI.Commands.ShowAuthors
+                      Darcs.UI.Commands.ShowContents
+                      Darcs.UI.Commands.ShowDependencies
+                      Darcs.UI.Commands.ShowFiles
+                      Darcs.UI.Commands.ShowIndex
+                      Darcs.UI.Commands.ShowPatchIndex
+                      Darcs.UI.Commands.ShowRepo
+                      Darcs.UI.Commands.ShowTags
+                      Darcs.UI.Commands.Tag
+                      Darcs.UI.Commands.Test
+                      Darcs.UI.Commands.TransferMode
+                      Darcs.UI.Commands.Util
+                      Darcs.UI.Commands.Util.Tree
+                      Darcs.UI.Commands.Unrecord
+                      Darcs.UI.Commands.Unrevert
+                      Darcs.UI.Commands.WhatsNew
+                      Darcs.UI.Completion
+                      Darcs.UI.Email
+                      Darcs.UI.External
+                      Darcs.UI.Defaults
+                      Darcs.UI.Flags
+                      Darcs.UI.Options
+                      Darcs.UI.Options.All
+                      Darcs.UI.Options.Core
+                      Darcs.UI.Options.Flags
+                      Darcs.UI.Options.Iso
+                      Darcs.UI.Options.Markdown
+                      Darcs.UI.Options.Matching
+                      Darcs.UI.Options.Util
+                      Darcs.UI.PatchHeader
+                      Darcs.UI.PrintPatch
+                      Darcs.UI.RunCommand
+                      Darcs.UI.SelectChanges
+                      Darcs.UI.TheCommands
+                      Darcs.UI.Usage
+                      Darcs.Util.AtExit
+                      Darcs.Util.ByteString
+                      Darcs.Util.CommandLine
+                      Darcs.Util.Compat
+                      Darcs.Util.DateMatcher
+                      Darcs.Util.DateTime
+                      Darcs.Util.Diff
+                      Darcs.Util.Diff.Myers
+                      Darcs.Util.Diff.Patience
+                      Darcs.Util.Download
+                      Darcs.Util.Download.Request
+                      Darcs.Util.Download.HTTP
+                      Darcs.Util.Encoding
+                      Darcs.Util.English
+                      Darcs.Util.Exception
+                      Darcs.Util.Exec
+                      Darcs.Util.External
+                      Darcs.Util.File
+                      Darcs.Util.Global
+                      Darcs.Util.Hash
+                      Darcs.Util.Index
+                      Darcs.Util.IsoDate
+                      Darcs.Util.Lock
+                      Darcs.Util.Path
+                      Darcs.Util.Printer
+                      Darcs.Util.Printer.Color
+                      Darcs.Util.Progress
+                      Darcs.Util.Prompt
+                      Darcs.Util.Ratified
+                      Darcs.Util.Show
+                      Darcs.Util.SignalHandler
+                      Darcs.Util.Ssh
+                      Darcs.Util.Text
+                      Darcs.Util.Tree
+                      Darcs.Util.Tree.Hashed
+                      Darcs.Util.Tree.Monad
+                      Darcs.Util.Tree.Plain
+                      Darcs.Util.URL
+                      Darcs.Util.Workaround
+
+    other-modules:    Version
+                      Darcs.Util.Download.Curl
+
+    c-sources:        src/atomic_create.c
+                      src/maybe_relink.c
+                      src/umask.c
+                      src/system_encoding.c
+
+    -- see http://bugs.darcs.net/issue1037
+    cc-options:       -D_REENTRANT
+
+    if os(windows)
+      hs-source-dirs: src/win32
+      include-dirs:   src/win32
+      other-modules:  Darcs.Util.CtrlC
+                      Darcs.Util.Encoding.Win32
+                      -- These are kept outside the Darcs.* namespace as System.Posix
+                      -- is well-established and its just trying to simulate that
+                      -- TODO try to abstract this out better
+                      System.Posix
+                      System.Posix.Files
+                      System.Posix.IO
+      cpp-options:    -DWIN32
+      c-sources:      src/win32/send_email.c
+      build-depends:  Win32 >= 2.3.1 && < 2.4
+    else
+      build-depends:  unix >= 2.7.1.0 && < 2.8
+
+    build-depends:    base              >= 4.9 && < 4.12,
+                      stm               >= 2.1 && < 2.5,
+                      binary            >= 0.5 && < 0.10,
+                      containers        >= 0.5.6.2 && < 0.7,
+                      regex-compat-tdfa >= 0.95.1 && < 0.96,
+                      regex-applicative >= 0.2 && < 0.4,
+                      mtl               >= 2.2.1 && < 2.3,
+                      transformers      >= 0.4.2.0 && < 0.6,
+                      parsec            >= 3.1.9 && < 3.2,
+                      fgl               >= 5.5.2.3 && < 5.7,
+                      graphviz          >= 2999.18.1 && < 2999.20.1,
+                      html              >= 1.0.1.2 && < 1.1,
+                      filepath          >= 1.4.1 && < 1.5.0.0,
+                      haskeline         >= 0.7.2 && < 0.8,
+                      cryptohash        >= 0.11 && < 0.12,
+                      base16-bytestring >= 0.1 && < 0.2,
+                      utf8-string       >= 1 && < 1.1,
+                      vector            >= 0.11 && < 0.13,
+                      tar               >= 0.5 && < 0.6,
+                      data-ordlist      == 0.4.*,
+                      attoparsec        >= 0.13.0.1 && < 0.14,
+                      zip-archive       >= 0.3 && < 0.4,
+                      async             >= 2.0.2 && < 2.3,
+                      sandi             >= 0.4 && < 0.5,
+                      unix-compat       >= 0.4.2 && < 0.6,
+                      bytestring        >= 0.10.6 && < 0.11,
+                      old-time          >= 1.1.0.3 && < 1.2,
+                      time              >= 1.5.0.1 && < 1.10,
+                      text              >= 1.2.1.3 && < 1.3,
+                      directory         >= 1.2.6.2 && < 1.4,
+                      process           >= 1.2.3.0 && < 1.7,
+                      array             >= 0.5.1.0 && < 0.6,
+                      random            >= 1.1 && < 1.2,
+                      hashable          >= 1.2.3.3 && < 1.3,
+                      mmap              >= 0.5.9 && < 0.6,
+                      zlib              >= 0.6.1.2 && < 0.7.0.0,
+                      network-uri       == 2.6.*,
+                      network           >= 2.6 && < 2.8,
+                      HTTP              >= 4000.2.20 && < 4000.4
+
+    if flag(optimize)
+      ghc-options:    -O2
+    else
+      ghc-options:    -O0
+
+    if flag(warn-as-error)
+      ghc-options:    -Werror
+
+    ghc-options:      -Wall -funbox-strict-fields -fwarn-tabs
+
+    if flag(curl)
+      cpp-options:          -DHAVE_CURL
+      c-sources:            src/hscurl.c
+      cc-options:           -DHAVE_CURL
+      if flag(pkgconfig)
+        pkgconfig-depends:  libcurl
+      else
+        extra-libraries:    curl
+        includes:           curl/curl.h
+
+    -- The terminfo package cannot be built on Windows.
+    if flag(terminfo) && !os(windows)
+      build-depends:  terminfo >= 0.4.0.2 && < 0.5
+      cpp-options:    -DHAVE_TERMINFO
+
+    default-extensions:
+        NoMonadFailDesugaring
+        BangPatterns
+        PatternGuards
+        GADTSyntax
+        ExistentialQuantification
+        TypeOperators
+        FlexibleContexts
+        FlexibleInstances
+        ScopedTypeVariables
+        KindSignatures
+        DataKinds
+        ConstraintKinds
+        RankNTypes
+        TypeFamilies
+        NoMonoLocalBinds
+
+-- ----------------------------------------------------------------------
+-- darcs itself
+-- ----------------------------------------------------------------------
+
+Executable          darcs
+  if !flag(executable)
+    buildable: False
+  else
+    buildable: True
+
+  default-language: Haskell2010
+
+  main-is:          darcs.hs
+  hs-source-dirs:   darcs
+
+  if flag(optimize)
+    ghc-options:    -O2
+  else
+    ghc-options:    -O0
+
+  if flag(warn-as-error)
+    ghc-options:    -Werror
+
+  ghc-options:      -Wall -funbox-strict-fields -fwarn-tabs
+
+  if flag(threaded)
+    ghc-options:    -threaded
+
+  if flag(static)
+    ghc-options:    -static -optl-static -optl-pthread
+
+  if flag(rts)
+    ghc-options:    -rtsopts
+
+  -- see http://bugs.darcs.net/issue1037
+  cc-options:       -D_REENTRANT
+
+  build-depends:    darcs,
+                    base              >= 4.9 && < 4.12
+
+-- ----------------------------------------------------------------------
+-- unit test driver
+-- ----------------------------------------------------------------------
+
+test-suite darcs-test
+  buildable:        True
+  type:             exitcode-stdio-1.0
+  default-language: Haskell2010
+  main-is:          test.hs
+  hs-source-dirs:   harness
+
+  if os(windows)
+    cpp-options:    -DWIN32
+    build-depends:  Win32 >= 2.3.1 && < 2.4
+
+  build-depends:    darcs,
+                    base         >= 4.9 && < 4.12,
+                    array        >= 0.5.1.0 && < 0.6,
+                    bytestring   >= 0.10.6 && < 0.11,
+                    cmdargs      >= 0.10.10 && < 0.11,
+                    containers   >= 0.5.6.2 && < 0.7,
+                    filepath     >= 1.4.1 && < 1.5.0.0,
+                    mtl          >= 2.2.1 && < 2.3,
+                    shelly       >= 1.6.8 && < 1.9,
+                    split        >= 0.2.2 && < 0.3,
+                    text         >= 1.2.1.3 && < 1.3,
+                    directory    >= 1.2.6.2 && < 1.4,
+                    FindBin      >= 0.0.5 && < 0.1,
+                    QuickCheck   >= 2.8.2 && < 2.12,
+                    HUnit        >= 1.3 && < 1.7,
+                    test-framework             >= 0.8.1.1 && < 0.9,
+                    test-framework-hunit       >= 0.3.0.2 && < 0.4,
+                    test-framework-quickcheck2 >= 0.3.0.3 && < 0.4,
+                    zip-archive  >= 0.3 && < 0.4
+
+  -- https://github.com/yesodweb/Shelly.hs/issues/177
+  if os(windows)
+    build-depends: shelly < 1.7.2
+
+  -- list all unit test modules not exported by libdarcs; otherwise Cabal won't
+  -- include them in the tarball
+  other-modules:    Darcs.Test.Email
+                    Darcs.Test.HashedStorage
+                    Darcs.Test.Patch.Check
+                    Darcs.Test.Patch.Examples.Set1
+                    Darcs.Test.Patch.Examples.Set2Unwitnessed
+                    Darcs.Test.Patch.WSub
+                    Darcs.Test.Patch.Info
+                    Darcs.Test.Patch.Properties.V1Set1
+                    Darcs.Test.Patch.Properties.V1Set2
+                    Darcs.Test.Patch.Properties.Generic
+                    Darcs.Test.Patch.Properties.GenericUnwitnessed
+                    Darcs.Test.Patch.Properties.Check
+                    Darcs.Test.Patch.Properties.RepoPatchV2
+                    Darcs.Test.Patch.Arbitrary.Generic
+                    Darcs.Test.Patch.Arbitrary.PrimV1
+                    Darcs.Test.Patch.Arbitrary.PrimFileUUID
+                    Darcs.Test.Patch.Arbitrary.RepoPatchV1
+                    Darcs.Test.Patch.Arbitrary.RepoPatchV2
+                    Darcs.Test.Patch.Rebase
+                    Darcs.Test.Patch.RepoModel
+                    Darcs.Test.Patch.Selection
+                    Darcs.Test.Patch.Utils
+                    Darcs.Test.Patch.V1Model
+                    Darcs.Test.Patch.FileUUIDModel
+                    Darcs.Test.Patch.WithState
+                    Darcs.Test.Patch
+                    Darcs.Test.Misc
+                    Darcs.Test.Misc.CommandLine
+                    Darcs.Test.Misc.Encoding
+                    Darcs.Test.Repository.Inventory
+                    Darcs.Test.Util.TestResult
+                    Darcs.Test.Util.QuickCheck
+
+  if flag(optimize)
+    ghc-options:    -O2
+  else
+    ghc-options:    -O0
+
+  if flag(warn-as-error)
+    ghc-options:    -Werror
+
+  ghc-options:      -Wall -funbox-strict-fields -fwarn-tabs -fno-warn-orphans
+
+  if flag(threaded)
+    ghc-options:    -threaded
+
+  if flag(rts)
+    ghc-options:    -rtsopts
+
+  -- see http://bugs.darcs.net/issue1037
+  cc-options:       -D_REENTRANT
+
+  default-extensions:
+      GADTSyntax
+      ExistentialQuantification
+      TypeOperators
+      FlexibleContexts
+      FlexibleInstances
+      ScopedTypeVariables
+      KindSignatures
+      DataKinds
+      ConstraintKinds
+      RankNTypes
+      TypeFamilies
+      NoMonoLocalBinds

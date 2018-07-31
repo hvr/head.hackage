@@ -1,0 +1,217 @@
+Name:               graphviz
+Version:            2999.20.0.2
+Stability:          Beta
+Synopsis:           Bindings to Graphviz for graph visualisation.
+Description: {
+This library provides bindings for the Dot language used by the
+Graphviz (<http://graphviz.org/>) suite of programs for visualising
+graphs, as well as functions to call those programs.
+.
+Main features of the graphviz library include:
+.
+* Almost complete coverage of all Graphviz attributes and syntax.
+.
+* Support for specifying clusters.
+.
+* The ability to use a custom node type.
+.
+* Functions for running a Graphviz layout tool with all specified
+  output types.
+.
+* The ability to not only generate but also parse Dot code with two
+  options: strict and liberal (in terms of ordering of statements).
+.
+* Functions to convert FGL graphs and other graph-like data structures
+  to Dot code - including support to group them into clusters - with a
+  high degree of customisation by specifying which attributes to use
+  and limited support for the inverse operation.
+.
+* Round-trip support for passing an FGL graph through Graphviz to
+  augment node and edge labels with positional information, etc.
+}
+
+Homepage:           http://projects.haskell.org/graphviz/
+Category:           Graphs, Graphics
+License:            BSD3
+License-File:       LICENSE.md
+Copyright:          Matthew Sackman, Ivan Lazar Miljenovic
+Author:             Matthew Sackman, Ivan Lazar Miljenovic
+Maintainer:         Ivan.Miljenovic@gmail.com
+Build-Type:         Simple
+Tested-With:        GHC == 7.6.3, GHC == 7.8.4, GHC == 7.10.2,
+                    GHC == 8.0.1, GHC == 8.2.2, GHC == 8.4.1,
+                    GHC == 8.5.*
+Cabal-Version:      1.14
+Extra-Source-Files: TODO.md
+                    Changelog.md
+                    README.md
+                    FAQ.md
+                    utils/AttributeGenerator.hs
+
+Source-Repository head
+    Type:         git
+    Location:     https://github.com/ivan-m/graphviz.git
+
+Flag test-parsing
+     Description: Build a utility to test parsing of available Dot code.
+     Default:     False
+
+Library {
+        Default-Language:  Haskell2010
+        default-extension: NoMonadFailDesugaring
+
+        Build-Depends:     base >=4.5.0.0 && <5,
+                           containers,
+                           process,
+                           directory,
+                           temporary >=1.1 && <1.4,
+                           fgl >= 5.4 && < 5.7,
+                           filepath,
+                           polyparse >=1.9 && <1.13,
+                           bytestring >= 0.9 && < 0.11,
+                           colour == 2.3.*,
+                           mtl == 2.*,
+                           text,
+                           wl-pprint-text == 1.2.*,
+                           dlist >= 0.5 && < 0.9
+
+        Exposed-Modules:   Data.GraphViz
+                           Data.GraphViz.Types
+                           Data.GraphViz.Types.Canonical
+                           Data.GraphViz.Types.Generalised
+                           Data.GraphViz.Types.Graph
+                           Data.GraphViz.Types.Monadic
+                           Data.GraphViz.Parsing
+                           Data.GraphViz.Printing
+                           Data.GraphViz.Commands
+                           Data.GraphViz.Commands.IO
+                           Data.GraphViz.Attributes
+                           Data.GraphViz.Attributes.Complete
+                           Data.GraphViz.Attributes.Colors
+                           Data.GraphViz.Attributes.Colors.X11
+                           Data.GraphViz.Attributes.Colors.Brewer
+                           Data.GraphViz.Attributes.Colors.SVG
+                           Data.GraphViz.Attributes.HTML
+                           Data.GraphViz.PreProcessing
+                           Data.GraphViz.Exception
+                           Data.GraphViz.Algorithms
+
+                           Data.GraphViz.Attributes.Internal
+                           Data.GraphViz.Internal.Util
+                           Data.GraphViz.Internal.State
+                           Data.GraphViz.Types.Internal.Common
+
+        Other-Modules:     Data.GraphViz.Algorithms.Clustering
+                           Data.GraphViz.Attributes.Arrows
+                           Data.GraphViz.Attributes.ColorScheme
+                           Data.GraphViz.Attributes.Same
+                           Data.GraphViz.Attributes.Values
+                           Data.GraphViz.Commands.Available
+                           Data.GraphViz.Types.State
+
+        if True
+           Ghc-Options: -Wall
+
+        if impl(ghc >= 6.12.1)
+           Ghc-Options: -fno-warn-unused-do-bind
+}
+
+Test-Suite graphviz-testsuite {
+        Default-Language:  Haskell2010
+
+        Type:              exitcode-stdio-1.0
+
+        -- Versions controlled by library section
+        Build-Depends:     base,
+                           graphviz,
+                           containers,
+                           fgl >= 5.5.0.0,
+                           fgl-arbitrary == 0.2.*,
+                           filepath,
+                           hspec >= 2.1 && < 2.6,
+                           hspec-discover,
+                           text,
+                           QuickCheck >= 2.3 && < 2.12
+
+        hs-Source-Dirs:    tests
+
+        Main-Is:           Main.hs
+
+
+        Other-Modules:       Data.GraphViz.Testing.Instances
+                             Data.GraphViz.Testing.Properties
+                             Data.GraphViz.Testing.Instances.Helpers
+                             Data.GraphViz.Testing.Instances.Attributes
+                             Data.GraphViz.Testing.Instances.Common
+                             Data.GraphViz.Testing.Instances.Canonical
+                             Data.GraphViz.Testing.Instances.Generalised
+                             Data.GraphViz.Testing.Instances.Graph
+                             Data.GraphViz.Testing.Proxy
+
+                             Data.GraphVizSpec
+                             Data.GraphViz.AlgorithmsSpec
+                             Data.GraphViz.Attributes.CompleteSpec
+                             Data.GraphViz.Attributes.HTMLSpec
+                             Data.GraphViz.PreProcessingSpec
+                             Data.GraphViz.Types.CanonicalSpec
+                             Data.GraphViz.Types.GeneralisedSpec
+                             Data.GraphViz.Types.GraphSpec
+
+                             Spec
+
+        if True
+           Ghc-Options: -Wall
+
+        if impl(ghc >= 6.12.1)
+           Ghc-Options: -fno-warn-unused-do-bind
+
+        GHC-Prof-Options: -rtsopts
+}
+
+Benchmark graphviz-printparse {
+        Default-Language: Haskell2010
+
+        Type:             exitcode-stdio-1.0
+
+        Build-Depends:    base,
+                          deepseq,
+                          text,
+                          graphviz,
+                          criterion >= 0.5 && < 1.5
+
+        hs-Source-Dirs:   utils
+
+        Main-Is:          Benchmark.hs
+
+        if True
+           Ghc-Options: -Wall
+
+        if impl(ghc >= 6.12.1)
+           Ghc-Options: -fno-warn-unused-do-bind
+
+        GHC-Prof-Options: -rtsopts
+}
+
+Executable graphviz-testparsing {
+        Default-Language: Haskell2010
+
+        if flag(test-parsing)
+           Buildable:     True
+        else
+           Buildable:     False
+
+        hs-Source-Dirs:   utils
+
+        Main-Is:          TestParsing.hs
+
+        Build-Depends:    base,
+                          graphviz,
+                          bytestring,
+                          directory,
+                          filepath,
+                          text
+
+        Ghc-Options: -Wall
+
+        GHC-Prof-Options: -rtsopts
+}

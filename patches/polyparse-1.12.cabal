@@ -1,0 +1,55 @@
+name:		polyparse
+version:	1.12
+license:	LGPL
+license-file:	COPYRIGHT
+copyright:	(c) 2006-2016 Malcolm Wallace
+author:		Malcolm Wallace <Malcolm.Wallace@me.com>
+maintainer:	author
+homepage:	http://code.haskell.org/~malcolm/polyparse/
+category:	Text, Parsing
+synopsis:	A variety of alternative parser combinator libraries.
+description:
+	A variety of alternative parser combinator libraries, including
+	the original HuttonMeijer set.  The Poly sets have features like
+	good error reporting, arbitrary token type, running state, lazy
+	parsing, and so on.  Finally, Text.Parse is a proposed
+	replacement for the standard Read class, for better
+	deserialisation of Haskell values from Strings.
+build-type:	Simple
+cabal-version:  >=1.6
+extra-source-files: LICENCE-LGPL, LICENCE-commercial
+
+source-repository head
+  type:     darcs
+  location: http://code.haskell.org/polyparse
+
+library
+  hs-source-dirs:	src
+  build-depends:	base <= 6
+  exposed-modules:
+        Text.ParserCombinators.HuttonMeijer,
+        Text.ParserCombinators.HuttonMeijerWallace,
+        Text.ParserCombinators.Poly,
+        Text.ParserCombinators.Poly.Base,
+        Text.ParserCombinators.Poly.Result,
+        Text.ParserCombinators.Poly.Parser,
+        Text.ParserCombinators.Poly.Plain,
+        Text.ParserCombinators.Poly.Lazy,
+        Text.ParserCombinators.Poly.StateParser,
+        Text.ParserCombinators.Poly.State,
+        Text.ParserCombinators.Poly.StateLazy,
+        Text.ParserCombinators.Poly.Lex,
+        Text.Parse
+  if impl(ghc)
+    build-depends:	bytestring
+    build-depends:	 text
+    exposed-modules:
+        Text.ParserCombinators.Poly.ByteString
+        Text.ParserCombinators.Poly.ByteStringChar
+        Text.Parse.ByteString
+        Text.ParserCombinators.Poly.Text
+        Text.ParserCombinators.Poly.StateText
+--      Text.Parse.Text
+  cpp-options:		-DVERSION="1.12"
+  nhc98-options:	-K6M
+  extensions:		CPP NoMonadFailDesugaring
