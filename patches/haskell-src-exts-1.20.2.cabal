@@ -1,0 +1,101 @@
+Name:                   haskell-src-exts
+Version:                1.20.2
+License:                BSD3
+License-File:           LICENSE
+Build-Type:             Simple
+Author:                 Niklas Broberg
+Maintainer:             Matthew Pickering <matthewtpickering@gmail.com>
+Category:               Language
+Synopsis:               Manipulating Haskell source: abstract syntax, lexer, parser, and pretty-printer
+Description:            Haskell-Source with Extensions (HSE, haskell-src-exts)
+                        is a standalone parser for Haskell. In addition to
+                        standard Haskell, all extensions implemented in GHC are supported.
+                        .
+                        Apart from these standard extensions,
+                        it also handles regular patterns as per the HaRP extension
+                        as well as HSX-style embedded XML syntax.
+Homepage:               https://github.com/haskell-suite/haskell-src-exts
+Stability:              Stable
+Cabal-Version:          >= 1.10
+Tested-With:
+                        GHC == 7.6.3
+                        , GHC == 7.8.2
+                        , GHC == 7.10.3
+                        , GHC == 8.0.2
+                        , GHC == 8.2.2
+                        , GHC == 8.4.1
+
+Extra-Source-Files:
+                        README.md
+                        CHANGELOG
+                        RELEASENOTES-1.17.0
+                        tests/examples/*.hs
+                        tests/examples/*.lhs
+                        tests/examples/*.hs.parser.golden
+                        tests/examples/*.lhs.parser.golden
+                        tests/examples/*.hs.exactprinter.golden
+                        tests/examples/*.lhs.exactprinter.golden
+                        tests/examples/*.hs.prettyprinter.golden
+                        tests/examples/*.lhs.prettyprinter.golden
+                        tests/examples/*.hs.prettyparser.golden
+                        tests/examples/*.lhs.prettyparser.golden
+                        tests/Runner.hs
+                        tests/Extensions.hs
+
+Library
+  Default-language:     Haskell98
+  Build-Tools:          happy >= 1.19
+  Build-Depends:        array >= 0.1, pretty >= 1.0, cpphs >= 1.3,
+                        base >= 4.5 && < 5,
+                        -- this is needed to access GHC.Generics on GHC 7.4
+                        ghc-prim
+  -- this is needed to access Data.Semigroup on GHCs before 8.0
+  if !impl(ghc >= 8.0)
+    Build-Depends:
+                        semigroups >= 0.18.3
+
+  Exposed-modules:      Language.Haskell.Exts,
+                        Language.Haskell.Exts.Lexer,
+                        Language.Haskell.Exts.Pretty,
+                        Language.Haskell.Exts.Extension,
+                        Language.Haskell.Exts.Build,
+                        Language.Haskell.Exts.SrcLoc,
+
+                        Language.Haskell.Exts.Syntax,
+                        Language.Haskell.Exts.Fixity,
+                        Language.Haskell.Exts.ExactPrint,
+                        Language.Haskell.Exts.Parser,
+                        Language.Haskell.Exts.Comments
+
+  Other-modules:        Language.Haskell.Exts.ExtScheme,
+                        Language.Haskell.Exts.ParseMonad,
+                        Language.Haskell.Exts.ParseSyntax,
+                        Language.Haskell.Exts.InternalLexer,
+                        Language.Haskell.Exts.ParseUtils,
+                        Language.Haskell.Exts.InternalParser
+  Hs-source-dirs:       src
+  Ghc-options:          -Wall
+  default-extensions:   NoMonadFailDesugaring
+
+Source-Repository head
+        Type:           git
+        Location:       https://github.com/haskell-suite/haskell-src-exts.git
+
+Test-Suite test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      tests
+  main-is:             Runner.hs
+  other-modules:       Extensions
+  GHC-Options:         -threaded -Wall
+  Default-language:    Haskell2010
+  Build-depends:       base < 5,
+                       mtl,
+                       containers,
+                       haskell-src-exts,
+                       smallcheck >= 1.0,
+                       tasty >= 0.3,
+                       tasty-smallcheck,
+                       tasty-golden >= 2.2.2,
+                       filepath,
+                       directory,
+                       pretty-show >= 1.6.16
