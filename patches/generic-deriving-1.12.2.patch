@@ -1,0 +1,61 @@
+commit e8ec918f4ef7b685bf52b42724044b6249cf22e6
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Sat Oct 27 21:02:34 2018 -0400
+
+    Allow building with template-haskell-2.15.0.0
+
+diff --git a/src/Generics/Deriving/TH.hs b/src/Generics/Deriving/TH.hs
+index e819b2b..9982baf 100644
+--- a/src/Generics/Deriving/TH.hs
++++ b/src/Generics/Deriving/TH.hs
+@@ -347,7 +347,11 @@ deriveInstCommon genericName repName gClass fromName toName opts n = do
+                      else origTy
+       tyIns = TySynInstD repName
+ #if MIN_VERSION_template_haskell(2,9,0)
+-                         (TySynEqn [origSigTy] tyInsRHS)
++                         (TySynEqn
++# if MIN_VERSION_template_haskell(2,15,0)
++                            Nothing
++# endif
++                            [origSigTy] tyInsRHS)
+ #else
+                          [origSigTy] tyInsRHS
+ #endif
+
+commit b318c48a0c743e91f96df564dd07e5c91b673079
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Sat Oct 27 20:54:45 2018 -0400
+
+    Delete dataDecCons
+    
+    This is dead code. To make things worse, this function doesn't
+    compile on GHC HEAD (see hvr/head.hackage#86), so this is actually
+    causing problems.
+
+diff --git a/src/Generics/Deriving/TH/Internal.hs b/src/Generics/Deriving/TH/Internal.hs
+index 41f1322..9cf20d8 100644
+--- a/src/Generics/Deriving/TH/Internal.hs
++++ b/src/Generics/Deriving/TH/Internal.hs
+@@ -401,22 +401,6 @@ isNewtypeVariant Newtype_              = True
+ isNewtypeVariant (DataInstance_ {})    = False
+ isNewtypeVariant (NewtypeInstance_ {}) = True
+ 
+-#if MIN_VERSION_template_haskell(2,7,0)
+--- | Extracts the constructors of a data or newtype declaration.
+-dataDecCons :: Dec -> [Con]
+-dataDecCons (DataInstD _ _ _
+-# if MIN_VERSION_template_haskell(2,11,0)
+-                       _
+-# endif
+-                       cons _) = cons
+-dataDecCons (NewtypeInstD _ _ _
+-# if MIN_VERSION_template_haskell(2,11,0)
+-                          _
+-# endif
+-                          con _) = [con]
+-dataDecCons _ = error "Must be a data or newtype declaration."
+-#endif
+-
+ -- | Indicates whether Generic or Generic1 is being derived.
+ data GenericClass = Generic | Generic1 deriving Enum
+ 

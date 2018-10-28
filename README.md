@@ -10,8 +10,8 @@ existing Hackage package(s).
   you submit a PR).
 
 - The patches SHOULD work with at least GHC HEAD and the most recent
-  stable released GHC version (currently this means with GHC 8.2.2, GHC 8.4.1-alpha, and
-  GHC 8.5).
+  stable released GHC version (currently this means with GHC 8.6.1 and
+  GHC 8.7).
 
 - The patches SHOULD ideally result in the same code being compiled,
   as one of the main purposes of these patches is to make regression
