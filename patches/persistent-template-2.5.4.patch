@@ -1,0 +1,52 @@
+diff -ru persistent-template-2.5.4.orig/Database/Persist/TH.hs persistent-template-2.5.4/Database/Persist/TH.hs
+--- persistent-template-2.5.4.orig/Database/Persist/TH.hs	2018-03-08 10:56:53.000000000 -0500
++++ persistent-template-2.5.4/Database/Persist/TH.hs	2018-10-27 22:41:45.194649998 -0400
+@@ -519,6 +519,9 @@
+ uniqueTypeDec :: MkPersistSettings -> EntityDef -> Dec
+ uniqueTypeDec mps t =
+     DataInstD [] ''Unique
++#if MIN_VERSION_template_haskell(2,15,0)
++        Nothing
++#endif
+         [genericDataType mps (entityHaskell t) backendT]
+ #if MIN_VERSION_template_haskell(2,11,0)
+             Nothing
+@@ -782,8 +785,16 @@
+ #if MIN_VERSION_template_haskell(2,12,0)
+     cxti <- mapM conT i
+     let kd = if useNewtype
+-               then NewtypeInstD [] k [recordType] Nothing dec [DerivClause Nothing cxti]
+-               else DataInstD    [] k [recordType] Nothing [dec] [DerivClause Nothing cxti]
++               then NewtypeInstD [] k
++# if MIN_VERSION_template_haskell(2,15,0)
++                                    Nothing
++# endif
++                                    [recordType] Nothing dec [DerivClause Nothing cxti]
++               else DataInstD    [] k
++# if MIN_VERSION_template_haskell(2,15,0)
++                                    Nothing
++# endif
++                                    [recordType] Nothing [dec] [DerivClause Nothing cxti]
+ #elif MIN_VERSION_template_haskell(2,11,0)
+     cxti <- mapM conT i
+     let kd = if useNewtype
+@@ -1055,6 +1066,9 @@
+         , DataInstD
+             []
+             ''EntityField
++#if MIN_VERSION_template_haskell(2,15,0)
++            Nothing
++#endif
+             [ genDataType
+             , VarT $ mkName "typ"
+             ]
+@@ -1068,6 +1082,9 @@
+             ''PersistEntityBackend
+ #if MIN_VERSION_template_haskell(2,9,0)
+             (TySynEqn
++# if MIN_VERSION_template_haskell(2,15,0)
++               Nothing
++# endif
+                [genDataType]
+                (backendDataType mps))
+ #else

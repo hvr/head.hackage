@@ -1,0 +1,53 @@
+commit 315a9cc32da358cd619417357dd13c5b3fe1a6e3
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Sat Oct 27 22:21:24 2018 -0400
+
+    Allow building with template-haskell-2.15.0.0
+
+diff --git a/src/TH/ReifySimple.hs b/src/TH/ReifySimple.hs
+index d179829..02eafa8 100644
+--- a/src/TH/ReifySimple.hs
++++ b/src/TH/ReifySimple.hs
+@@ -234,13 +234,21 @@ infoToDataFamily info = case info of
+     _ -> Nothing
+   where
+ #if MIN_VERSION_template_haskell(2,11,0)
+-    go (NewtypeInstD preds name params _kind con _deriving) =
++    go (NewtypeInstD preds name
++# if MIN_VERSION_template_haskell(2,15,0)
++                           _
++# endif
++                           params _kind con _deriving) =
+ #else
+     go (NewtypeInstD preds name params       con _deriving) =
+ #endif
+         DataInst name preds params (conToDataCons con)
+ #if MIN_VERSION_template_haskell(2,11,0)
+-    go (DataInstD preds name params _kind cons _deriving) =
++    go (DataInstD preds name
++# if MIN_VERSION_template_haskell(2,15,0)
++                        _
++# endif
++                        params _kind cons _deriving) =
+ #else
+     go (DataInstD preds name params       cons _deriving) =
+ #endif
+@@ -263,8 +271,16 @@ infoToTypeFamily info = case info of
+ #endif
+     _ -> Nothing
+   where
+-    goEqn name (TySynEqn params ty) = TypeInst name params ty
+-    go (TySynInstD name (TySynEqn params ty)) = TypeInst name params ty
++    goEqn name (TySynEqn
++#if MIN_VERSION_template_haskell(2,15,0)
++                         _
++#endif
++                         params ty) = TypeInst name params ty
++    go (TySynInstD name (TySynEqn
++#if MIN_VERSION_template_haskell(2,15,0)
++                                  _
++#endif
++                                  params ty)) = TypeInst name params ty
+     go info' = error $
+         "Unexpected instance in FamilyI in infoToTypeInsts:\n" ++ pprint info'
+ 
