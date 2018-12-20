@@ -1,0 +1,22 @@
+commit 1138d062235185f05d76d3ce701662c0d22ab345
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Sat Dec 29 22:22:52 2018 -0500
+
+    Allow building with template-haskell-2.15.0.0
+
+diff --git a/src/Database/CQL/Protocol/Record.hs b/src/Database/CQL/Protocol/Record.hs
+index c69e454..d4ad7f2 100644
+--- a/src/Database/CQL/Protocol/Record.hs
++++ b/src/Database/CQL/Protocol/Record.hs
+@@ -13,8 +13,10 @@ import Language.Haskell.TH
+ typeSynDecl :: Name -> [Type] -> Type -> Dec
+ #if __GLASGOW_HASKELL__ < 708
+ typeSynDecl = TySynInstD
+-#else
++#elif __GLASGOW_HASKELL__ < 807
+ typeSynDecl x y z = TySynInstD x (TySynEqn y z)
++#else
++typeSynDecl x y z = TySynInstD (TySynEqn Nothing (foldl AppT (ConT x) y) z)
+ #endif
+ 
+ type family TupleType a

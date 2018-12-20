@@ -1,11 +1,11 @@
-commit b51d1a5323571bbd34edaed229e7f5a159d3b29b
+commit b680978690ac2f79fde3d06f4a6c3b6f977b8b17
 Author: Ryan Scott <ryan.gl.scott@gmail.com>
-Date:   Sat Oct 27 21:09:21 2018 -0400
+Date:   Sat Dec 29 17:37:29 2018 -0500
 
     Allow building with template-haskell-2.15.0.0
 
 diff --git a/Data/Vector/Unboxed/Deriving.hs b/Data/Vector/Unboxed/Deriving.hs
-index 52380b6..ad156f9 100644
+index 52380b6..f7ed37e 100644
 --- a/Data/Vector/Unboxed/Deriving.hs
 +++ b/Data/Vector/Unboxed/Deriving.hs
 @@ -117,6 +117,11 @@ derivingUnbox name argsQ toRepQ fromRepQ = do
@@ -20,21 +20,33 @@ index 52380b6..ad156f9 100644
  #if MIN_VERSION_template_haskell(2,11,0)
      let lazy = Bang NoSourceUnpackedness NoSourceStrictness
  # define MAYBE_KIND Nothing
-@@ -126,7 +131,7 @@ derivingUnbox name argsQ toRepQ fromRepQ = do
+@@ -126,7 +131,13 @@ derivingUnbox name argsQ toRepQ fromRepQ = do
  # define MAYBE_KIND
  # define MAYBE_OVERLAP
  #endif
 -    let newtypeMVector = NewtypeInstD [] ''MVector [s, typ] MAYBE_KIND
-+    let newtypeMVector = NewtypeInstD [] ''MVector MAYBE_TVBS [s, typ] MAYBE_KIND
++    let newtypeMVector = NewtypeInstD [] MAYBE_TVBS
++#if MIN_VERSION_template_haskell(2,15,0)
++                                      (ConT ''MVector `AppT` s `AppT` typ)
++#else
++                                      ''MVector [s, typ]
++#endif
++                                      MAYBE_KIND
              (NormalC mvName [(lazy, ConT ''MVector `AppT` s `AppT` rep)]) []
      let mvCon = ConE mvName
      let instanceMVector = InstanceD MAYBE_OVERLAP cxts
-@@ -147,7 +152,7 @@ derivingUnbox name argsQ toRepQ fromRepQ = do
+@@ -147,7 +158,13 @@ derivingUnbox name argsQ toRepQ fromRepQ = do
              , wrap 'M.basicUnsafeMove       [mv, mv']   id
              , wrap 'M.basicUnsafeGrow       [mv, n]     (liftE mvCon) ]
  
 -    let newtypeVector = NewtypeInstD [] ''Vector [typ] MAYBE_KIND
-+    let newtypeVector = NewtypeInstD [] ''Vector MAYBE_TVBS [typ] MAYBE_KIND
++    let newtypeVector = NewtypeInstD [] MAYBE_TVBS
++#if MIN_VERSION_template_haskell(2,15,0)
++                                     (ConT ''Vector `AppT` typ)
++#else
++                                     ''Vector [typ]
++#endif
++                                     MAYBE_KIND
              (NormalC vName [(lazy, ConT ''Vector `AppT` rep)]) []
      let vCon  = ConE vName
      let instanceVector = InstanceD MAYBE_OVERLAP cxts

@@ -1,26 +1,31 @@
-commit e8ec918f4ef7b685bf52b42724044b6249cf22e6
+commit 84ee38c17b615de3cba79184301c1f124db92f41
 Author: Ryan Scott <ryan.gl.scott@gmail.com>
-Date:   Sat Oct 27 21:02:34 2018 -0400
+Date:   Mon Dec 10 13:56:51 2018 -0500
 
     Allow building with template-haskell-2.15.0.0
 
 diff --git a/src/Generics/Deriving/TH.hs b/src/Generics/Deriving/TH.hs
-index e819b2b..9982baf 100644
+index e819b2b..f267673 100644
 --- a/src/Generics/Deriving/TH.hs
 +++ b/src/Generics/Deriving/TH.hs
-@@ -347,7 +347,11 @@ deriveInstCommon genericName repName gClass fromName toName opts n = do
+@@ -345,11 +345,13 @@ deriveInstCommon genericName repName gClass fromName toName opts n = do
+   let origSigTy = if useKindSigs
+                      then SigT origTy origKind
                       else origTy
-       tyIns = TySynInstD repName
- #if MIN_VERSION_template_haskell(2,9,0)
+-      tyIns = TySynInstD repName
+-#if MIN_VERSION_template_haskell(2,9,0)
 -                         (TySynEqn [origSigTy] tyInsRHS)
-+                         (TySynEqn
-+# if MIN_VERSION_template_haskell(2,15,0)
-+                            Nothing
-+# endif
-+                            [origSigTy] tyInsRHS)
++      tyIns =
++#if MIN_VERSION_template_haskell(2,15,0)
++              TySynInstD (TySynEqn Nothing (ConT repName `AppT` origSigTy) tyInsRHS)
++#elif MIN_VERSION_template_haskell(2,9,0)
++              TySynInstD repName (TySynEqn [origSigTy] tyInsRHS)
  #else
-                          [origSigTy] tyInsRHS
+-                         [origSigTy] tyInsRHS
++              TySynInstD repName [origSigTy] tyInsRHS
  #endif
+       ecOptions = emptyCaseOptions opts
+       mkBody maker = [clause [] (normalB $
 
 commit b318c48a0c743e91f96df564dd07e5c91b673079
 Author: Ryan Scott <ryan.gl.scott@gmail.com>
