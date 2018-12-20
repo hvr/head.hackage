@@ -1,0 +1,61 @@
+commit 53ab40e7662d99eb924eaf6c967eebe2133f23aa
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Thu Dec 20 10:20:51 2018 -0500
+
+    Allow building with template-haskell-2.15.0.0
+
+diff --git a/src/Language/Haskell/TH/Datatype.hs b/src/Language/Haskell/TH/Datatype.hs
+index 44a899e..155244d 100644
+--- a/src/Language/Haskell/TH/Datatype.hs
++++ b/src/Language/Haskell/TH/Datatype.hs
+@@ -524,7 +524,15 @@ repairDataFam
+     DataInstD cx n (repairVarKindsWith' dvars ts) cons deriv
+ #else
+ repairDataFam famD instD
+-# if MIN_VERSION_template_haskell(2,11,0)
++# if MIN_VERSION_template_haskell(2,15,0)
++      | DataFamilyD _ dvars _ <- famD
++      , NewtypeInstD cx n tvbs ts k c deriv <- instD
++      = NewtypeInstD cx n tvbs (repairVarKindsWith dvars ts) k c deriv
++
++      | DataFamilyD _ dvars _ <- famD
++      , DataInstD cx n tvbs ts k c deriv <- instD
++      = DataInstD cx n tvbs (repairVarKindsWith dvars ts) k c deriv
++# elif MIN_VERSION_template_haskell(2,11,0)
+       | DataFamilyD _ dvars _ <- famD
+       , NewtypeInstD cx n ts k c deriv <- instD
+       = NewtypeInstD cx n (repairVarKindsWith dvars ts) k c deriv
+@@ -580,10 +588,18 @@ normalizeDecFor isReified dec =
+       giveTypesStarKinds <$> normalizeDec' isReified context name (bndrParams tyvars) [con] Newtype
+     DataD context name tyvars _kind cons _derives ->
+       giveTypesStarKinds <$> normalizeDec' isReified context name (bndrParams tyvars) cons Datatype
+-    NewtypeInstD context name params _kind con _derives ->
++    NewtypeInstD context name
++# if MIN_VERSION_template_haskell(2,15,0)
++                 _
++# endif
++                 params _kind con _derives ->
+       repair13618' . giveTypesStarKinds =<<
+       normalizeDec' isReified context name params [con] NewtypeInstance
+-    DataInstD context name params _kind cons _derives ->
++    DataInstD context name
++# if MIN_VERSION_template_haskell(2,15,0)
++               _
++# endif
++              params _kind cons _derives ->
+       repair13618' . giveTypesStarKinds =<<
+       normalizeDec' isReified context name params cons DataInstance
+ #elif MIN_VERSION_template_haskell(2,11,0)
+@@ -1776,7 +1792,11 @@ tySynInstDCompat ::
+   TypeQ   {- ^ instance result     -} ->
+   DecQ
+ #if MIN_VERSION_template_haskell(2,9,0)
+-tySynInstDCompat n ps r = TySynInstD n <$> (TySynEqn <$> sequence ps <*> r)
++tySynInstDCompat n ps r = TySynInstD n <$> (TySynEqn
++# if MIN_VERSION_template_haskell(2,15,0)
++                                              Nothing
++# endif
++                                              <$> sequence ps <*> r)
+ #else
+ tySynInstDCompat = tySynInstD
+ #endif
