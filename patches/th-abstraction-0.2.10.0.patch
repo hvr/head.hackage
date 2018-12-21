@@ -1,11 +1,11 @@
-commit 53ab40e7662d99eb924eaf6c967eebe2133f23aa
+commit 2ede35c598fa1f2e6e4f0c4f64f4fdca06190115
 Author: Ryan Scott <ryan.gl.scott@gmail.com>
-Date:   Thu Dec 20 10:20:51 2018 -0500
+Date:   Thu Dec 20 19:59:09 2018 -0500
 
     Allow building with template-haskell-2.15.0.0
 
 diff --git a/src/Language/Haskell/TH/Datatype.hs b/src/Language/Haskell/TH/Datatype.hs
-index 44a899e..155244d 100644
+index 5b65336..1d98a4d 100644
 --- a/src/Language/Haskell/TH/Datatype.hs
 +++ b/src/Language/Haskell/TH/Datatype.hs
 @@ -524,7 +524,15 @@ repairDataFam
@@ -46,7 +46,7 @@ index 44a899e..155244d 100644
        repair13618' . giveTypesStarKinds =<<
        normalizeDec' isReified context name params cons DataInstance
  #elif MIN_VERSION_template_haskell(2,11,0)
-@@ -1776,7 +1792,11 @@ tySynInstDCompat ::
+@@ -1780,7 +1796,11 @@ tySynInstDCompat ::
    TypeQ   {- ^ instance result     -} ->
    DecQ
  #if MIN_VERSION_template_haskell(2,9,0)
