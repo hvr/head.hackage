@@ -8,11 +8,11 @@
 #       nix build -f --arg ghc "(import build.nix {ghc-path=$GHC_TREE;})"
 #
 let
-  rev = "f2632f5c60f574d787fc5490efb3f43f9e6209b7";
+  rev = "1222e289b5014d17884a8b1c99f220c5e3df0b14";
   baseNixpkgs =
     builtins.fetchTarball {
     url = "https://github.com/NixOS/nixpkgs/archive/${rev}.tar.gz";
-    sha256 = "1c36p7w36i38gng3yp1nd5vz0p2dwrax5szjkvnmdxfklggs7knf";
+    sha256 = "1sa2m8kdak6y9183jgizg95swrv9ich05lsnli0bdc8r11wahl54";
   };
 in
 
@@ -83,8 +83,8 @@ let
               http-api-data = haskellPackages.callPackage ./http-api-data.nix {};
               tagged = self1.callHackage "tagged" "0.8.6" {};
 
-              jailbreak-cabal = self.haskell.packages.ghc802.jailbreak-cabal;
-              cabal2nix = self.haskell.packages.ghc843.cabal2nix;
+              jailbreak-cabal = self.haskell.packages.ghc864.jailbreak-cabal;
+              cabal2nix = self.haskell.packages.ghc864.cabal2nix;
             };
           };
       in baseHaskellPackages.extend overrides;

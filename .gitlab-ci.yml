@@ -1,0 +1,88 @@
+# GHC/head.hackage CI support
+# ===========================
+#
+# This is the GitLab CI automation that drives GHC's head.hackage testing.
+# The goal is to be able to test GHC by building a (small) subset of Hackage.
+# Moreover, we want to be able to collect logs of failed builds as well as
+# performance metrics from builds that succeed.
+#
+# To accomplish this we use head.hackage's native Nix support and the
+# ghc-artefact-nix expression to make GHC binary distributions usable from
+# within Nix. These components are tied together by ./scripts/build-all.nix,
+# which contains the list of packages which we build as well as some simple
+# configuration to minimize the cost of the builds.
+#
+
+variables:
+  # Commit of ghc/ci-images repository from which to pull Docker images
+  DOCKER_REV: 6d19c3adc1f5c28c82aed8c5b1ac40931ac60f3f
+
+  # A default for testing
+  GHC_TARBALL: https://gitlab.haskell.org/ghc/ghc/-/jobs/33075/artifacts/raw/ghc.tar.xz
+
+  # Project ID of ghc/ghc
+  GHC_PROJECT_ID: "1"
+
+  # ACCESS_TOKEN provided via protected environment variable
+
+build:
+  tags:
+    - x86_64-linux
+    - head.hackage
+
+  image: nixos/nix
+
+  cache:
+    key: build-all
+    paths:
+      - store.nar
+
+  before_script:
+    - |
+      if [ -e store.nar ]; then
+        echo "Extracting cached Nix store..."
+        nix-store --import -vv < store.nar || echo "invalid cache"
+      else
+        echo "No cache found"
+      fi
+
+  script:
+    - |
+      if [ -n "$GHC_PIPELINE_ID" ]; then
+        job_name="validate-x86_64-linux-fedora27"
+        job_id=$(nix run -f scripts/build-all.nix find-job \
+          --arg bindistTarball $GHC_TARBALL \
+          -c find-job.sh $GHC_PROJECT_ID $GHC_PIPELINE_ID $job_name)
+        echo "Pulling ${job_name} binary distribution from Pipeline $GHC_PIPELINE_ID (job $job_id)..."
+        GHC_TARBALL="https://gitlab.haskell.org/ghc/ghc/-/jobs/$job_id/artifacts/raw/ghc-x86_64-fedora27-linux.tar.xz"
+      fi
+
+    - echo "Bindist tarball is $GHC_TARBALL"
+    - nix-build scripts/build-all.nix -j$CPUS
+        --no-build-output
+        -A buildDepends
+        --arg bindistTarball $GHC_TARBALL
+    - nix-store --export $(nix-store -qR --include-outputs $(nix-instantiate --quiet scripts/build-all.nix --arg bindistTarball $GHC_TARBALL -A buildDepends -A ghc)) > store.nar
+    - ret=0
+    - nix-build scripts/build-all.nix
+        -j$CPUS --no-build-output
+        -A testedPackages
+        --keep-going
+        --arg bindistTarball $GHC_TARBALL
+        || (echo "Build failed!"; ret=1)
+    - scripts/summarize.py || echo "summarize script failed"
+    - exit $ret
+
+  after_script:
+    - nix run -f '<nixpkgs>' gnutar -c tar -zcf logs.tar.gz logs
+      # The following throws a fontconfig error but it appears to be innocuous.
+    - nix run -f '<nixpkgs>' graphviz -c dot -O -T svg summary.dot
+    - ls -lh
+
+  artifacts:
+    when: always
+    paths:
+    - logs.tar.gz
+    - summary.json
+    - summary.dot
+    - summary.dot.svg
