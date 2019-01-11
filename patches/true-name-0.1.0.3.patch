@@ -1,43 +1,55 @@
-commit 1cf4ba417b327f90d7673375a480d8a251be0fee
+commit 684d9831d9799d35b2e2af46f6d171d2fd20fa14
 Author: Ryan Scott <ryan.gl.scott@gmail.com>
-Date:   Sat Oct 27 21:52:46 2018 -0400
+Date:   Sat Dec 29 20:49:37 2018 -0500
 
     Allow building with template-haskell-2.15.0.0
 
 diff --git a/Unsafe/TrueName.hs b/Unsafe/TrueName.hs
-index d126ced..53748aa 100644
+index d126ced..e5476ed 100644
 --- a/Unsafe/TrueName.hs
 +++ b/Unsafe/TrueName.hs
-@@ -65,9 +65,17 @@ decNames dec = case dec of
+@@ -65,6 +65,11 @@ decNames dec = case dec of
  #endif
  
  #if MIN_VERSION_template_haskell(2,12,0)
--    DataInstD cxt _name _typs _kind cons derivs   ->
-+    DataInstD cxt _name
-+# if MIN_VERSION_template_haskell(2,15,0)
-+                  _mtvbs
-+# endif
-+                  _typs _kind cons derivs   ->
++    DataInstD cxt _mbtvs _ntyps _kind cons derivs   ->
++        datatypeNames cxt cons  ++ derivNames derivs
++    NewtypeInstD cxt _mbtvs _ntyps _kind con derivs ->
++        datatypeNames cxt [con] ++ derivNames derivs
++#elif MIN_VERSION_template_haskell(2,12,0)
+     DataInstD cxt _name _typs _kind cons derivs   ->
          datatypeNames cxt cons  ++ derivNames derivs
--    NewtypeInstD cxt _name _typs _kind con derivs ->
-+    NewtypeInstD cxt _name
-+# if MIN_VERSION_template_haskell(2,15,0)
-+                     _mtvbs
+     NewtypeInstD cxt _name _typs _kind con derivs ->
+@@ -93,7 +98,11 @@ decNames dec = case dec of
+ #endif
+ 
+ #if MIN_VERSION_template_haskell(2,9,0)
+-    TySynInstD _ tse -> tseNames tse
++    TySynInstD
++# if !(MIN_VERSION_template_haskell(2,15,0))
++      _
 +# endif
-+                     _typs _kind con derivs ->
-         datatypeNames cxt [con] ++ derivNames derivs
- #elif MIN_VERSION_template_haskell(2,11,0)
-     DataInstD cxt _ _ _ cons derivs ->
-@@ -121,7 +129,11 @@ derivNames derivs = predNames =<<
++      tse -> tseNames tse
+     RoleAnnotD _ _ -> []
+ #else
+     TySynInstD _ ts t -> (typNames =<< ts) ++ typNames t
+@@ -121,7 +130,19 @@ derivNames derivs = predNames =<<
  
  #if MIN_VERSION_template_haskell(2,9,0)
  tseNames :: TySynEqn -> [Name]
--tseNames (TySynEqn ts t) = (typNames =<< ts) ++ typNames t
-+tseNames (TySynEqn
 +# if MIN_VERSION_template_haskell(2,15,0)
-+                   _
++tseNames (TySynEqn _ nts t) = (typNames =<< ts) ++ typNames t
++  where
++    (_n, ts) = unAppsT nts
++
++    unAppsT :: Type -> (Type, [Type])
++    unAppsT = go []
++      where
++        go xs (AppT l x) = go (x : xs) l
++        go xs ty = (ty, xs)
++# else
+ tseNames (TySynEqn ts t) = (typNames =<< ts) ++ typNames t
 +# endif
-+                   ts t) = (typNames =<< ts) ++ typNames t
  #endif
  
  predNames :: Pred -> [Name]{- {{{ -}

@@ -1,115 +1,151 @@
-commit 2eb12d1891d1e68104b310493c3d766840c2367e
+commit 7d5a0d5436dbdf9d545329ae57dc4d750c1934d1
 Author: Ryan Scott <ryan.gl.scott@gmail.com>
-Date:   Sat Oct 27 21:33:26 2018 -0400
+Date:   Sat Dec 29 21:30:56 2018 -0500
 
     Allow building with template-haskell-2.15.0.0
 
+diff --git a/src/Control/Lens/Internal/TH.hs b/src/Control/Lens/Internal/TH.hs
+index 6ea63da2..185e47ae 100644
+--- a/src/Control/Lens/Internal/TH.hs
++++ b/src/Control/Lens/Internal/TH.hs
+@@ -46,7 +46,9 @@ import Paths_lens (version)
+ 
+ -- | Compatibility shim for recent changes to template haskell's 'tySynInstD'
+ tySynInstD' :: Name -> [TypeQ] -> TypeQ -> DecQ
+-#if MIN_VERSION_template_haskell(2,9,0)
++#if MIN_VERSION_template_haskell(2,15,0)
++tySynInstD' fam ts r = tySynInstD (tySynEqn Nothing (foldl appT (conT fam) ts) r)
++#elif MIN_VERSION_template_haskell(2,9,0)
+ tySynInstD' fam ts r = tySynInstD fam (tySynEqn ts r)
+ #else
+ tySynInstD' = tySynInstD
 diff --git a/src/Control/Lens/TH.hs b/src/Control/Lens/TH.hs
-index dc7cead..94fb12c 100644
+index dc7cead1..eff0a99b 100644
 --- a/src/Control/Lens/TH.hs
 +++ b/src/Control/Lens/TH.hs
-@@ -481,7 +481,11 @@ declareLensesWith rules = declareWith $ \dec -> do
- deNewtype :: Dec -> Dec
- #if MIN_VERSION_template_haskell(2,11,0)
- deNewtype (NewtypeD ctx tyName args kind c d) = DataD ctx tyName args kind [c] d
-+# if MIN_VERSION_template_haskell(2,15,0)
-+deNewtype (NewtypeInstD ctx tyName mtvbs args kind c d) = DataInstD ctx tyName mtvbs args kind [c] d
-+# else
- deNewtype (NewtypeInstD ctx tyName args kind c d) = DataInstD ctx tyName args kind [c] d
-+# endif
- #else
- deNewtype (NewtypeD ctx tyName args c d) = DataD ctx tyName args [c] d
- deNewtype (NewtypeInstD ctx tyName args c d) = DataInstD ctx tyName args [c] d
-@@ -512,7 +516,11 @@ makeDataDecl dec = case deNewtype dec of
+@@ -512,11 +512,16 @@ makeDataDecl dec = case deNewtype dec of
      , fullType = apps $ ConT tyName
      , constructors = cons
      }
--  DataInstD ctx familyName args
-+  DataInstD ctx familyName
 +#if MIN_VERSION_template_haskell(2,15,0)
-+            _
-+#endif
-+            args
++  DataInstD ctx _ fnArgs _ cons _
++#else
+   DataInstD ctx familyName args
  #if MIN_VERSION_template_haskell(2,11,0)
              _
  #endif
-@@ -873,10 +881,17 @@ stripFields dec = case dec of
-     DataD ctx tyName tyArgs kind (map deRecord cons) derivings
-   NewtypeD ctx tyName tyArgs kind con derivings ->
-     NewtypeD ctx tyName tyArgs kind (deRecord con) derivings
-+# if MIN_VERSION_template_haskell(2,15,0)
-+  DataInstD ctx tyName mtvbs tyArgs kind cons derivings ->
-+    DataInstD ctx tyName mtvbs tyArgs kind (map deRecord cons) derivings
-+  NewtypeInstD ctx tyName mtvbs tyArgs kind con derivings ->
-+    NewtypeInstD ctx tyName mtvbs tyArgs kind (deRecord con) derivings
-+# else
-   DataInstD ctx tyName tyArgs kind cons derivings ->
-     DataInstD ctx tyName tyArgs kind (map deRecord cons) derivings
-   NewtypeInstD ctx tyName tyArgs kind con derivings ->
-     NewtypeInstD ctx tyName tyArgs kind (deRecord con) derivings
-+# endif
- #else
-   DataD ctx tyName tyArgs cons derivings ->
-     DataD ctx tyName tyArgs (map deRecord cons) derivings
+-            cons _ -> Just DataDecl
++            cons _
++#endif
++                   -> Just DataDecl
+     { dataContext = ctx
+     , tyConName = Nothing
+     , dataParameters = map PlainTV vars
+@@ -533,8 +538,23 @@ makeDataDecl dec = case deNewtype dec of
+       --
+       -- has 2 type parameters: a and b.
+       vars = toList $ setOf typeVars args
++
++#if MIN_VERSION_template_haskell(2,15,0)
++      (familyName, args) =
++        case unAppsT fnArgs of
++          (ConT familyName', args') -> (familyName', args')
++          (_, _) -> error $ "Illegal data instance LHS: " ++ pprint fnArgs
++#endif
+   _ -> Nothing
+ 
++#if MIN_VERSION_template_haskell(2,15,0)
++unAppsT :: Type -> (Type, [Type])
++unAppsT = go []
++  where
++    go xs (AppT l x) = go (x : xs) l
++    go xs ty = (ty, xs)
++#endif
++
+ -- | A data, newtype, data instance or newtype instance declaration.
+ data DataDecl = DataDecl
+   { dataContext :: Cxt -- ^ Datatype context.
 diff --git a/src/Language/Haskell/TH/Lens.hs b/src/Language/Haskell/TH/Lens.hs
-index 9d1b0c8..005f908 100644
+index 9d1b0c88..9a7dbe18 100644
 --- a/src/Language/Haskell/TH/Lens.hs
 +++ b/src/Language/Haskell/TH/Lens.hs
-@@ -492,7 +492,15 @@ instance HasTypes Foreign where
+@@ -4,6 +4,10 @@
+ #endif
+ {-# LANGUAGE Rank2Types #-}
+ 
++#if MIN_VERSION_template_haskell(2,15,0)
++{-# LANGUAGE PatternGuards #-}
++#endif
++
+ #if __GLASGOW_HASKELL__ >= 800
+ {-# OPTIONS_GHC -Wno-trustworthy-safe #-}
+ #endif
+@@ -492,8 +496,14 @@ instance HasTypes Foreign where
  
  #if MIN_VERSION_template_haskell(2,9,0)
  instance HasTypes TySynEqn where
--  types f (TySynEqn lhss rhs) = TySynEqn <$> traverse (types f) lhss
-+  types f (TySynEqn
 +# if MIN_VERSION_template_haskell(2,15,0)
-+                    mtvbs
-+# endif
-+                    lhss rhs) = TySynEqn
-+# if MIN_VERSION_template_haskell(2,15,0)
-+                                         mtvbs
-+# endif
-+                                         <$> traverse (types f) lhss
++  types f (TySynEqn mtvbs lhs rhs) = TySynEqn mtvbs
++                                         <$> types f lhs
++                                         <*> types f rhs
++# else
+   types f (TySynEqn lhss rhs) = TySynEqn <$> traverse (types f) lhss
                                           <*> types f rhs
++# endif
  #endif
  
-@@ -1110,16 +1118,32 @@ _DataInstD :: DataPrism' [Type] [Con]
+ instance HasTypes t => HasTypes [t] where
+@@ -1015,8 +1025,16 @@ _TySynInstD :: Prism' Dec (Name, TySynEqn)
+ _TySynInstD
+   = prism' reviewer remitter
+   where
++# if MIN_VERSION_template_haskell(2,15,0)
++      reviewer (_x, y)
++        = TySynInstD y
++      remitter (TySynInstD eqn@(TySynEqn _ lhs _))
++        | (ConT n, _) <- unAppsT lhs
++        = Just (n, eqn)
++# else
+       reviewer (x, y) = TySynInstD x y
+       remitter (TySynInstD x y) = Just (x, y)
++# endif
+       remitter _ = Nothing
+ 
+ _RoleAnnotD :: Prism' Dec (Name, [Role])
+@@ -1110,16 +1128,32 @@ _DataInstD :: DataPrism' [Type] [Con]
  _DataInstD
    = prism' reviewer remitter
    where
--      reviewer (x, y, z, w, u, v) = DataInstD x y z w u v
--      remitter (DataInstD x y z w u v) = Just (x, y, z, w, u, v)
-+      reviewer (x, y, z, w, u, v) = DataInstD x y
 +# if MIN_VERSION_template_haskell(2,15,0)
-+                                                  Nothing
++      reviewer (x, y, z, w, u, v)
++        = DataInstD x Nothing (Prelude.foldl AppT (ConT y) z) w u v
++      remitter (DataInstD x y z w u v)
++        | (ConT n, ts) <- unAppsT z
++        = Just (x, n, ts, w, u, v)
++# else
+       reviewer (x, y, z, w, u, v) = DataInstD x y z w u v
+       remitter (DataInstD x y z w u v) = Just (x, y, z, w, u, v)
 +# endif
-+                                                  z w u v
-+      remitter (DataInstD x y
-+# if MIN_VERSION_template_haskell(2,15,0)
-+                              _
-+# endif
-+                              z w u v) = Just (x, y, z, w, u, v)
        remitter _ = Nothing
  
  _NewtypeInstD :: DataPrism' [Type] Con
  _NewtypeInstD
    = prism' reviewer remitter
    where
--      reviewer (x, y, z, w, u, v) = NewtypeInstD x y z w u v
--      remitter (NewtypeInstD x y z w u v) = Just (x, y, z, w, u, v)
-+      reviewer (x, y, z, w, u, v) = NewtypeInstD x y
 +# if MIN_VERSION_template_haskell(2,15,0)
-+                                                     Nothing
++      reviewer (x, y, z, w, u, v)
++        = NewtypeInstD x Nothing (Prelude.foldl AppT (ConT y) z) w u v
++      remitter (NewtypeInstD x _y z w u v)
++        | (ConT n, ts) <- unAppsT z
++        = Just (x, n, ts, w, u, v)
++# else
+       reviewer (x, y, z, w, u, v) = NewtypeInstD x y z w u v
+       remitter (NewtypeInstD x y z w u v) = Just (x, y, z, w, u, v)
 +# endif
-+                                                     z w u v
-+      remitter (NewtypeInstD x y
-+# if MIN_VERSION_template_haskell(2,15,0)
-+                                 _
-+# endif
-+                                 z w u v) = Just (x, y, z, w, u, v)
        remitter _ = Nothing
  
  _DataFamilyD :: Prism' Dec (Name, [TyVarBndr], Maybe Kind)
-@@ -1546,8 +1570,16 @@ _RuleP :: Prism' Pragma (String, [RuleBndr], Exp, Exp, Phases)
+@@ -1546,8 +1580,16 @@ _RuleP :: Prism' Pragma (String, [RuleBndr], Exp, Exp, Phases)
  _RuleP
    = prism' reviewer remitter
    where
@@ -128,13 +164,17 @@ index 9d1b0c8..005f908 100644
        remitter _ = Nothing
  
  #if MIN_VERSION_template_haskell(2,9,0)
-@@ -1715,13 +1747,23 @@ _DataFam
+@@ -1715,13 +1757,35 @@ _DataFam
  #if MIN_VERSION_template_haskell(2,9,0)
  tySynEqnPatterns :: Lens' TySynEqn [Type]
  tySynEqnPatterns = lens g s where
 +# if MIN_VERSION_template_haskell(2,15,0)
-+   g (TySynEqn _     xs _)    = xs
-+   s (TySynEqn mtvbs _  y) xs = TySynEqn mtvbs xs y
++   g (TySynEqn _     nxs _)    = xs
++     where
++       (_n, xs) = unAppsT nxs
++   s (TySynEqn mtvbs nxs y) xs = TySynEqn mtvbs (Prelude.foldl AppT n xs) y
++     where
++       (n, _xs) = unAppsT nxs
 +# else
     g (TySynEqn xs _)    = xs
     s (TySynEqn _  y) xs = TySynEqn xs y
@@ -149,6 +189,14 @@ index 9d1b0c8..005f908 100644
     g (TySynEqn _  x) = x
     s (TySynEqn xs _) = TySynEqn xs
 +# endif
++#endif
++
++#if MIN_VERSION_template_haskell(2,15,0)
++unAppsT :: Type -> (Type, [Type])
++unAppsT = go []
++  where
++    go xs (AppT l x) = go (x : xs) l
++    go xs ty = (ty, xs)
  #endif
  
  _InfixL :: Prism' FixityDirection ()

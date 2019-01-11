@@ -1,0 +1,22 @@
+diff -ru kind-generics-th-0.1.0.0.orig/src/Generics/Kind/TH.hs kind-generics-th-0.1.0.0/src/Generics/Kind/TH.hs
+--- kind-generics-th-0.1.0.0.orig/src/Generics/Kind/TH.hs	2018-12-04 09:59:54.000000000 -0500
++++ kind-generics-th-0.1.0.0/src/Generics/Kind/TH.hs	2018-12-29 22:13:34.077917174 -0500
+@@ -1,3 +1,4 @@
++{-# language CPP #-}
+ {-# language ExplicitNamespaces #-}
+ {-# language MultiWayIf #-}
+ {-# language TemplateHaskellQuotes #-}
+@@ -79,7 +80,12 @@
+                   (conT ''GenericK `appT` dataApp `appT`
+                         foldr (\x y -> infixT x '(:&&:) y)
+                               (promotedT 'LoT0) (map varT argNamesToDrop))
+-                  [ tySynInstD ''RepK $ tySynEqn [dataApp] $
++                  [
++#if MIN_VERSION_template_haskell(2,15,0)
++                    tySynInstD $ tySynEqn Nothing (conT ''RepK `appT` dataApp) $
++#else
++                    tySynInstD ''RepK $ tySynEqn [dataApp] $
++#endif
+                       deriveRepK dataName argNamesToDrop variant cons'
+                   , deriveFromK cons'
+                   , deriveToK cons'

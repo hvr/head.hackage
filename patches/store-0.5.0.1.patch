@@ -1,29 +1,26 @@
-commit 5ca1bd8c3ebe15693fca25acf8addac38b0742c5
+commit d4222e5e6297bdc8c0f6ae0f51a0477142bd1401
 Author: Ryan Scott <ryan.gl.scott@gmail.com>
-Date:   Sat Oct 27 22:27:17 2018 -0400
+Date:   Mon Dec 10 15:54:31 2018 -0500
 
     Allow building with template-haskell-2.15.0.0
 
 diff --git a/src/Data/Store/TH/Internal.hs b/src/Data/Store/TH/Internal.hs
-index e0b777d..5f2a468 100644
+index e0b777d..8d3ee34 100644
 --- a/src/Data/Store/TH/Internal.hs
 +++ b/src/Data/Store/TH/Internal.hs
-@@ -355,8 +355,16 @@ getUnboxInfo = do
+@@ -354,7 +354,14 @@ getUnboxInfo = do
+     FamilyI _ insts <- reify ''UV.Vector
      return (map (everywhere (id `extT` dequalVarT) . go) insts)
    where
- #if MIN_VERSION_template_haskell(2,11,0)
--    go (NewtypeInstD preds _ [ty] _ con _) = (preds, ty, conToDataCons con)
--    go (DataInstD preds _ [ty] _ cons _) = (preds, ty, concatMap conToDataCons cons)
-+    go (NewtypeInstD preds _
-+# if MIN_VERSION_template_haskell(2,15,0)
-+                           _
-+# endif
-+                           [ty] _ con _) = (preds, ty, conToDataCons con)
-+    go (DataInstD preds _
-+# if MIN_VERSION_template_haskell(2,15,0)
-+                        _
-+# endif
-+                        [ty] _ cons _) = (preds, ty, concatMap conToDataCons cons)
+-#if MIN_VERSION_template_haskell(2,11,0)
++#if MIN_VERSION_template_haskell(2,15,0)
++    go (NewtypeInstD preds _ lhs _ con _)
++      | [_, ty] <- unAppsT lhs
++      = (preds, ty, conToDataCons con)
++    go (DataInstD preds _ lhs _ cons _)
++      | [_, ty] <- unAppsT lhs
++      = (preds, ty, concatMap conToDataCons cons)
++#elif MIN_VERSION_template_haskell(2,11,0)
+     go (NewtypeInstD preds _ [ty] _ con _) = (preds, ty, conToDataCons con)
+     go (DataInstD preds _ [ty] _ cons _) = (preds, ty, concatMap conToDataCons cons)
  #else
-     go (NewtypeInstD preds _ [ty] con _) = (preds, ty, conToDataCons con)
-     go (DataInstD preds _ [ty] cons _) = (preds, ty, concatMap conToDataCons cons)

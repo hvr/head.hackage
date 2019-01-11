@@ -1,61 +1,68 @@
-commit 2ede35c598fa1f2e6e4f0c4f64f4fdca06190115
+commit dad32ed626b008c1786a24c133481b1b3d69fa15
 Author: Ryan Scott <ryan.gl.scott@gmail.com>
-Date:   Thu Dec 20 19:59:09 2018 -0500
+Date:   Sat Dec 29 17:23:55 2018 -0500
 
     Allow building with template-haskell-2.15.0.0
 
 diff --git a/src/Language/Haskell/TH/Datatype.hs b/src/Language/Haskell/TH/Datatype.hs
-index 5b65336..1d98a4d 100644
+index 5b65336..0b5bc43 100644
 --- a/src/Language/Haskell/TH/Datatype.hs
 +++ b/src/Language/Haskell/TH/Datatype.hs
-@@ -524,7 +524,15 @@ repairDataFam
+@@ -524,7 +524,17 @@ repairDataFam
      DataInstD cx n (repairVarKindsWith' dvars ts) cons deriv
  #else
  repairDataFam famD instD
 -# if MIN_VERSION_template_haskell(2,11,0)
 +# if MIN_VERSION_template_haskell(2,15,0)
 +      | DataFamilyD _ dvars _ <- famD
-+      , NewtypeInstD cx n tvbs ts k c deriv <- instD
-+      = NewtypeInstD cx n tvbs (repairVarKindsWith dvars ts) k c deriv
++      , NewtypeInstD cx mtvbs nameApp k c deriv <- instD
++      , ConT n :| ts <- decomposeType nameApp
++      = NewtypeInstD cx mtvbs (foldl' AppT (ConT n) (repairVarKindsWith dvars ts)) k c deriv
 +
 +      | DataFamilyD _ dvars _ <- famD
-+      , DataInstD cx n tvbs ts k c deriv <- instD
-+      = DataInstD cx n tvbs (repairVarKindsWith dvars ts) k c deriv
++      , DataInstD cx mtvbs nameApp k c deriv <- instD
++      , ConT n :| ts <- decomposeType nameApp
++      = DataInstD cx mtvbs (foldl' AppT (ConT n) (repairVarKindsWith dvars ts)) k c deriv
 +# elif MIN_VERSION_template_haskell(2,11,0)
        | DataFamilyD _ dvars _ <- famD
        , NewtypeInstD cx n ts k c deriv <- instD
        = NewtypeInstD cx n (repairVarKindsWith dvars ts) k c deriv
-@@ -580,10 +588,18 @@ normalizeDecFor isReified dec =
+@@ -580,12 +590,27 @@ normalizeDecFor isReified dec =
        giveTypesStarKinds <$> normalizeDec' isReified context name (bndrParams tyvars) [con] Newtype
      DataD context name tyvars _kind cons _derives ->
        giveTypesStarKinds <$> normalizeDec' isReified context name (bndrParams tyvars) cons Datatype
--    NewtypeInstD context name params _kind con _derives ->
-+    NewtypeInstD context name
 +# if MIN_VERSION_template_haskell(2,15,0)
-+                 _
-+# endif
-+                 params _kind con _derives ->
++    NewtypeInstD context _ nameApp _kind con _derives ->
++      case decomposeType nameApp of
++        ConT name :| params ->
++          repair13618' . giveTypesStarKinds =<<
++          normalizeDec' isReified context name params [con] NewtypeInstance
++        _ -> fail $ "Unexpected newtype instance head: " ++ pprint nameApp
++    DataInstD context _ nameApp _kind cons _derives ->
++      case decomposeType nameApp of
++        ConT name :| params ->
++          repair13618' . giveTypesStarKinds =<<
++          normalizeDec' isReified context name params cons DataInstance
++        _ -> fail $ "Unexpected data instance head: " ++ pprint nameApp
++# else
+     NewtypeInstD context name params _kind con _derives ->
        repair13618' . giveTypesStarKinds =<<
        normalizeDec' isReified context name params [con] NewtypeInstance
--    DataInstD context name params _kind cons _derives ->
-+    DataInstD context name
-+# if MIN_VERSION_template_haskell(2,15,0)
-+               _
-+# endif
-+              params _kind cons _derives ->
+     DataInstD context name params _kind cons _derives ->
        repair13618' . giveTypesStarKinds =<<
        normalizeDec' isReified context name params cons DataInstance
++# endif
  #elif MIN_VERSION_template_haskell(2,11,0)
-@@ -1780,7 +1796,11 @@ tySynInstDCompat ::
+     NewtypeD context name tyvars _kind con _derives ->
+       giveTypesStarKinds <$> normalizeDec' isReified context name (bndrParams tyvars) [con] Newtype
+@@ -1779,7 +1804,9 @@ tySynInstDCompat ::
+   [TypeQ] {- ^ instance parameters -} ->
    TypeQ   {- ^ instance result     -} ->
    DecQ
- #if MIN_VERSION_template_haskell(2,9,0)
--tySynInstDCompat n ps r = TySynInstD n <$> (TySynEqn <$> sequence ps <*> r)
-+tySynInstDCompat n ps r = TySynInstD n <$> (TySynEqn
-+# if MIN_VERSION_template_haskell(2,15,0)
-+                                              Nothing
-+# endif
-+                                              <$> sequence ps <*> r)
+-#if MIN_VERSION_template_haskell(2,9,0)
++#if MIN_VERSION_template_haskell(2,15,0)
++tySynInstDCompat n ps r = TySynInstD <$> (TySynEqn Nothing <$> foldl' appT (conT n) ps <*> r)
++#elif MIN_VERSION_template_haskell(2,9,0)
+ tySynInstDCompat n ps r = TySynInstD n <$> (TySynEqn <$> sequence ps <*> r)
  #else
  tySynInstDCompat = tySynInstD
- #endif

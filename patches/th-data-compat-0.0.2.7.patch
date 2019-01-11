@@ -1,11 +1,11 @@
-commit b6d1b9178dadba3253b261435c31ab9f4e7418a9
+commit fc0d2aa1a8fe304dcbe2e49fb9b20a7cb192171a
 Author: Ryan Scott <ryan.gl.scott@gmail.com>
-Date:   Sat Oct 27 21:41:28 2018 -0400
+Date:   Sat Dec 29 20:39:21 2018 -0500
 
     Allow building with template-haskell-2.15.0.0
 
 diff --git a/src/Language/Haskell/TH/Compat/Data/Current.hs b/src/Language/Haskell/TH/Compat/Data/Current.hs
-index cdb8f09..838235b 100644
+index cdb8f09..a74e8d8 100644
 --- a/src/Language/Haskell/TH/Compat/Data/Current.hs
 +++ b/src/Language/Haskell/TH/Compat/Data/Current.hs
 @@ -1,3 +1,4 @@
@@ -13,29 +13,57 @@ index cdb8f09..838235b 100644
  module Language.Haskell.TH.Compat.Data.Current (
    dataD', unDataD,
    newtypeD', unNewtypeD,
-@@ -50,7 +51,11 @@ dataInstD' cxt n as cs ds = dataInstD cxt n as Nothing cs $ derivesFromNames ds
+@@ -12,7 +13,9 @@ import Language.Haskell.TH
+    Dec (DataD, NewtypeD, DataInstD, NewtypeInstD, InstanceD),
+    DerivClauseQ, DerivClause (..), Pred,
+    dataD, newtypeD, dataInstD, newtypeInstD, derivClause, conT)
+-
++#if MIN_VERSION_template_haskell(2,15,0)
++import Language.Haskell.TH (Type(..))
++#endif
+ 
+ derivesFromNames :: [Name] -> [DerivClauseQ]
+ derivesFromNames ns = [derivClause Nothing $ map conT ns]
+@@ -50,8 +53,15 @@ dataInstD' cxt n as cs ds = dataInstD cxt n as Nothing cs $ derivesFromNames ds
  
  -- | Compatible interface to destruct 'DataInstD'
  unDataInstD :: Dec -> Maybe (Cxt, Name, [Type], Maybe Kind, [Con], [Type])
--unDataInstD (DataInstD cxt n as mk cs ds) = Just (cxt, n, as, mk, cs, ds >>= unDerivClause)
-+unDataInstD (DataInstD cxt n
 +#if MIN_VERSION_template_haskell(2,15,0)
-+                             _
-+#endif
-+                             as mk cs ds) = Just (cxt, n, as, mk, cs, ds >>= unDerivClause)
++unDataInstD (DataInstD cxt _mtvbs nas mk cs ds)
++  | ConT n:as <- unAppsT nas
++  = Just (cxt, n, as, mk, cs, ds >>= unDerivClause)
++unDataInstD _ = Nothing
++#else
+ unDataInstD (DataInstD cxt n as mk cs ds) = Just (cxt, n, as, mk, cs, ds >>= unDerivClause)
  unDataInstD  _                            = Nothing
++#endif
  
  -- | Definition against 'newtypeInstD',
-@@ -61,7 +66,11 @@ newtypeInstD' cxt n as c ds = newtypeInstD cxt n as Nothing c $ derivesFromNames
+ --   compatible with before temaplate-haskell-2.11
+@@ -61,11 +71,26 @@ newtypeInstD' cxt n as c ds = newtypeInstD cxt n as Nothing c $ derivesFromNames
  
  -- | Compatible interface to destruct 'NewtypeInstD'
  unNewtypeInstD :: Dec -> Maybe (Cxt, Name, [Type], Maybe Kind, Con, [Type])
--unNewtypeInstD (NewtypeInstD cxt n as mk c ds) = Just (cxt, n, as, mk, c, ds >>= unDerivClause)
-+unNewtypeInstD (NewtypeInstD cxt n
 +#if MIN_VERSION_template_haskell(2,15,0)
-+                                   _
-+#endif
-+                                   as mk c ds) = Just (cxt, n, as, mk, c, ds >>= unDerivClause)
++unNewtypeInstD (NewtypeInstD cxt _mtvbs nas mk c ds)
++  | ConT n:as <- unAppsT nas
++  = Just (cxt, n, as, mk, c, ds >>= unDerivClause)
++unNewtypeInstD _ = Nothing
++#else
+ unNewtypeInstD (NewtypeInstD cxt n as mk c ds) = Just (cxt, n, as, mk, c, ds >>= unDerivClause)
  unNewtypeInstD  _                              = Nothing
++#endif
  
  -- | Compatible interface to destruct 'InstanceD'
+ --   No Overlap type is defined before template-haskell-2.11.
+ unInstanceD :: Dec -> Maybe (Cxt, Type, [Dec])
+ unInstanceD (InstanceD _ cxt ty decs) = Just (cxt, ty, decs)
+ unInstanceD  _                        = Nothing
++
++#if MIN_VERSION_template_haskell(2,15,0)
++unAppsT :: Type -> [Type]
++unAppsT = go []
++  where
++    go xs (AppT l x) = go (x : xs) l
++    go xs ty = ty : xs
++#endif

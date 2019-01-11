@@ -1,0 +1,36 @@
+commit 19f47a59a2c1ff72f218757de6c822e5134f2df9
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Tue Dec 11 10:43:06 2018 -0500
+
+    Allow building with template-haskell-2.15.0.0
+
+diff --git a/Control/Exception/IOChoice/THUtil.hs b/Control/Exception/IOChoice/THUtil.hs
+index b316527..68c8731 100644
+--- a/Control/Exception/IOChoice/THUtil.hs
++++ b/Control/Exception/IOChoice/THUtil.hs
+@@ -24,8 +24,13 @@ checkSupported exc = do
+ #if __GLASGOW_HASKELL__ >= 800
+         DataD _ name [] _ _ _ -> conT name
+         NewtypeD _ name [] _ _ _ -> conT name
++# if MIN_VERSION_template_haskell(2,15,0)
++        DataInstD _ _ nameArgs _ _ _ -> return nameArgs
++        NewtypeInstD _ _ nameArgs _ _ _ -> return nameArgs
++# else
+         DataInstD _ name args _ _ _ -> foldl1 appT (conT name:map return args)
+         NewtypeInstD _ name args _ _ _ -> foldl1 appT (conT name:map return args)
++# endif
+ #else
+         DataD _ name [] _ _ -> conT name
+         NewtypeD _ name [] _ _ -> conT name
+@@ -34,7 +39,11 @@ checkSupported exc = do
+ #endif
+         TySynD name [] _ -> conT name
+ #if __GLASGOW_HASKELL__ >= 707
++# if MIN_VERSION_template_haskell(2,15,0)
++        TySynInstD (TySynEqn _ nameArgs _) -> return nameArgs
++# else
+         TySynInstD name (TySynEqn args _) -> foldl1 appT (conT name:map return args)
++# endif
+ #else
+         TySynInstD name args _ -> foldl1 appT (conT name:map return args)
+ #endif
