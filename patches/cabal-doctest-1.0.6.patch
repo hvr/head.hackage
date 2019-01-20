@@ -1,0 +1,31 @@
+commit 8b8d16d9e6718242b958ef6a2d2a650cea83ac09
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Sun Jan 20 08:38:19 2019 -0500
+
+    Allow building with Cabal-2.5.*
+
+diff --git a/src/Distribution/Extra/Doctest.hs b/src/Distribution/Extra/Doctest.hs
+index 1beb9d2..85d428c 100644
+--- a/src/Distribution/Extra/Doctest.hs
++++ b/src/Distribution/Extra/Doctest.hs
+@@ -103,6 +103,9 @@ import Distribution.Types.GenericPackageDescription
+ import Distribution.PackageDescription
+        (CondTree (..))
+ #endif
++#if MIN_VERSION_Cabal(2,5,0)
++import Distribution.Types.LibraryName (libraryNameString)
++#endif
+ 
+ #if MIN_VERSION_directory(1,2,2)
+ import System.Directory
+@@ -432,7 +435,9 @@ generateBuildModule testSuiteName flags pkg lbi = do
+        isSpecific _                     = False
+ 
+     mbLibraryName :: Library -> Name
+-#if MIN_VERSION_Cabal(2,0,0)
++#if MIN_VERSION_Cabal(2,5,0)
++    mbLibraryName = NameLib . fmap unUnqualComponentName . libraryNameString . libName
++#elif MIN_VERSION_Cabal(2,0,0)
+     -- Cabal-2.0 introduced internal libraries, which are named.
+     mbLibraryName = NameLib . fmap unUnqualComponentName . libName
+ #else
