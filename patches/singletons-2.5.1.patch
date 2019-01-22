@@ -1,0 +1,476 @@
+commit da40565329a42b36931ad427ea16f718763e6e31
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Mon Jan 21 22:25:10 2019 -0500
+
+    Allow building with template-haskell-2.15.0.0
+    
+    Adapted from
+    https://github.com/goldfirere/singletons/commit/ccd61699716be9eac1f753383965b94a2023db5a
+
+diff --git a/src/Data/Singletons/Prelude/Applicative.hs b/src/Data/Singletons/Prelude/Applicative.hs
+index c75b98b..c51bd7a 100644
+--- a/src/Data/Singletons/Prelude/Applicative.hs
++++ b/src/Data/Singletons/Prelude/Applicative.hs
+@@ -6,6 +6,7 @@
+ {-# LANGUAGE PolyKinds #-}
+ {-# LANGUAGE ScopedTypeVariables #-}
+ {-# LANGUAGE TemplateHaskell #-}
++{-# LANGUAGE TypeApplications #-}
+ {-# LANGUAGE TypeFamilies #-}
+ {-# LANGUAGE TypeOperators #-}
+ {-# LANGUAGE UndecidableInstances #-}
+diff --git a/src/Data/Singletons/Prelude/Base.hs b/src/Data/Singletons/Prelude/Base.hs
+index 8e5d4a8..69459bd 100644
+--- a/src/Data/Singletons/Prelude/Base.hs
++++ b/src/Data/Singletons/Prelude/Base.hs
+@@ -1,6 +1,6 @@
+ {-# LANGUAGE TemplateHaskell, TypeOperators, DataKinds, PolyKinds,
+              ScopedTypeVariables, TypeFamilies, GADTs,
+-             UndecidableInstances, BangPatterns #-}
++             UndecidableInstances, BangPatterns, TypeApplications #-}
+ 
+ -----------------------------------------------------------------------------
+ -- |
+diff --git a/src/Data/Singletons/Prelude/Const.hs b/src/Data/Singletons/Prelude/Const.hs
+index 3c2c30f..adcc5bf 100644
+--- a/src/Data/Singletons/Prelude/Const.hs
++++ b/src/Data/Singletons/Prelude/Const.hs
+@@ -6,6 +6,7 @@
+ {-# LANGUAGE ScopedTypeVariables #-}
+ {-# LANGUAGE StandaloneDeriving #-}
+ {-# LANGUAGE TemplateHaskell #-}
++{-# LANGUAGE TypeApplications #-}
+ {-# LANGUAGE TypeFamilies #-}
+ {-# LANGUAGE TypeOperators #-}
+ {-# LANGUAGE UndecidableInstances #-}
+diff --git a/src/Data/Singletons/Prelude/Either.hs b/src/Data/Singletons/Prelude/Either.hs
+index 19450bd..568c750 100644
+--- a/src/Data/Singletons/Prelude/Either.hs
++++ b/src/Data/Singletons/Prelude/Either.hs
+@@ -1,5 +1,6 @@
+ {-# LANGUAGE TemplateHaskell, ScopedTypeVariables, TypeFamilies, GADTs,
+-             RankNTypes, UndecidableInstances, DataKinds, PolyKinds #-}
++             RankNTypes, UndecidableInstances, DataKinds, PolyKinds,
++             TypeApplications #-}
+ 
+ -----------------------------------------------------------------------------
+ -- |
+diff --git a/src/Data/Singletons/Prelude/Enum.hs b/src/Data/Singletons/Prelude/Enum.hs
+index d51643d..5164aee 100644
+--- a/src/Data/Singletons/Prelude/Enum.hs
++++ b/src/Data/Singletons/Prelude/Enum.hs
+@@ -1,7 +1,7 @@
+ {-# LANGUAGE TemplateHaskell, DataKinds, PolyKinds, ScopedTypeVariables,
+              TypeFamilies, TypeOperators, GADTs, UndecidableInstances,
+              FlexibleContexts, DefaultSignatures, BangPatterns,
+-             InstanceSigs #-}
++             InstanceSigs, TypeApplications #-}
+ 
+ -----------------------------------------------------------------------------
+ -- |
+diff --git a/src/Data/Singletons/Prelude/Foldable.hs b/src/Data/Singletons/Prelude/Foldable.hs
+index 7dca91f..54e71f8 100644
+--- a/src/Data/Singletons/Prelude/Foldable.hs
++++ b/src/Data/Singletons/Prelude/Foldable.hs
+@@ -7,6 +7,7 @@
+ {-# LANGUAGE ScopedTypeVariables #-}
+ {-# LANGUAGE StandaloneDeriving #-}
+ {-# LANGUAGE TemplateHaskell #-}
++{-# LANGUAGE TypeApplications #-}
+ {-# LANGUAGE TypeFamilies #-}
+ {-# LANGUAGE TypeOperators #-}
+ {-# LANGUAGE UndecidableInstances #-}
+diff --git a/src/Data/Singletons/Prelude/Function.hs b/src/Data/Singletons/Prelude/Function.hs
+index 494850d..9d91793 100644
+--- a/src/Data/Singletons/Prelude/Function.hs
++++ b/src/Data/Singletons/Prelude/Function.hs
+@@ -19,7 +19,7 @@
+ 
+ {-# LANGUAGE TemplateHaskell, ScopedTypeVariables, TypeFamilies,
+              TypeOperators, UndecidableInstances, GADTs,
+-             DataKinds, PolyKinds #-}
++             DataKinds, PolyKinds, TypeApplications #-}
+ 
+ module Data.Singletons.Prelude.Function (
+     -- * "Prelude" re-exports
+diff --git a/src/Data/Singletons/Prelude/Functor.hs b/src/Data/Singletons/Prelude/Functor.hs
+index 8e8e9f9..f652ddc 100644
+--- a/src/Data/Singletons/Prelude/Functor.hs
++++ b/src/Data/Singletons/Prelude/Functor.hs
+@@ -7,6 +7,7 @@
+ {-# LANGUAGE ScopedTypeVariables #-}
+ {-# LANGUAGE StandaloneDeriving #-}
+ {-# LANGUAGE TemplateHaskell #-}
++{-# LANGUAGE TypeApplications #-}
+ {-# LANGUAGE TypeFamilies #-}
+ {-# LANGUAGE TypeOperators #-}
+ {-# LANGUAGE UndecidableInstances #-}
+diff --git a/src/Data/Singletons/Prelude/Identity.hs b/src/Data/Singletons/Prelude/Identity.hs
+index 28c48ff..9206547 100644
+--- a/src/Data/Singletons/Prelude/Identity.hs
++++ b/src/Data/Singletons/Prelude/Identity.hs
+@@ -6,6 +6,7 @@
+ {-# LANGUAGE ScopedTypeVariables #-}
+ {-# LANGUAGE StandaloneDeriving #-}
+ {-# LANGUAGE TemplateHaskell #-}
++{-# LANGUAGE TypeApplications #-}
+ {-# LANGUAGE TypeFamilies #-}
+ {-# LANGUAGE UndecidableInstances #-}
+ {-# OPTIONS_GHC -Wno-orphans #-}
+diff --git a/src/Data/Singletons/Prelude/Instances.hs b/src/Data/Singletons/Prelude/Instances.hs
+index 5872f6d..0883bd1 100644
+--- a/src/Data/Singletons/Prelude/Instances.hs
++++ b/src/Data/Singletons/Prelude/Instances.hs
+@@ -10,7 +10,8 @@ re-exported from various places.
+ 
+ {-# LANGUAGE DataKinds, PolyKinds, RankNTypes, GADTs, TypeFamilies, EmptyCase,
+              FlexibleContexts, TemplateHaskell, ScopedTypeVariables,
+-             UndecidableInstances, TypeOperators, FlexibleInstances #-}
++             UndecidableInstances, TypeOperators, FlexibleInstances,
++             TypeApplications #-}
+ {-# OPTIONS_GHC -Wno-orphans #-}
+ 
+ module Data.Singletons.Prelude.Instances where
+diff --git a/src/Data/Singletons/Prelude/IsString.hs b/src/Data/Singletons/Prelude/IsString.hs
+index 6f615b1..cad174e 100644
+--- a/src/Data/Singletons/Prelude/IsString.hs
++++ b/src/Data/Singletons/Prelude/IsString.hs
+@@ -4,6 +4,7 @@
+ {-# LANGUAGE PolyKinds #-}
+ {-# LANGUAGE ScopedTypeVariables #-}
+ {-# LANGUAGE TemplateHaskell #-}
++{-# LANGUAGE TypeApplications #-}
+ {-# LANGUAGE TypeFamilies #-}
+ {-# LANGUAGE UndecidableInstances #-}
+ 
+diff --git a/src/Data/Singletons/Prelude/List/Internal.hs b/src/Data/Singletons/Prelude/List/Internal.hs
+index f6e7a4a..54bae86 100644
+--- a/src/Data/Singletons/Prelude/List/Internal.hs
++++ b/src/Data/Singletons/Prelude/List/Internal.hs
+@@ -1,6 +1,7 @@
+ {-# LANGUAGE TypeOperators, DataKinds, PolyKinds, TypeFamilies,
+              TemplateHaskell, GADTs, UndecidableInstances, RankNTypes,
+-             ScopedTypeVariables, FlexibleContexts, AllowAmbiguousTypes #-}
++             ScopedTypeVariables, FlexibleContexts, AllowAmbiguousTypes,
++             TypeApplications #-}
+ {-# OPTIONS_GHC -O0 #-}
+ 
+ -----------------------------------------------------------------------------
+@@ -96,11 +97,6 @@ $(singletonsOnly [d|
+       perms (t:ts) is = foldr interleave (perms ts (t:is)) (permutations is)
+         where interleave    xs     r = let (_,zs) = interleave' id xs r in zs
+ 
+-              -- This type signature isn't present in the reference
+-              -- implementation of permutations in base. However, it is needed
+-              -- here, since (at least in GHC 8.2.1) the singletonized version
+-              -- will fail to typecheck without it. See #13549 for the full story.
+-              interleave' :: ([a] -> b) -> [a] -> [b] -> ([a], [b])
+               interleave' _ []     r = (ts, r)
+               interleave' f (y:ys) r = let (us,zs) = interleave' (f . (y:)) ys r
+                                        in  (y:us, f (t:y:us) : zs)
+diff --git a/src/Data/Singletons/Prelude/List/Internal/Disambiguation.hs b/src/Data/Singletons/Prelude/List/Internal/Disambiguation.hs
+index 6e5a9fe..626d809 100644
+--- a/src/Data/Singletons/Prelude/List/Internal/Disambiguation.hs
++++ b/src/Data/Singletons/Prelude/List/Internal/Disambiguation.hs
+@@ -13,7 +13,8 @@
+ ----------------------------------------------------------------------------
+ 
+ {-# LANGUAGE TemplateHaskell, ScopedTypeVariables, TypeFamilies,
+-             UndecidableInstances, GADTs, DataKinds, PolyKinds #-}
++             UndecidableInstances, GADTs, DataKinds, PolyKinds,
++             TypeApplications #-}
+ {-# OPTIONS_GHC -Wno-missing-signatures #-}
+ 
+ module Data.Singletons.Prelude.List.Internal.Disambiguation where
+diff --git a/src/Data/Singletons/Prelude/List/NonEmpty.hs b/src/Data/Singletons/Prelude/List/NonEmpty.hs
+index 88697f7..ef53590 100644
+--- a/src/Data/Singletons/Prelude/List/NonEmpty.hs
++++ b/src/Data/Singletons/Prelude/List/NonEmpty.hs
+@@ -1,6 +1,6 @@
+ {-# LANGUAGE TemplateHaskell, ScopedTypeVariables, TypeOperators,
+              TypeFamilies, GADTs, UndecidableInstances, InstanceSigs,
+-             DataKinds, PolyKinds #-}
++             DataKinds, PolyKinds, TypeApplications #-}
+ {-# OPTIONS_GHC -Wno-orphans #-}
+ 
+ -----------------------------------------------------------------------------
+diff --git a/src/Data/Singletons/Prelude/Maybe.hs b/src/Data/Singletons/Prelude/Maybe.hs
+index 1396413..135ee80 100644
+--- a/src/Data/Singletons/Prelude/Maybe.hs
++++ b/src/Data/Singletons/Prelude/Maybe.hs
+@@ -1,5 +1,6 @@
+ {-# LANGUAGE TemplateHaskell, ScopedTypeVariables, TypeFamilies,
+-             DataKinds, PolyKinds, UndecidableInstances, GADTs, RankNTypes #-}
++             DataKinds, PolyKinds, UndecidableInstances, GADTs, RankNTypes,
++             TypeApplications #-}
+ 
+ -----------------------------------------------------------------------------
+ -- |
+diff --git a/src/Data/Singletons/Prelude/Monad.hs b/src/Data/Singletons/Prelude/Monad.hs
+index f3a490b..c07fef8 100644
+--- a/src/Data/Singletons/Prelude/Monad.hs
++++ b/src/Data/Singletons/Prelude/Monad.hs
+@@ -6,6 +6,7 @@
+ {-# LANGUAGE PolyKinds #-}
+ {-# LANGUAGE ScopedTypeVariables #-}
+ {-# LANGUAGE TemplateHaskell #-}
++{-# LANGUAGE TypeApplications #-}
+ {-# LANGUAGE TypeFamilies #-}
+ {-# LANGUAGE TypeOperators #-}
+ {-# LANGUAGE UndecidableInstances #-}
+@@ -208,19 +209,21 @@ $(singletonsOnly [d|
+ 
+   -- -| @'replicateM' n act@ performs the action @n@ times,
+   -- gathering the results.
+-  replicateM        :: (Applicative m) => Nat -> m a -> m [a]
++  replicateM        :: forall m a. (Applicative m) => Nat -> m a -> m [a]
+   replicateM cnt0 f =
+       loop cnt0
+     where
++      loop :: Nat -> m [a]
+       loop cnt
+           | cnt <= 0  = pure []
+           | otherwise = liftA2 (:) f (loop (cnt - 1))
+ 
+   -- -| Like 'replicateM', but discards the result.
+-  replicateM_       :: (Applicative m) => Nat -> m a -> m ()
++  replicateM_       :: forall m a. (Applicative m) => Nat -> m a -> m ()
+   replicateM_ cnt0 f =
+       loop cnt0
+     where
++      loop :: Nat -> m ()
+       loop cnt
+           | cnt <= 0  = pure ()
+           | otherwise = f *> loop (cnt - 1)
+diff --git a/src/Data/Singletons/Prelude/Monad/Internal.hs b/src/Data/Singletons/Prelude/Monad/Internal.hs
+index dcc1039..f90cd09 100644
+--- a/src/Data/Singletons/Prelude/Monad/Internal.hs
++++ b/src/Data/Singletons/Prelude/Monad/Internal.hs
+@@ -7,6 +7,7 @@
+ {-# LANGUAGE ScopedTypeVariables #-}
+ {-# LANGUAGE StandaloneDeriving #-}
+ {-# LANGUAGE TemplateHaskell #-}
++{-# LANGUAGE TypeApplications #-}
+ {-# LANGUAGE TypeFamilies #-}
+ {-# LANGUAGE TypeOperators #-}
+ {-# LANGUAGE UndecidableInstances #-}
+diff --git a/src/Data/Singletons/Prelude/Monad/Zip.hs b/src/Data/Singletons/Prelude/Monad/Zip.hs
+index b99a90a..d778c1a 100644
+--- a/src/Data/Singletons/Prelude/Monad/Zip.hs
++++ b/src/Data/Singletons/Prelude/Monad/Zip.hs
+@@ -6,6 +6,7 @@
+ {-# LANGUAGE PolyKinds #-}
+ {-# LANGUAGE ScopedTypeVariables #-}
+ {-# LANGUAGE TemplateHaskell #-}
++{-# LANGUAGE TypeApplications #-}
+ {-# LANGUAGE TypeFamilies #-}
+ {-# LANGUAGE TypeOperators #-}
+ {-# LANGUAGE UndecidableInstances #-}
+diff --git a/src/Data/Singletons/Prelude/Monoid.hs b/src/Data/Singletons/Prelude/Monoid.hs
+index 83e9d46..6fa219d 100644
+--- a/src/Data/Singletons/Prelude/Monoid.hs
++++ b/src/Data/Singletons/Prelude/Monoid.hs
+@@ -7,6 +7,7 @@
+ {-# LANGUAGE ScopedTypeVariables #-}
+ {-# LANGUAGE StandaloneDeriving #-}
+ {-# LANGUAGE TemplateHaskell #-}
++{-# LANGUAGE TypeApplications #-}
+ {-# LANGUAGE TypeFamilies #-}
+ {-# LANGUAGE TypeOperators #-}
+ {-# LANGUAGE UndecidableInstances #-}
+diff --git a/src/Data/Singletons/Prelude/Num.hs b/src/Data/Singletons/Prelude/Num.hs
+index b347282..635198e 100644
+--- a/src/Data/Singletons/Prelude/Num.hs
++++ b/src/Data/Singletons/Prelude/Num.hs
+@@ -1,6 +1,7 @@
+ {-# LANGUAGE TemplateHaskell, PolyKinds, DataKinds, TypeFamilies,
+              TypeOperators, GADTs, ScopedTypeVariables, UndecidableInstances,
+-             DefaultSignatures, FlexibleContexts, InstanceSigs, NoStarIsType
++             DefaultSignatures, FlexibleContexts, InstanceSigs, NoStarIsType,
++             TypeApplications
+   #-}
+ 
+ -----------------------------------------------------------------------------
+diff --git a/src/Data/Singletons/Prelude/Ord.hs b/src/Data/Singletons/Prelude/Ord.hs
+index 6c7cc40..e51d8f4 100644
+--- a/src/Data/Singletons/Prelude/Ord.hs
++++ b/src/Data/Singletons/Prelude/Ord.hs
+@@ -1,7 +1,7 @@
+ {-# LANGUAGE TemplateHaskell, DataKinds, PolyKinds, ScopedTypeVariables,
+              TypeFamilies, TypeOperators, GADTs, UndecidableInstances,
+              FlexibleContexts, DefaultSignatures, InstanceSigs,
+-             StandaloneDeriving, FlexibleInstances #-}
++             StandaloneDeriving, FlexibleInstances, TypeApplications #-}
+ {-# OPTIONS_GHC -Wno-orphans #-}
+ 
+ -----------------------------------------------------------------------------
+diff --git a/src/Data/Singletons/Prelude/Semigroup.hs b/src/Data/Singletons/Prelude/Semigroup.hs
+index a39ca12..fd3492e 100644
+--- a/src/Data/Singletons/Prelude/Semigroup.hs
++++ b/src/Data/Singletons/Prelude/Semigroup.hs
+@@ -7,6 +7,7 @@
+ {-# LANGUAGE ScopedTypeVariables #-}
+ {-# LANGUAGE StandaloneDeriving #-}
+ {-# LANGUAGE TemplateHaskell #-}
++{-# LANGUAGE TypeApplications #-}
+ {-# LANGUAGE TypeFamilies #-}
+ {-# LANGUAGE TypeOperators #-}
+ {-# LANGUAGE UndecidableInstances #-}
+diff --git a/src/Data/Singletons/Prelude/Semigroup/Internal.hs b/src/Data/Singletons/Prelude/Semigroup/Internal.hs
+index 3eadc90..999740e 100644
+--- a/src/Data/Singletons/Prelude/Semigroup/Internal.hs
++++ b/src/Data/Singletons/Prelude/Semigroup/Internal.hs
+@@ -7,6 +7,7 @@
+ {-# LANGUAGE ScopedTypeVariables #-}
+ {-# LANGUAGE StandaloneDeriving #-}
+ {-# LANGUAGE TemplateHaskell #-}
++{-# LANGUAGE TypeApplications #-}
+ {-# LANGUAGE TypeFamilies #-}
+ {-# LANGUAGE TypeOperators #-}
+ {-# LANGUAGE UndecidableInstances #-}
+@@ -75,6 +76,7 @@ $(singletonsOnly [d|
+         --
+         sconcat :: NonEmpty a -> a
+         sconcat (a :| as) = go a as where
++          go :: a -> [a] -> a
+           go b (c:cs) = b <> go c cs
+           go b []     = b
+ 
+diff --git a/src/Data/Singletons/Prelude/Show.hs b/src/Data/Singletons/Prelude/Show.hs
+index 19dd13f..06493b1 100644
+--- a/src/Data/Singletons/Prelude/Show.hs
++++ b/src/Data/Singletons/Prelude/Show.hs
+@@ -7,6 +7,7 @@
+ {-# LANGUAGE ScopedTypeVariables #-}
+ {-# LANGUAGE StandaloneDeriving #-}
+ {-# LANGUAGE TemplateHaskell #-}
++{-# LANGUAGE TypeApplications #-}
+ {-# LANGUAGE TypeFamilies #-}
+ {-# LANGUAGE TypeOperators #-}
+ {-# LANGUAGE UndecidableInstances #-}
+diff --git a/src/Data/Singletons/Prelude/Traversable.hs b/src/Data/Singletons/Prelude/Traversable.hs
+index 8f1ea94..eccaf84 100644
+--- a/src/Data/Singletons/Prelude/Traversable.hs
++++ b/src/Data/Singletons/Prelude/Traversable.hs
+@@ -7,6 +7,7 @@
+ {-# LANGUAGE ScopedTypeVariables #-}
+ {-# LANGUAGE StandaloneDeriving #-}
+ {-# LANGUAGE TemplateHaskell #-}
++{-# LANGUAGE TypeApplications #-}
+ {-# LANGUAGE TypeFamilies #-}
+ {-# LANGUAGE TypeOperators #-}
+ {-# LANGUAGE UndecidableInstances #-}
+diff --git a/src/Data/Singletons/Prelude/Tuple.hs b/src/Data/Singletons/Prelude/Tuple.hs
+index e8f6ad9..eaf38cc 100644
+--- a/src/Data/Singletons/Prelude/Tuple.hs
++++ b/src/Data/Singletons/Prelude/Tuple.hs
+@@ -1,5 +1,6 @@
+ {-# LANGUAGE TemplateHaskell, ScopedTypeVariables, DataKinds, PolyKinds,
+-             RankNTypes, TypeFamilies, GADTs, UndecidableInstances #-}
++             RankNTypes, TypeFamilies, GADTs, UndecidableInstances,
++             TypeApplications #-}
+ 
+ -----------------------------------------------------------------------------
+ -- |
+diff --git a/src/Data/Singletons/Prelude/Void.hs b/src/Data/Singletons/Prelude/Void.hs
+index cb077ab..746f612 100644
+--- a/src/Data/Singletons/Prelude/Void.hs
++++ b/src/Data/Singletons/Prelude/Void.hs
+@@ -4,6 +4,7 @@
+ {-# LANGUAGE PolyKinds #-}
+ {-# LANGUAGE ScopedTypeVariables #-}
+ {-# LANGUAGE TemplateHaskell #-}
++{-# LANGUAGE TypeApplications #-}
+ {-# LANGUAGE TypeFamilies #-}
+ {-# LANGUAGE UndecidableInstances #-}
+ -----------------------------------------------------------------------------
+diff --git a/src/Data/Singletons/Single.hs b/src/Data/Singletons/Single.hs
+index 3ddc385..3d68645 100644
+--- a/src/Data/Singletons/Single.hs
++++ b/src/Data/Singletons/Single.hs
+@@ -770,9 +770,12 @@ singExp (ADLamE ty_names prom_lam names exp) _res_ki = do
+                                       DVarT) ty_names)) exp']
+   return $ wrapSingFun (length names) prom_lam $ DLamE sNames caseExp
+ singExp (ADCaseE exp matches ret_ty) res_ki =
+-    -- See Note [Annotate case return type]
+-  DSigE <$> (DCaseE <$> singExp exp Nothing <*> mapM (singMatch res_ki) matches)
+-        <*> pure (singFamily `DAppT` (ret_ty `maybeSigT` res_ki))
++    -- See Note [Annotate case return type] and
++    --     Note [The id hack; or, how singletons learned to stop worrying and
++    --           avoid kind generalization]
++  DAppE (DAppTypeE (DVarE 'id)
++                   (singFamily `DAppT` (ret_ty `maybeSigT` res_ki)))
++    <$> (DCaseE <$> singExp exp Nothing <*> mapM (singMatch res_ki) matches)
+ singExp (ADLetE env exp) res_ki = do
+   -- We intentionally discard the SingI instances for exp's defunctionalization
+   -- symbols, as we also do not generate the declarations for the
+@@ -872,3 +875,69 @@ singLit lit =
+ maybeSigT :: DType -> Maybe DKind -> DType
+ maybeSigT ty Nothing   = ty
+ maybeSigT ty (Just ki) = ty `DSigT` ki
++
++{-
++Note [The id hack; or, how singletons learned to stop worrying and avoid kind generalization]
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++GHC 8.8 was a time of great change. In particular, 8.8 debuted a fix for
++Trac #15141 (decideKindGeneralisationPlan is too complicated). To fix this, a
++wily GHC developer—who shall remain unnamed, but whose username rhymes with
++schmoldfire—decided to make decideKindGeneralisationPlan less complicated by,
++well, removing the whole thing. One consequence of this is that local
++definitions are now kind-generalized (whereas they would not have been
++previously).
++While schmoldfire had the noblest of intentions when authoring his fix, he
++unintentionally made life much harder for singletons. Why? Consider the
++following program:
++  class Foo a where
++    bar :: a -> (a -> b) -> b
++    baz :: a
++  quux :: Foo a => a -> a
++  quux x = x `bar` \_ -> baz
++When singled, this program will turn into something like this:
++  type family Quux (x :: a) :: a where
++    Quux x = Bar x (LambdaSym1 x)
++  sQuux :: forall a (x :: a). SFoo a => Sing x -> Sing (Quux x :: a)
++  sQuux (sX :: Sing x)
++    = sBar sX
++        ((singFun1 @(LambdaSym1 x))
++           (\ sArg
++              -> case sArg of {
++                   (_ :: Sing arg)
++                     -> (case sArg of { _ -> sBaz }) ::
++                          Sing (Case x arg arg) }))
++  type family Case x arg t where
++    Case x arg _ = Baz
++  type family Lambda x t where
++    Lambda x arg = Case x arg arg
++  data LambdaSym1 x t
++  type instance Apply (LambdaSym1 x) t = Lambda x t
++The high-level bit is the explicit `Sing (Case x arg arg)` signature. Question:
++what is the kind of `Case x arg arg`? The answer depends on whether local
++definitions are kind-generalized or not!
++1. If local definitions are *not* kind-generalized (i.e., the status quo before
++   GHC 8.8), then `Case x arg arg :: a`.
++2. If local definitions *are* kind-generalized (i.e., the status quo in GHC 8.8
++   and later), then `Case x arg arg :: k` for some fresh kind variable `k`.
++Unfortunately, the kind of `Case x arg arg` *must* be `a` in order for `sQuux`
++to type-check. This means that the code above suddenly stopped working in GHC
++8.8. What's more, we can't just remove these explicit signatures, as there is
++code elsewhere in `singletons` that crucially relies on them to guide type
++inference along (e.g., `sShowParen` in `Data.Singletons.Prelude.Show`).
++Luckily, there is an ingenious hack that lets us the benefits of explicit
++signatures without the pain of kind generalization: our old friend, the `id`
++function. The plan is as follows: instead of generating this code:
++  (case sArg of ...) :: Sing (Case x arg arg)
++We instead generate this code:
++  id @(Sing (Case x arg arg)) (case sArg of ...)
++That's it! This works because visible type arguments in terms do not get kind-
++generalized, unlike top-level or local signatures. Now `Case x arg arg`'s kind
++is not generalized, and all is well. We dub this: the `id` hack.
++One might wonder: will we need the `id` hack around forever? Perhaps not. While
++GHC 8.8 removed the decideKindGeneralisationPlan function, there have been
++rumblings that a future version of GHC may bring it back (in a limited form).
++If this happens, it is possibly that GHC's attitude towards kind-generalizing
++local definitons may change *again*, which could conceivably render the `id`
++hack unnecessary. This is all speculation, of course, so all we can do now is
++wait and revisit this design at a later date.
++-}
