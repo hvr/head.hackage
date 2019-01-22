@@ -1,0 +1,281 @@
+commit a5a7775ed0b862de9c3b942dc35d234b264fb7ac
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Mon Jan 21 22:24:11 2019 -0500
+
+    Allow building with template-haskell-2.15.0.0
+    
+    Adapted from
+    https://github.com/goldfirere/th-desugar/commit/9b9a6f0bdb6becd3f5ae896ddb539069131f7ba0
+
+diff --git a/Language/Haskell/TH/Desugar/Core.hs b/Language/Haskell/TH/Desugar/Core.hs
+index 0cc2f44..0f185a1 100644
+--- a/Language/Haskell/TH/Desugar/Core.hs
++++ b/Language/Haskell/TH/Desugar/Core.hs
+@@ -714,24 +714,40 @@ dsDec (FamilyD DataFam n tvbs m_k) =
+   (:[]) <$> (DDataFamilyD n <$> mapM dsTvb tvbs <*> mapM dsType m_k)
+ #endif
+ #if __GLASGOW_HASKELL__ > 710
++# if MIN_VERSION_template_haskell(2,15,0)
++dsDec (DataInstD cxt _mtvbs lhs mk cons derivings) =
++  case unfoldType lhs of
++    (ConT n, tys) -> do
++# else
+ dsDec (DataInstD cxt n tys mk cons derivings) = do
+-  tys'    <- mapM dsType tys
+-  all_tys <- dataFamInstTypes tys' mk
+-  let tvbs = dataFamInstTvbs all_tys
+-      fam_inst_type = dataFamInstReturnType n all_tys
+-  (:[]) <$> (DDataInstD Data <$> dsCxt cxt <*> pure n
+-                             <*> pure tys' <*> mapM dsType mk
+-                             <*> concatMapM (dsCon tvbs fam_inst_type) cons
+-                             <*> mapM dsDerivClause derivings)
++# endif
++      tys'    <- mapM dsType tys
++      all_tys <- dataFamInstTypes tys' mk
++      let tvbs = dataFamInstTvbs all_tys
++          fam_inst_type = dataFamInstReturnType n all_tys
++      (:[]) <$> (DDataInstD Data <$> dsCxt cxt <*> pure n
++                                 <*> pure tys' <*> mapM dsType mk
++                                 <*> concatMapM (dsCon tvbs fam_inst_type) cons
++                                 <*> mapM dsDerivClause derivings)
++# if MIN_VERSION_template_haskell(2,15,0)
++    (_, _) -> fail $ "Unexpected data instance LHS: " ++ pprint lhs
++dsDec (NewtypeInstD cxt _mtvbs lhs mk con derivings) =
++  case unfoldType lhs of
++    (ConT n, tys) -> do
++# else
+ dsDec (NewtypeInstD cxt n tys mk con derivings) = do
+-  tys'    <- mapM dsType tys
+-  all_tys <- dataFamInstTypes tys' mk
+-  let tvbs = dataFamInstTvbs all_tys
+-      fam_inst_type = dataFamInstReturnType n all_tys
+-  (:[]) <$> (DDataInstD Newtype <$> dsCxt cxt <*> pure n
+-                                <*> pure tys' <*> mapM dsType mk
+-                                <*> dsCon tvbs fam_inst_type con
+-                                <*> mapM dsDerivClause derivings)
++# endif
++      tys'    <- mapM dsType tys
++      all_tys <- dataFamInstTypes tys' mk
++      let tvbs = dataFamInstTvbs all_tys
++          fam_inst_type = dataFamInstReturnType n all_tys
++      (:[]) <$> (DDataInstD Newtype <$> dsCxt cxt <*> pure n
++                                    <*> pure tys' <*> mapM dsType mk
++                                    <*> dsCon tvbs fam_inst_type con
++                                    <*> mapM dsDerivClause derivings)
++# if MIN_VERSION_template_haskell(2,15,0)
++    (_, _) -> fail $ "Unexpected newtype instance LHS: " ++ pprint lhs
++# endif
+ #else
+ dsDec (DataInstD cxt n tys cons derivings) = do
+   tys' <- mapM dsType tys
+@@ -755,7 +771,20 @@ dsDec (TySynInstD n lhs rhs) = (:[]) <$> (DTySynInstD n <$>
+                                           (DTySynEqn <$> mapM dsType lhs
+                                                      <*> dsType rhs))
+ #else
++# if MIN_VERSION_template_haskell(2,15,0)
++dsDec (TySynInstD eqn) = (:[]) <$> (DTySynInstD eqn_name <$> dsTySynEqn eqn)
++  where
++    eqn_name :: Name
++    eqn_name =
++      case eqn of
++        TySynEqn _ nLhs _
++          |  (ConT n, _) <- unfoldType nLhs
++          -> n
++          |  otherwise
++          -> error $ "Unexpected type family equation LHS: " ++ pprint nLhs
++# else
+ dsDec (TySynInstD n eqn) = (:[]) <$> (DTySynInstD n <$> dsTySynEqn eqn)
++# endif
+ #if __GLASGOW_HASKELL__ > 710
+ dsDec (ClosedTypeFamilyD tfHead eqns) =
+   (:[]) <$> (DClosedTypeFamilyD <$> dsTypeFamilyHead tfHead
+@@ -961,7 +990,11 @@ dsPragma (SpecialiseP n ty m_inl phases) = DSpecialiseP n <$> dsType ty
+                                                           <*> pure m_inl
+                                                           <*> pure phases
+ dsPragma (SpecialiseInstP ty)            = DSpecialiseInstP <$> dsType ty
+-dsPragma (RuleP str rbs lhs rhs phases)  = DRuleP str <$> mapM dsRuleBndr rbs
++dsPragma (RuleP str
++#if MIN_VERSION_template_haskell(2,15,0)
++                    _
++#endif
++                    rbs lhs rhs phases)  = DRuleP str <$> mapM dsRuleBndr rbs
+                                                       <*> dsExp lhs
+                                                       <*> dsExp rhs
+                                                       <*> pure phases
+@@ -983,7 +1016,14 @@ dsRuleBndr (TypedRuleVar n ty) = DTypedRuleVar n <$> dsType ty
+ #if __GLASGOW_HASKELL__ >= 707
+ -- | Desugar a @TySynEqn@. (Available only with GHC 7.8+)
+ dsTySynEqn :: DsMonad q => TySynEqn -> q DTySynEqn
++# if MIN_VERSION_template_haskell(2,15,0)
++dsTySynEqn (TySynEqn _ nLhs rhs) =
++  case unfoldType nLhs of
++    (ConT n, lhs) -> DTySynEqn <$> mapM dsType lhs <*> dsType rhs
++    (_, _) -> fail $ "Unexpected type family equation LHS: " ++ pprint nLhs
++# else
+ dsTySynEqn (TySynEqn lhs rhs) = DTySynEqn <$> mapM dsType lhs <*> dsType rhs
++# endif
+ #endif
+ 
+ -- | Desugar clauses to a function definition
+diff --git a/Language/Haskell/TH/Desugar/Reify.hs b/Language/Haskell/TH/Desugar/Reify.hs
+index d04c297..e2bd3ae 100644
+--- a/Language/Haskell/TH/Desugar/Reify.hs
++++ b/Language/Haskell/TH/Desugar/Reify.hs
+@@ -303,7 +303,16 @@ reifyInDec n decs (InstanceD _ _ sub_decs)
+     reify_in_instance dec@(DataInstD {})    = reifyInDec n (sub_decs ++ decs) dec
+     reify_in_instance dec@(NewtypeInstD {}) = reifyInDec n (sub_decs ++ decs) dec
+     reify_in_instance _                     = Nothing
+-#if __GLASGOW_HASKELL__ > 710
++#if MIN_VERSION_template_haskell(2,15,0)
++reifyInDec n decs (DataInstD _ _ lhs _ cons _)
++  | (ConT ty_name, tys) <- unfoldType lhs
++  , Just info <- maybeReifyCon n decs ty_name tys cons
++  = Just info
++reifyInDec n decs (NewtypeInstD _ _ lhs _ con _)
++  | (ConT ty_name, tys) <- unfoldType lhs
++  , Just info <- maybeReifyCon n decs ty_name tys [con]
++  = Just info
++#elif __GLASGOW_HASKELL__ > 710
+ reifyInDec n decs (DataInstD _ ty_name tys _ cons _)
+   | Just info <- maybeReifyCon n decs ty_name tys cons
+   = Just info
+@@ -399,14 +408,24 @@ findInstances n = map stripInstanceDec . concatMap match_instance
+ #endif
+                                                | ConT n' <- ty_head ty
+                                                , n `nameMatches` n' = [d]
+-#if __GLASGOW_HASKELL__ > 710
++
++#if MIN_VERSION_template_haskell(2,15,0)
++    match_instance d@(DataInstD _ _ lhs _ _ _)    | ConT n' <- ty_head lhs
++                                                  , n `nameMatches` n' = [d]
++    match_instance d@(NewtypeInstD _ _ lhs _ _ _) | ConT n' <- ty_head lhs
++                                                  , n `nameMatches` n' = [d]
++#elif __GLASGOW_HASKELL__ > 710
+     match_instance d@(DataInstD _ n' _ _ _ _)    | n `nameMatches` n' = [d]
+     match_instance d@(NewtypeInstD _ n' _ _ _ _) | n `nameMatches` n' = [d]
+ #else
+     match_instance d@(DataInstD _ n' _ _ _)    | n `nameMatches` n' = [d]
+     match_instance d@(NewtypeInstD _ n' _ _ _) | n `nameMatches` n' = [d]
+ #endif
+-#if __GLASGOW_HASKELL__ >= 707
++#if MIN_VERSION_template_haskell(2,15,0)
++    match_instance d@(TySynInstD (TySynEqn _ lhs _))
++                                               | ConT n' <- ty_head lhs
++                                               , n `nameMatches` n' = [d]
++#elif __GLASGOW_HASKELL__ >= 707
+     match_instance d@(TySynInstD n' _)         | n `nameMatches` n' = [d]
+ #else
+     match_instance d@(TySynInstD n' _ _)       | n `nameMatches` n' = [d]
+diff --git a/Language/Haskell/TH/Desugar/Sweeten.hs b/Language/Haskell/TH/Desugar/Sweeten.hs
+index bb257c3..2289faa 100644
+--- a/Language/Haskell/TH/Desugar/Sweeten.hs
++++ b/Language/Haskell/TH/Desugar/Sweeten.hs
+@@ -127,7 +127,13 @@ decToTH (DDataFamilyD n tvbs mk) =
+ #endif
+ decToTH (DDataInstD Data cxt n tys _mk cons derivings) =
+ #if __GLASGOW_HASKELL__ > 710
+-  [DataInstD (cxtToTH cxt) n (map typeToTH tys) (fmap typeToTH _mk) (map conToTH cons)
++  [DataInstD (cxtToTH cxt)
++# if MIN_VERSION_template_haskell(2,15,0)
++             Nothing (foldl AppT (ConT n) (map typeToTH tys))
++# else
++             n (map typeToTH tys)
++# endif
++             (fmap typeToTH _mk) (map conToTH cons)
+              (concatMap derivClauseToTH derivings)]
+ #else
+   [DataInstD (cxtToTH cxt) n (map typeToTH tys) (map conToTH cons)
+@@ -135,7 +141,13 @@ decToTH (DDataInstD Data cxt n tys _mk cons derivings) =
+ #endif
+ decToTH (DDataInstD Newtype cxt n tys _mk [con] derivings) =
+ #if __GLASGOW_HASKELL__ > 710
+-  [NewtypeInstD (cxtToTH cxt) n (map typeToTH tys) (fmap typeToTH _mk) (conToTH con)
++  [NewtypeInstD (cxtToTH cxt)
++# if MIN_VERSION_template_haskell(2,15,0)
++                Nothing (foldl AppT (ConT n) (map typeToTH tys))
++# else
++                n (map typeToTH tys)
++#endif
++                (fmap typeToTH _mk) (conToTH con)
+                 (concatMap derivClauseToTH derivings)]
+ #else
+   [NewtypeInstD (cxtToTH cxt) n (map typeToTH tys) (conToTH con)
+@@ -148,15 +160,20 @@ decToTH (DClosedTypeFamilyD (DTypeFamilyHead n tvbs frs _ann) eqns) =
+   (map (tySynEqnToTHDec n) eqns)
+ decToTH (DRoleAnnotD {}) = []
+ #else
+-decToTH (DTySynInstD n eqn) = [TySynInstD n (tySynEqnToTH eqn)]
++decToTH (DTySynInstD n eqn) =
++# if MIN_VERSION_template_haskell(2,15,0)
++  [TySynInstD (tySynEqnToTH n eqn)]
++# else
++  [TySynInstD n (tySynEqnToTH n eqn)]
++# endif
+ #if __GLASGOW_HASKELL__ > 710
+ decToTH (DClosedTypeFamilyD (DTypeFamilyHead n tvbs frs ann) eqns) =
+   [ClosedTypeFamilyD (TypeFamilyHead n (map tvbToTH tvbs) (frsToTH frs) ann)
+-                     (map tySynEqnToTH eqns)
++                     (map (tySynEqnToTH n) eqns)
+   ]
+ #else
+ decToTH (DClosedTypeFamilyD (DTypeFamilyHead n tvbs frs _ann) eqns) =
+-  [ClosedTypeFamilyD n (map tvbToTH tvbs) (frsToTH frs) (map tySynEqnToTH eqns)]
++  [ClosedTypeFamilyD n (map tvbToTH tvbs) (frsToTH frs) (map (tySynEqnToTH n) eqns)]
+ #endif
+ decToTH (DRoleAnnotD n roles) = [RoleAnnotD n roles]
+ #endif
+@@ -292,7 +309,11 @@ pragmaToTH (DSpecialiseP n ty m_inl phases) =
+   Just $ SpecialiseP n (typeToTH ty) m_inl phases
+ pragmaToTH (DSpecialiseInstP ty) = Just $ SpecialiseInstP (typeToTH ty)
+ pragmaToTH (DRuleP str rbs lhs rhs phases) =
+-  Just $ RuleP str (map ruleBndrToTH rbs) (expToTH lhs) (expToTH rhs) phases
++  Just $ RuleP str
++#if MIN_VERSION_template_haskell(2,15,0)
++               Nothing
++#endif
++               (map ruleBndrToTH rbs) (expToTH lhs) (expToTH rhs) phases
+ #if __GLASGOW_HASKELL__ < 707
+ pragmaToTH (DAnnP {}) = Nothing
+ #else
+@@ -319,9 +340,13 @@ ruleBndrToTH (DTypedRuleVar n ty) = TypedRuleVar n (typeToTH ty)
+ tySynEqnToTHDec :: Name -> DTySynEqn -> Dec
+ tySynEqnToTHDec n (DTySynEqn lhs rhs) =
+   TySynInstD n (map typeToTH lhs) (typeToTH rhs)
++#elif !(MIN_VERSION_template_haskell(2,15,0))
++tySynEqnToTH :: Name -> DTySynEqn -> TySynEqn
++tySynEqnToTH _ (DTySynEqn lhs rhs) = TySynEqn (map typeToTH lhs) (typeToTH rhs)
+ #else
+-tySynEqnToTH :: DTySynEqn -> TySynEqn
+-tySynEqnToTH (DTySynEqn lhs rhs) = TySynEqn (map typeToTH lhs) (typeToTH rhs)
++tySynEqnToTH :: Name -> DTySynEqn -> TySynEqn
++tySynEqnToTH n (DTySynEqn lhs rhs) =
++  TySynEqn Nothing (foldl AppT (ConT n) (map typeToTH lhs)) (typeToTH rhs)
+ #endif
+ 
+ clauseToTH :: DClause -> Clause
+diff --git a/Language/Haskell/TH/Desugar/Util.hs b/Language/Haskell/TH/Desugar/Util.hs
+index 2fe6283..3729601 100644
+--- a/Language/Haskell/TH/Desugar/Util.hs
++++ b/Language/Haskell/TH/Desugar/Util.hs
+@@ -27,7 +27,7 @@ module Language.Haskell.TH.Desugar.Util (
+   unboxedTupleNameDegree_maybe, splitTuple_maybe,
+   topEverywhereM, isInfixDataCon,
+   isTypeKindName, typeKindName,
+-  mkExtraKindBindersGeneric, unravelType
++  mkExtraKindBindersGeneric, unravelType, unfoldType
+   ) where
+ 
+ import Prelude hiding (mapM, foldl, concatMap, any)
+@@ -394,3 +394,12 @@ uniStarKindName = ''(Kind.★)
+ uniStarKindName = starKindName
+ #endif
+ #endif
++
++unfoldType :: Type -> (Type, [Type])
++unfoldType = go []
++  where
++    go :: [Type] -> Type -> (Type, [Type])
++    go acc (ForallT _ _ ty) = go acc ty
++    go acc (AppT ty1 ty2)   = go (ty2:acc) ty1
++    go acc (SigT ty _)      = go acc ty
++    go acc ty               = (ty, acc)

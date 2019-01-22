@@ -1,0 +1,19 @@
+commit d47b43f4558086df438845fa203aba74968396f5
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Mon Jan 21 22:26:30 2019 -0500
+
+    Allow building with GHC 8.8
+
+diff --git a/Data/Nat.hs b/Data/Nat.hs
+index 1b64fe6..25dfa1c 100644
+--- a/Data/Nat.hs
++++ b/Data/Nat.hs
+@@ -3,7 +3,7 @@
+   FlexibleInstances, GADTs, TypeFamilies, TemplateHaskell,
+   InstanceSigs, TypeOperators, PolyKinds, StandaloneDeriving,
+   FlexibleContexts, AllowAmbiguousTypes, CPP, OverloadedStrings,
+-  EmptyCase #-}
++  EmptyCase, TypeApplications #-}
+ #if __GLASGOW_HASKELL__ >= 806
+ {-# LANGUAGE QuantifiedConstraints #-}
+ #endif
