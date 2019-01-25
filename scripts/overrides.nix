@@ -4,9 +4,18 @@
              # it can either be a local directory or fetched from the web
 }:
 let
-  ghc = haskell.packages.ghc822.ghcWithPackages (ps: with ps;
-        [ ps.hopenssl ps.distribution-nixpkgs
-        ]);
+  ghc = (haskell.packages.ghc822.override (oldArgs: {
+          overrides = self: super:
+            let parent = (oldArgs.overrides or (_: _: {})) self super;
+            in
+            parent // (with haskell.lib; with self; {
+              aeson = overrideCabal super.aeson (drv:
+                { libraryHaskellDepends = drv.libraryHaskellDepends ++ [contravariant];
+                });
+            });
+        })).ghcWithPackages (ps: with ps;
+          [ ps.hopenssl ps.distribution-nixpkgs
+          ]);
 in
 
 stdenv.mkDerivation {
