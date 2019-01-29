@@ -1,7 +1,10 @@
 #! /usr/bin/env nix-shell
 #! nix-shell -i runghc -p "haskellPackages.ghcWithPackages (ps: [])"
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TupleSections #-}
 
 import Data.List
 import Distribution.Package
@@ -19,7 +22,8 @@ groupPatches assocs = Map.toAscList $ Map.fromListWith (++) [(k, [v]) | (k, v) <
 generateOverrides :: FilePath -> FilePath -> IO String
 generateOverrides prefix patchDir = do
   patches <- listDirectory patchDir
-  override_groups <- groupPatches <$> mapM (generateOverride prefix patchDir) patches
+  override_groups <- groupPatches <$> mapM (generateOverride prefix patchDir)
+                                           (groupPatches [ (dropExtension pf, decidePatchType pf) | pf <- patches ])
   let overrides = map mkOverride override_groups
   return $ intercalate "\n" overrides
 
@@ -39,15 +43,38 @@ mkOverride (display -> pName, patches) =
                         ,  quotes (intercalate "." (map show version))
                         ," then (", patch, ")"]
 
+override :: FilePath -> FilePath -> FilePath -> String -> PatchType -> String
+override prefix patchDir extlessPath nixexpr ptype =
+  unwords ["(", patchFunction ptype, nixexpr, prefix </> patchDir </> addExtension extlessPath (patchTypeExt ptype), ")"]
 
-generateOverride :: FilePath -> FilePath -> FilePath -> IO (PackageName, ([Int], String))
-generateOverride prefix patchDir patch = do
-  let pid' :: Maybe PackageId  = simpleParse (takeBaseName patch)
-  pid <- maybe (fail ("invalid patch file name: " ++ show patch)) return pid'
+generateOverride :: FilePath -> FilePath -> (FilePath, [PatchType]) -> IO (PackageName, ([Int], String))
+generateOverride prefix patchDir (patchExtless, patchTypes) = do
+  let pid' :: Maybe PackageId  = simpleParse (takeFileName patchExtless)
+  pid <- maybe (fail ("invalid patch file name: " ++ show patchExtless)) return pid'
   let pname = display (packageName pid)
       version = versionNumbers (packageVersion pid)
-  return $ (packageName pid, (version,
-    unwords [ "dontRevise(", "haskell.lib.appendPatch", "super."++pname, prefix </> patchDir </> patch, ")"]))
+  return . (packageName pid,) . (version,) $ 
+    "dontRevise "
+    ++ foldl' (override prefix patchDir patchExtless) ("super."++pname) patchTypes
+
+patchFunction :: PatchType -> String
+patchFunction = \case
+  CabalPatch  -> "setCabalFile"
+  NormalPatch -> "haskell.lib.appendPatch"
+
+patchTypeExt :: PatchType -> String
+patchTypeExt = \case
+  CabalPatch  -> ".cabal"
+  NormalPatch -> ".patch"
+
+decidePatchType :: FilePath -> PatchType
+decidePatchType patch =
+  case takeExtension patch of
+    ".cabal" -> CabalPatch
+    ".patch" -> NormalPatch
+    _ -> error $ "Unexpected patch extension: " ++ patch
+
+data PatchType = CabalPatch | NormalPatch deriving Eq
 
 main :: IO ()
 main = do
@@ -60,6 +87,7 @@ main = do
   overrides <- generateOverrides prefix patchDir
   putStrLn "{haskell}:"
   putStrLn "let dontRevise = pkg: haskell.lib.overrideCabal pkg (old: { editedCabalFile = null; }); in"
+  putStrLn "let setCabalFile = pkg: file: haskell.lib.overrideCabal pkg (old: { postPatch = ''cp ${file} ${old.pname}.cabal''; }); in"
   putStrLn "self: super: {\n"
   putStrLn overrides
   putStrLn "}"
