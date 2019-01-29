@@ -4,9 +4,10 @@
              # it can either be a local directory or fetched from the web
 }:
 let
-  ghc = haskell.packages.ghc822.ghcWithPackages (ps: with ps;
-        [ ps.hopenssl ps.distribution-nixpkgs
-        ]);
+  hpkgs = haskell.packages.ghc822.extend (self: super:
+            { aeson = haskell.lib.addBuildDepends super.aeson [self.contravariant]; });
+  ghc   = hpkgs.ghcWithPackages (ps: with ps;
+            [ hopenssl distribution-nixpkgs ]);
 in
 
 stdenv.mkDerivation {
