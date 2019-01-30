@@ -12,7 +12,8 @@ main package set. I just have one which I keep in my home directory for convenie
 [ (import ~/overlay.nix) ]
 ```
 
-Then in `~/overlay.nix`, I define a new attribute which contains the patch overrides.
+Then in `~/overlay.nix`, I define a new attribute which contains the patch and
+cabal file overrides.
 
 ```nix
 self: super:
@@ -42,7 +43,7 @@ You need to set the correct paths to `overrides.nix` and the patch folder.
 For example, if you have cloned `head.hackage` into your home directory, you would
 set them to `~/head.hackage/scripts/overrides.nix` and `~/head.hackage/patches`
 respectively. Having a local installation is desirable as when using `head.hackage`
-you have to commonly add new patches to `patches`.
+you have to commonly add new patches and cabal files to `patches`.
 
 Once you have setup this overlay, you can test your new attribute by trying to build
 a package.
