@@ -60,7 +60,7 @@ generateOverride prefix patchDir (patchExtless, patchTypes) = do
 patchFunction :: PatchType -> String
 patchFunction = \case
   CabalPatch  -> "setCabalFile"
-  NormalPatch -> "haskell.lib.appendPatch"
+  NormalPatch -> "setPatch"
 
 patchTypeExt :: PatchType -> String
 patchTypeExt = \case
@@ -85,9 +85,11 @@ main = do
                 [prefix, dir] -> return (prefix, dir)
                 _     -> fail "Usage: generate-nix-overrides [<prefix>, patchdir]"
   overrides <- generateOverrides prefix patchDir
-  putStrLn "{haskell}:"
-  putStrLn "let dontRevise = pkg: haskell.lib.overrideCabal pkg (old: { editedCabalFile = null; }); in"
-  putStrLn "let setCabalFile = pkg: file: haskell.lib.overrideCabal pkg (old: { postPatch = ''cp ${file} ${old.pname}.cabal''; }); in"
+  putStrLn "{haskell, suppressedPatches ? {}, suppressedCabals ? {}}:"
+  putStrLn "let dontRevise   = pkg: haskell.lib.overrideCabal pkg (old: { editedCabalFile = null; }); in"
+  putStrLn "let setCabalFile = pkg: file: if builtins.hasAttr ''${pkg.pname}'' suppressedCabals  then pkg else haskell.lib.overrideCabal pkg (old: { postPatch = ''cp ${file} ${old.pname}.cabal''; }); in"
+  putStrLn "let setPatch     = pkg: file: if builtins.hasAttr ''${pkg.pname}'' suppressedPatches then pkg else haskell.lib.appendPatch pkg file; in"
+
   putStrLn "self: super: {\n"
   putStrLn overrides
   putStrLn "}"
