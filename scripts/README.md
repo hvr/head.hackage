@@ -54,3 +54,17 @@ nix-shell -p "ghcHEAD.ghcWithPackages (ps: [ps.primitive])"
 
 and it might work, or it might not :). If it doesn't work, add a patch to your
 patches directory and try again.
+
+# Disabling individual overrides
+
+As an additional measure of flexibility, normal and cabal patches can be disabled,
+on an individual basis.  This is done by passing non-empty `suppressedCabals`
+and/or `suppressedPatches` attribute sets as arguments to the `self.patches`
+derivation (in the context of the `~/overlay.nix` example), as follows:
+
+```
+(super.callPackage self.patches {
+    suppressedCabals  = { tasty = true; hlint = true; };
+    suppressedPatches = { graphviz = true; stringsearch = true; };
+  } sel sup)
+```
