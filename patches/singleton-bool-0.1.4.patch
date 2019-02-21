@@ -1,0 +1,28 @@
+commit daf73dfbc836348088d2ad88ecf89bdede000982
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Thu Feb 21 06:51:44 2019 -0500
+
+    Allow building with GHC 8.9
+
+diff --git a/src/Data/Singletons/Bool.hs b/src/Data/Singletons/Bool.hs
+index bcbfe18..3d4d6d5 100644
+--- a/src/Data/Singletons/Bool.hs
++++ b/src/Data/Singletons/Bool.hs
+@@ -113,10 +113,16 @@ eqCast = unsafeCoerce
+ trivialRefl :: () :~: ()
+ trivialRefl = Refl
+ 
++# if __GLASGOW_HASKELL__ >= 809
++#  define KVS(kvs) kvs
++# else
++#  define KVS(kvs)
++# endif
++
+ -- | Useful combination of 'sbool' and 'eqToRefl'
+ --
+ -- @since 0.1.2.0
+-sboolEqRefl :: forall (a :: k) (b :: k). SBoolI (a == b) => Maybe (a :~: b)
++sboolEqRefl :: forall KVS(k) (a :: k) (b :: k). SBoolI (a == b) => Maybe (a :~: b)
+ sboolEqRefl = case sbool :: SBool (a == b) of
+     STrue  -> Just eqToRefl
+     SFalse -> Nothing
