@@ -77,7 +77,7 @@ The main operations provided are
 
 - `head.hackage.sh dump-repo`: print `repository` stanza to stdout
 
-If you wish to enable `head.hackage` in an existing `cabal.project(.local)` file, you can copy and past the following lines into it:
+If you wish to enable `head.hackage` in an existing `cabal.project(.local)` file, you can copy and paste the following lines into it:
 
 ```
 with-compiler: <path-to-ghc-head>
