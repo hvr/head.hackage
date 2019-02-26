@@ -98,8 +98,8 @@ usage: $0 MODE ...
 
 Modes:
   unpack-all            unpack and patch all packages with patches
-  unpack \$pkg         unpack the given package into packages/
-  unpack-patch \$pkg   unpack and apply patches to the given package
+  unpack \$pkg           unpack the given package into packages/
+  unpack-patch \$pkg     unpack and apply patches to the given package
   update-patches        update patches for all unpacked packages
   drop-old              drop patches for obsolete package versions
 EOF
