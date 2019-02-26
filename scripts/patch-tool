@@ -33,7 +33,7 @@ drop_old() {
 
 add_pkg_dirs() {
     local dirs=$@
-    echo "packages: $dirs" >> cabal.project.local
+    echo "optional-packages: $dirs" >> cabal.project.local
     echo "Added $dirs to cabal.project.local"
 }
 
