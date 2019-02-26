@@ -45,7 +45,7 @@ patch_pkg() {
     else
         local pkg_dir=packages/$pkg
         git -C $pkg_dir apply $patch
-        git -C $pkg_dir commit -a -m "head.hackage.org patch"
+        git -C $pkg_dir commit -q -a -m "head.hackage.org patch"
     fi
 }
 
@@ -75,7 +75,7 @@ unpack_pkg() {
     cd $pkg_dir
     git init
     git add .
-    git commit -m "Initial commit"
+    git commit -q -m "Initial commit of $pkg"
     git tag upstream
     popd
     add_pkg_dirs packages/$pkg_dir
