@@ -38,15 +38,15 @@ add_pkg_dirs() {
 }
 
 patch_pkg() {
-    if [ ! -e "$1" ]; then 
-        echo "No patches for $1; skipping patching."
-        return
+    local pkg=$(basename $1 .patch)
+    local patch=$patches_dir/$pkg.patch
+    if [ ! -e "$patch" ]; then
+        echo "No patches for $pkg; skipping patching." return
+    else
+        local pkg_dir=packages/$pkg
+        git -C $pkg_dir apply $patch
+        git -C $pkg_dir commit -a -m "head.hackage.org patch"
     fi
-    local patch=$(basename $1)
-    local pkg=$(basename $patch .patch)
-    local pkg_dir=packages/$pkg
-    git -C $pkg_dir apply $patches_dir/$pkg.patch
-    git -C $pkg_dir commit -a -m "head.hackage.org patch"
 }
 
 unpack_patch_pkg() {
