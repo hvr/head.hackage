@@ -17,7 +17,9 @@ let
 in
 
 # ghc: path to a GHC source tree
-{ ghc ? import ./ghc-prerelease.nix }:
+{ ghc ? import ./ghc-prerelease.nix
+, haskellOverrides ? (self: super: self)
+}:
 
 let
   jailbreakOverrides = self: super: {
@@ -33,7 +35,10 @@ let
     haskellPackages =
       let patchesOverrides = self.callPackage patches {};
           patches = self.callPackage (import ./scripts/overrides.nix) { patches = ./patches; };
-          overrides = self.lib.composeExtensions patchesOverrides jailbreakOverrides;
+          overrides =
+            self.lib.composeExtensions
+              haskellOverrides
+              (self.lib.composeExtensions patchesOverrides jailbreakOverrides);
 
           baseHaskellPackages = self.callPackage "${baseNixpkgs}/pkgs/development/haskell-modules" {
             haskellLib = import "${baseNixpkgs}/pkgs/development/haskell-modules/lib.nix" {
