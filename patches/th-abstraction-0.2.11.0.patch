@@ -1,14 +1,14 @@
-commit dad32ed626b008c1786a24c133481b1b3d69fa15
+commit 9202973e260ce73e956df629e4949c9312d59855
 Author: Ryan Scott <ryan.gl.scott@gmail.com>
-Date:   Sat Dec 29 17:23:55 2018 -0500
+Date:   Fri Mar 1 20:25:11 2019 -0500
 
     Allow building with template-haskell-2.15.0.0
 
 diff --git a/src/Language/Haskell/TH/Datatype.hs b/src/Language/Haskell/TH/Datatype.hs
-index 5b65336..0b5bc43 100644
+index 926d82c..b07e697 100644
 --- a/src/Language/Haskell/TH/Datatype.hs
 +++ b/src/Language/Haskell/TH/Datatype.hs
-@@ -524,7 +524,17 @@ repairDataFam
+@@ -525,7 +525,17 @@ repairDataFam
      DataInstD cx n (repairVarKindsWith' dvars ts) cons deriv
  #else
  repairDataFam famD instD
@@ -27,7 +27,7 @@ index 5b65336..0b5bc43 100644
        | DataFamilyD _ dvars _ <- famD
        , NewtypeInstD cx n ts k c deriv <- instD
        = NewtypeInstD cx n (repairVarKindsWith dvars ts) k c deriv
-@@ -580,12 +590,27 @@ normalizeDecFor isReified dec =
+@@ -581,12 +591,27 @@ normalizeDecFor isReified dec =
        giveTypesStarKinds <$> normalizeDec' isReified context name (bndrParams tyvars) [con] Newtype
      DataD context name tyvars _kind cons _derives ->
        giveTypesStarKinds <$> normalizeDec' isReified context name (bndrParams tyvars) cons Datatype
@@ -55,7 +55,7 @@ index 5b65336..0b5bc43 100644
  #elif MIN_VERSION_template_haskell(2,11,0)
      NewtypeD context name tyvars _kind con _derives ->
        giveTypesStarKinds <$> normalizeDec' isReified context name (bndrParams tyvars) [con] Newtype
-@@ -1779,7 +1804,9 @@ tySynInstDCompat ::
+@@ -1823,7 +1848,9 @@ tySynInstDCompat ::
    [TypeQ] {- ^ instance parameters -} ->
    TypeQ   {- ^ instance result     -} ->
    DecQ
