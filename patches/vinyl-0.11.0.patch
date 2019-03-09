@@ -1,0 +1,239 @@
+commit c7d3f2d7fe4062d04409d52564653836015368c1
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Sat Mar 9 15:06:37 2019 -0500
+
+    Fix the build with GHC 8.9
+
+diff --git a/Data/Vinyl/Class/Method.hs b/Data/Vinyl/Class/Method.hs
+index d4cf0b1..7080c7c 100644
+--- a/Data/Vinyl/Class/Method.hs
++++ b/Data/Vinyl/Class/Method.hs
+@@ -167,9 +167,16 @@ instance RecPointed c f '[] where
+   rpointMethod _ = RNil
+   {-# INLINE rpointMethod #-}
+ 
++#if __GLASGOW_HASKELL__ >= 809
++# define KVS(kvs) kvs
++#else
++# define KVS(kvs)
++#endif
++
+ instance (c (f t), RecPointed c f ts)
+   => RecPointed c f (t ': ts) where
+-  rpointMethod f = f :& rpointMethod @c f
++  rpointMethod f =
++    f :& rpointMethod KVS(@_) @c f
+   {-# INLINE rpointMethod #-}
+ 
+ -- | Apply a typeclass method to each field of a 'Rec' where the class
+@@ -196,11 +203,13 @@ instance RecMapMethod1 c f '[] where
+ 
+ instance (c (PayloadType f t), RecMapMethod c f ts)
+   => RecMapMethod c f (t ': ts) where
+-  rmapMethod f (x :& xs) = f x :& rmapMethod @c f xs
++  rmapMethod f (x :& xs) =
++    f x :& rmapMethod KVS(@_) @c f xs
+   {-# INLINE rmapMethod #-}
+ 
+ instance (c (f t), RecMapMethod1 c f ts) => RecMapMethod1 c f (t ': ts) where
+-  rmapMethod1 f (x :& xs) = f x :& rmapMethod1 @c f xs
++  rmapMethod1 f (x :& xs) =
++    f x :& rmapMethod1 KVS(@_) @c f xs
+   {-# INLINE rmapMethod1 #-}
+ 
+ -- | Apply a typeclass method to each field of a @Rec f ts@ using the
+@@ -209,14 +218,16 @@ instance (c (f t), RecMapMethod1 c f ts) => RecMapMethod1 c f (t ': ts) where
+ -- composed with 'fmap'.
+ rmapMethodF :: forall c f ts. (Functor f, FieldPayload f ~ 'FieldId, RecMapMethod c f ts)
+             => (forall a. c a => a -> a) -> Rec f ts -> Rec f ts
+-rmapMethodF f = rmapMethod @c (fmap f)
++rmapMethodF f =
++  rmapMethod KVS(@_) @c (fmap f)
+ {-# INLINE rmapMethodF #-}
+ 
+ -- | Apply a typeclass method to each field of a 'FieldRec'. This is a
+ -- specialization of 'rmapMethod'.
+ mapFields :: forall c ts. RecMapMethod c ElField ts
+            => (forall a. c a => a -> a) -> FieldRec ts -> FieldRec ts
+-mapFields f = rmapMethod @c g
++mapFields f =
++  rmapMethod KVS(@_) @c g
+   where g :: c (PayloadType ElField t) => ElField t -> ElField t
+         g (Field x) = Field (f x)
+ {-# INLINE mapFields #-}
+diff --git a/Data/Vinyl/Lens.hs b/Data/Vinyl/Lens.hs
+index 35e5944..f2524e3 100644
+--- a/Data/Vinyl/Lens.hs
++++ b/Data/Vinyl/Lens.hs
+@@ -1,3 +1,4 @@
++{-# LANGUAGE CPP #-}
+ {-# LANGUAGE TypeApplications #-}
+ {-# LANGUAGE AllowAmbiguousTypes #-}
+ {-# LANGUAGE UndecidableInstances #-}
+@@ -87,21 +88,30 @@ lens
+ lens sa sbt afb s = fmap (sbt s) $ afb (sa s)
+ {-# INLINE lens #-}
+ 
++#if __GLASGOW_HASKELL__ >= 809
++# define KVS(kvs) kvs
++#else
++# define KVS(kvs)
++#endif
++
+ instance RecElem Rec r r' (r ': rs) (r' ': rs) 'Z where
+   rlensC f (x :& xs) = fmap (:& xs) (f x)
+   {-# INLINE rlensC #-}
+   rgetC = getConst . rlensC Const
+   {-# INLINE rgetC #-}
+-  rputC y = getIdentity . rlensC @_ @r (\_ -> Identity y)
++  rputC y =
++    getIdentity . rlensC KVS(@_) @_ @r (\_ -> Identity y)
+   {-# INLINE rputC #-}
+ 
+ instance (RIndex r (s ': rs) ~ 'S i, RecElem Rec r r' rs rs' i)
+   => RecElem Rec r r' (s ': rs) (s ': rs') ('S i) where
+   rlensC f (x :& xs) = fmap (x :&) (rlensC f xs)
+   {-# INLINE rlensC #-}
+-  rgetC = getConst . rlensC @_ @r @r' Const
++  rgetC =
++    getConst . rlensC KVS(@_) @_ @r @r' Const
+   {-# INLINE rgetC #-}
+-  rputC y = getIdentity . rlensC @_ @r (\_ -> Identity y)
++  rputC y =
++    getIdentity . rlensC KVS(@_) @_ @r (\_ -> Identity y)
+   {-# INLINE rputC #-}
+ 
+ --  | The 'rgetC' field getter with the type arguments re-ordered for
+@@ -115,7 +125,8 @@ rget = rgetC
+ -- re-ordered for more convenient usage with @TypeApplications@.
+ rput' :: forall r r' rs rs' record f. (RecElem record r r' rs rs' (RIndex r rs), RecElemFCtx record f)
+       => f r' -> record f rs -> record f rs'
+-rput' = rputC @_ @r @r'
++rput' =
++  rputC KVS(@_) @_ @r @r'
+ 
+ -- | Type-preserving field setter. This type is simpler to work with
+ -- than that of 'rput''.
+@@ -178,7 +189,7 @@ class is ~ RImage rs ss => RecSubset record (rs :: [k]) (ss :: [k]) is where
+ -- | A lens into a slice of the larger record. This is 'rsubsetC' with
+ -- the type arguments reordered for more convenient usage with
+ -- @TypeApplications@.
+-rsubset :: forall rs ss f g record is.
++rsubset :: forall KVS(k) rs ss f g record is.
+            (RecSubset record (rs :: [k]) (ss :: [k]) is,
+            Functor g, RecSubsetFCtx record f)
+         => (record f rs -> g (record f rs)) -> record f ss -> g (record f ss)
+diff --git a/Data/Vinyl/Recursive.hs b/Data/Vinyl/Recursive.hs
+index b813e47..f359ef1 100644
+--- a/Data/Vinyl/Recursive.hs
++++ b/Data/Vinyl/Recursive.hs
+@@ -1,3 +1,4 @@
++{-# LANGUAGE CPP #-}
+ {-# LANGUAGE TypeFamilies #-}
+ {-# LANGUAGE ConstraintKinds #-}
+ {-# LANGUAGE BangPatterns #-}
+@@ -137,9 +138,15 @@ reifyConstraint prx rec =
+     RNil -> RNil
+     (x :& xs) -> Compose (Dict x) :& reifyConstraint prx xs
+ 
++#if __GLASGOW_HASKELL__ >= 809
++# define KVS(kvs) kvs
++#else
++# define KVS(kvs)
++#endif
++
+ -- | Build a record whose elements are derived solely from a
+ -- constraint satisfied by each.
+-rpureConstrained :: forall c (f :: u -> *) proxy ts.
++rpureConstrained :: forall KVS(u) c (f :: u -> *) proxy ts.
+                     (AllConstrained c ts, RecApplicative ts)
+                  => proxy c -> (forall a. c a => f a) -> Rec f ts
+ rpureConstrained _ f = go (rpure Proxy)
+diff --git a/Data/Vinyl/SRec.hs b/Data/Vinyl/SRec.hs
+index 6f850c8..68c6893 100644
+--- a/Data/Vinyl/SRec.hs
++++ b/Data/Vinyl/SRec.hs
+@@ -25,6 +25,7 @@
+ -- Note that the lens field accessors for 'SRec' do not support
+ -- changing the types of the fields as they do for 'Rec' and
+ -- 'ARec'.
++{-# LANGUAGE CPP #-}
+ {-# LANGUAGE AllowAmbiguousTypes #-}
+ {-# LANGUAGE BangPatterns #-}
+ {-# LANGUAGE ConstraintKinds #-}
+@@ -218,8 +219,14 @@ mallocAndCopy src n = do
+     withForeignPtr dst $ \dst' ->
+       dst <$ copyBytes dst' src' n
+ 
++#if __GLASGOW_HASKELL__ >= 809
++# define KVS(kvs) kvs
++#else
++# define KVS(kvs)
++#endif
++
+ -- | Set a field.
+-sput :: forall (f :: u -> *) (t :: u) (ts :: [u]).
++sput :: forall KVS(u) (f :: u -> *) (t :: u) (ts :: [u]).
+         ( FieldOffset f ts t
+         , Storable (Rec f ts)
+         , AllConstrained (FieldOffset f ts) ts)
+@@ -296,7 +303,7 @@ instance ( i ~ RIndex (t :: (Symbol,*)) (ts :: [(Symbol,*)])
+   {-# INLINE rputC #-}
+ 
+ -- | Get a subset of a record's fields.
+-srecGetSubset :: forall (ss :: [u]) (rs :: [u]) (f :: u -> *).
++srecGetSubset :: forall KVS(u) (ss :: [u]) (rs :: [u]) (f :: u -> *).
+                  (RPureConstrained (FieldOffset f ss) rs,
+                   RPureConstrained (FieldOffset f rs) rs,
+                   RFoldMap rs, RMap rs, RApply rs,
+@@ -334,7 +341,7 @@ newtype TaggedIO a = TaggedIO { unTagIO :: IO () }
+ type Poker f = Lift (->) f TaggedIO
+ 
+ -- | Set a subset of a record's fields.
+-srecSetSubset :: forall (f :: u -> *) (ss :: [u]) (rs :: [u]).
++srecSetSubset :: forall KVS(u) (f :: u -> *) (ss :: [u]) (rs :: [u]).
+                  (rs ⊆ ss,
+                   RPureConstrained (FieldOffset f ss) rs,
+                   RPureConstrained (FieldOffset f rs) rs,
+diff --git a/tests/Aeson.hs b/tests/Aeson.hs
+index f84d54b..d48cf3c 100644
+--- a/tests/Aeson.hs
++++ b/tests/Aeson.hs
+@@ -69,13 +69,20 @@ instance ToJSON a => ToJSON (ElField '(s,a)) where
+ instance ToJSON (f a) => ToJSON ((((,) Text) :. f) a) where
+   toJSON (Compose (name, x)) = object [(name, toJSON x)]
+ 
++#if __GLASGOW_HASKELL__ >= 809
++# define KVS(kvs) kvs
++#else
++# define KVS(kvs)
++#endif
++
+ -- | Replace each field of a record with the result of serializing it
+ -- to a JSON 'Value', and then extracting that 'Value''s single named
+ -- field. If the serialization is not in the form of an object with a
+ -- single field, the conversion fails with a 'Nothing'.
+ fieldsToJSON :: (RecMapMethod1 ToJSON f rs)
+              => Rec f rs -> Rec (Maybe :. Const (Text,Value)) rs
+-fieldsToJSON = rmapMethod1 @ToJSON (Compose . aux)
++fieldsToJSON =
++    rmapMethod1 KVS(@_) @ToJSON (Compose . aux)
+   where aux x = case toJSON x of
+                   Object (H.toList -> [field]) -> Just (Const field)
+                   _ -> Nothing
+@@ -194,13 +201,13 @@ encodeRec :: (RFoldMap rs, RecMapMethod1 ToJSONField f rs)
+ encodeRec = wrapObject
+           . pairs
+           . rfoldMap getConst
+-          . rmapMethod1 @ToJSONField (Const . encodeJSONField)
++          . rmapMethod1 KVS(@_) @ToJSONField (Const . encodeJSONField)
+ 
+ recToJSON :: (RFoldMap rs, RecMapMethod1 ToJSONField f rs)
+           => Rec f rs -> Value
+ recToJSON = object
+           . rfoldMap ((:[]) . getConst)
+-          . rmapMethod1 @ToJSONField (Const . toJSONField)
++          . rmapMethod1 KVS(@_) @ToJSONField (Const . toJSONField)
+ 
+ -- * Generically
+ 
