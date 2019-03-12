@@ -1,5 +1,6 @@
 name:               xmonad
 version:            0.14
+x-revision: 1
 homepage:           http://xmonad.org
 synopsis:           A tiling window manager
 description:
@@ -53,7 +54,6 @@ flag generatemanpage
     manual: True
 
 library
-    default-extensions: NoMonadFailDesugaring
     hs-source-dirs:     src
     exposed-modules:    XMonad
                         XMonad.Main
@@ -65,7 +65,7 @@ library
                         XMonad.StackSet
     other-modules:      Paths_xmonad
 
-    build-depends: base < 5 && >=3,
+    build-depends: base >= 4.6 && < 4.12,
                    containers,
                    data-default,
                    directory,
@@ -91,8 +91,6 @@ library
         buildable: False
 
 executable xmonad
-    default-extensions: NoMonadFailDesugaring
-
     main-is:        Main.hs
     build-depends:  base,
                     mtl,
@@ -104,8 +102,6 @@ executable xmonad
         ghc-options:  -Wall -fno-warn-unused-do-bind
 
 executable generatemanpage
-    default-extensions: NoMonadFailDesugaring
-
     main-is: GenerateManpage.hs
     hs-source-dirs: util
     if flag(generatemanpage)
