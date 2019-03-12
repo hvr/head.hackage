@@ -18,14 +18,16 @@ latest_version() {
 }
 
 drop_old() {
-    for patch in patches/*.patch; do
-        split_pkg_version $(basename $patch .patch)
-        latest=$(latest_version $package)
-        #echo "$patch $package $version $latest "
-        if [ "$latest" != "$version" ]; then
-            echo "$patch is obsolete (latest version of $package is $latest), removed"
-            git rm -q $patch
-        fi
+    for ext in patch cabal; do
+        for file in patches/*.$ext; do
+            split_pkg_version $(basename $file .$ext)
+            latest=$(latest_version $package)
+            #echo "$file $package $version $latest "
+            if [ "$latest" != "$version" ]; then
+                echo "$file is obsolete (latest version of $package is $latest), removed"
+                git rm -q $file
+            fi
+        done
     done
 }
 
