@@ -1,0 +1,107 @@
+commit 1451ef6da0215ee6189ae176cfef113d1646ac15
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Fri Mar 15 20:29:43 2019 -0400
+
+    Adapt to base-4.13.0.0
+
+diff --git a/src/Graphics/Vty/Output.hs b/src/Graphics/Vty/Output.hs
+index 3886b88..318a228 100644
+--- a/src/Graphics/Vty/Output.hs
++++ b/src/Graphics/Vty/Output.hs
+@@ -29,6 +29,7 @@ module Graphics.Vty.Output
+ where
+ 
+ import Control.Monad (when)
++import qualified Control.Monad.Fail as Fail
+ 
+ import Graphics.Vty.Config
+ import Graphics.Vty.Image (regionWidth, regionHeight)
+@@ -84,7 +85,7 @@ outputForConfig config = (<> config) <$> standardIOConfig >>= outputForConfig
+ -- Currently, the only way to set the cursor position to a given
+ -- character coordinate is to specify the coordinate in the Picture
+ -- instance provided to 'outputPicture' or 'refresh'.
+-setCursorPos :: MonadIO m => Output -> Int -> Int -> m ()
++setCursorPos :: (MonadIO m, Fail.MonadFail m) => Output -> Int -> Int -> m ()
+ setCursorPos t x y = do
+     bounds <- displayBounds t
+     when (x >= 0 && x < regionWidth bounds && y >= 0 && y < regionHeight bounds) $ do
+@@ -92,14 +93,14 @@ setCursorPos t x y = do
+         liftIO $ outputByteBuffer t $ writeToByteString $ writeMoveCursor dc x y
+ 
+ -- | Hides the cursor.
+-hideCursor :: MonadIO m => Output -> m ()
++hideCursor :: (MonadIO m, Fail.MonadFail m) => Output -> m ()
+ hideCursor t = do
+     bounds <- displayBounds t
+     dc <- displayContext t bounds
+     liftIO $ outputByteBuffer t $ writeToByteString $ writeHideCursor dc
+ 
+ -- | Shows the cursor.
+-showCursor :: MonadIO m => Output -> m ()
++showCursor :: (MonadIO m, Fail.MonadFail m) => Output -> m ()
+ showCursor t = do
+     bounds <- displayBounds t
+     dc <- displayContext t bounds
+diff --git a/src/Graphics/Vty/Output/Interface.hs b/src/Graphics/Vty/Output/Interface.hs
+index b3e13a9..b7e8bdd 100644
+--- a/src/Graphics/Vty/Output/Interface.hs
++++ b/src/Graphics/Vty/Output/Interface.hs
+@@ -29,6 +29,7 @@ import Graphics.Vty.DisplayAttributes
+ import Blaze.ByteString.Builder (Write, writeToByteString)
+ import Blaze.ByteString.Builder.ByteString (writeByteString)
+ 
++import qualified Control.Monad.Fail as Fail
+ import Control.Monad.Trans
+ 
+ import qualified Data.ByteString as BS
+@@ -76,7 +77,7 @@ data Output = Output
+       -- previous state then set the display state to the initial state.
+     , releaseDisplay :: forall m. MonadIO m => m ()
+       -- | Returns the current display bounds.
+-    , displayBounds :: forall m. MonadIO m => m DisplayRegion
++    , displayBounds :: forall m. (MonadIO m, Fail.MonadFail m) => m DisplayRegion
+       -- | Output the bytestring to the terminal device.
+     , outputByteBuffer :: BS.ByteString -> IO ()
+       -- | Specifies the maximum number of colors supported by the
+diff --git a/src/Graphics/Vty/Output/TerminfoBased.hs b/src/Graphics/Vty/Output/TerminfoBased.hs
+index 52ba2a3..9444295 100644
+--- a/src/Graphics/Vty/Output/TerminfoBased.hs
++++ b/src/Graphics/Vty/Output/TerminfoBased.hs
+@@ -13,6 +13,7 @@ module Graphics.Vty.Output.TerminfoBased
+ where
+ 
+ import Control.Monad (when)
++import qualified Control.Monad.Fail as Fail
+ import qualified Data.ByteString as BS
+ import Data.ByteString.Internal (toForeignPtr)
+ import Data.Terminfo.Parse
+@@ -203,25 +204,25 @@ reserveTerminal termName outFd = liftIO $ do
+         maybeSendCap s = when (isJust $ s terminfoCaps) . sendCap (fromJust . s)
+     return t
+ 
+-requireCap :: (Applicative m, MonadIO m) => Terminfo.Terminal -> String -> m CapExpression
++requireCap :: (Applicative m, MonadIO m, Fail.MonadFail m) => Terminfo.Terminal -> String -> m CapExpression
+ requireCap ti capName
+     = case Terminfo.getCapability ti (Terminfo.tiGetStr capName) of
+         Nothing     -> fail $ "Terminal does not define required capability \"" ++ capName ++ "\""
+         Just capStr -> parseCap capStr
+ 
+-probeCap :: (Applicative m, MonadIO m) => Terminfo.Terminal -> String -> m (Maybe CapExpression)
++probeCap :: (Applicative m, MonadIO m, Fail.MonadFail m) => Terminfo.Terminal -> String -> m (Maybe CapExpression)
+ probeCap ti capName
+     = case Terminfo.getCapability ti (Terminfo.tiGetStr capName) of
+         Nothing     -> return Nothing
+         Just capStr -> Just <$> parseCap capStr
+ 
+-parseCap :: (Applicative m, MonadIO m) => String -> m CapExpression
++parseCap :: (Applicative m, MonadIO m, Fail.MonadFail m) => String -> m CapExpression
+ parseCap capStr = do
+     case parseCapExpression capStr of
+         Left e -> fail $ show e
+         Right cap -> return cap
+ 
+-currentDisplayAttrCaps :: ( Applicative m, MonadIO m )
++currentDisplayAttrCaps :: ( Applicative m, MonadIO m, Fail.MonadFail m )
+                        => Terminfo.Terminal
+                        -> m DisplayAttrCaps
+ currentDisplayAttrCaps ti

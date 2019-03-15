@@ -1,0 +1,14 @@
+diff -ru cassava-0.5.1.0.orig/Data/Csv/Conversion.hs cassava-0.5.1.0/Data/Csv/Conversion.hs
+--- cassava-0.5.1.0.orig/Data/Csv/Conversion.hs	2017-08-12 12:05:04.000000000 -0400
++++ cassava-0.5.1.0/Data/Csv/Conversion.hs	2019-03-15 19:00:40.945760943 -0400
+@@ -1188,8 +1188,10 @@
+     {-# INLINE (>>) #-}
+     return = pure
+     {-# INLINE return #-}
++#if !(MIN_VERSION_base(4,13,0))
+     fail = Fail.fail
+     {-# INLINE fail #-}
++#endif
+ 
+ -- | @since 0.5.0.0
+ instance Fail.MonadFail Parser where

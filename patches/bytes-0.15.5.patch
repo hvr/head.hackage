@@ -1,0 +1,49 @@
+commit 3bbc80a8a708886f593c9591197d43191e7f31ba
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Fri Mar 15 14:09:31 2019 -0400
+
+    Adapt to base-4.13.0.0
+
+diff --git a/src/Data/Bytes/Get.hs b/src/Data/Bytes/Get.hs
+index 6ab1a04..fd5e26b 100644
+--- a/src/Data/Bytes/Get.hs
++++ b/src/Data/Bytes/Get.hs
+@@ -28,6 +28,7 @@ module Data.Bytes.Get
+ #if __GLASGOW_HASKELL__ < 710
+ import Control.Applicative
+ #endif
++import qualified Control.Monad.Fail as Fail
+ import Control.Monad.Reader
+ import Control.Monad.Trans.Except as Except
+ import Control.Monad.RWS.Lazy as Lazy
+@@ -43,7 +44,7 @@ import Data.Int
+ import qualified Data.Serialize.Get as S
+ import Data.Word
+ 
+-class (Integral (Remaining m), Monad m, Applicative m) => MonadGet m where
++class (Integral (Remaining m), Fail.MonadFail m, Applicative m) => MonadGet m where
+   -- | An 'Integral' number type used for unchecked skips and counting.
+   type Remaining m :: *
+ 
+diff --git a/src/Data/Bytes/Serial.hs b/src/Data/Bytes/Serial.hs
+index a669f15..b032665 100644
+--- a/src/Data/Bytes/Serial.hs
++++ b/src/Data/Bytes/Serial.hs
+@@ -594,7 +594,7 @@ instance GSerial U1 where
+   gdeserialize = return U1
+ 
+ instance GSerial V1 where
+-  gserialize _ = fail "I looked into the void."
++  gserialize _ = error "I looked into the void."
+   gdeserialize = fail "I looked into the void."
+ 
+ instance (GSerial f, GSerial g) => GSerial (f :*: g) where
+@@ -772,7 +772,7 @@ instance GSerial1 U1 where
+   gdeserializeWith _  = return U1
+ 
+ instance GSerial1 V1 where
+-  gserializeWith _   = fail "I looked into the void."
++  gserializeWith _   = error "I looked into the void."
+   gdeserializeWith _ = fail "I looked into the void."
+ 
+ instance (GSerial1 f, GSerial1 g) => GSerial1 (f :*: g) where

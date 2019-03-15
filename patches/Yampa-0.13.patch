@@ -1,0 +1,39 @@
+commit e1fd4b583d8a09d54e089fe2b89e921d3b854182
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Fri Mar 15 18:49:39 2019 -0400
+
+    Adapt to base-4.13.0.0
+
+diff --git a/src/FRP/Yampa/Event.hs b/src/FRP/Yampa/Event.hs
+index 804fe46..0639f3f 100644
+--- a/src/FRP/Yampa/Event.hs
++++ b/src/FRP/Yampa/Event.hs
+@@ -1,3 +1,4 @@
++{-# LANGUAGE CPP #-}
+ {-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
+ -----------------------------------------------------------------------------------------
+ -- |
+@@ -90,6 +91,7 @@ module FRP.Yampa.Event where
+ 
+ import Control.Applicative
+ import Control.DeepSeq (NFData(..))
++import qualified Control.Monad.Fail as Fail
+ 
+ import FRP.Yampa.Diagnostics
+ 
+@@ -175,9 +177,14 @@ instance Monad Event where
+ 
+     -- | See 'pure'.
+     return          = pure
++#if !(MIN_VERSION_base(4,13,0))
+     -- | Fail with 'NoEvent'.
+-    fail _          = NoEvent
++    fail = Fail.fail
++#endif
+ 
++instance Fail.MonadFail Event where
++    -- | Fail with 'NoEvent'.
++    fail _          = NoEvent
+ 
+ -- | Alternative instance
+ instance Alternative Event where

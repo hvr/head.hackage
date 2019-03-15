@@ -1,0 +1,23 @@
+diff -ru fmlist-0.9.2.orig/Data/FMList.hs fmlist-0.9.2/Data/FMList.hs
+--- fmlist-0.9.2.orig/Data/FMList.hs	2018-01-07 07:28:57.000000000 -0500
++++ fmlist-0.9.2/Data/FMList.hs	2019-03-15 14:43:52.225024755 -0400
+@@ -97,6 +97,7 @@
+ import Data.Foldable (Foldable, foldMap, foldr, toList)
+ import Data.Traversable (Traversable, traverse)
+ import Control.Monad
++import qualified Control.Monad.Fail as Fail
+ import Control.Applicative
+ 
+ -- | 'FMList' is a 'foldMap' function wrapped up in a newtype.
+@@ -293,6 +294,11 @@
+   return     = one
+   m >>= g    = transform (\f -> foldMap f . g) m
+   m >> k     = transform (\f -> const (foldMap f k)) m
++#if !(MIN_VERSION_base(4,13,0))
++  fail       = Fail.fail
++#endif
++
++instance Fail.MonadFail FMList where
+   fail _     = nil
+ 
+ instance Applicative FMList where

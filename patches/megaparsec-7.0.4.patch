@@ -1,0 +1,20 @@
+commit 3abec48e99e2099805539057b59d16ac7da4137c
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Fri Mar 15 15:10:12 2019 -0400
+
+    Adapt to base-4.13.0.0
+
+diff --git a/Text/Megaparsec/Internal.hs b/Text/Megaparsec/Internal.hs
+index ca03684..86848b3 100644
+--- a/Text/Megaparsec/Internal.hs
++++ b/Text/Megaparsec/Internal.hs
+@@ -200,7 +200,9 @@ instance (Ord e, Stream s) => Alternative (ParsecT e s m) where
+ instance Stream s => Monad (ParsecT e s m) where
+   return = pure
+   (>>=)  = pBind
++#if !(MIN_VERSION_base(4,13,0))
+   fail   = Fail.fail
++#endif
+ 
+ pBind :: Stream s
+   => ParsecT e s m a

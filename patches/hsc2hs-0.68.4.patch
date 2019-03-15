@@ -1,0 +1,33 @@
+From 6324184483b20233a67cb9b26c59e751738c57c7 Mon Sep 17 00:00:00 2001
+From: Herbert Valerio Riedel <hvr@gnu.org>
+Date: Tue, 18 Dec 2018 23:03:58 +0100
+Subject: [PATCH] MonadFail forward-compat
+
+It turns out that the `fail` method was unused to begin with.
+---
+ HSCParser.hs | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/HSCParser.hs b/HSCParser.hs
+index b2ef799..d855cf1 100644
+--- a/HSCParser.hs
++++ b/HSCParser.hs
+@@ -38,14 +38,16 @@ instance Monad Parser where
+                         Success pos'' (out1++out2) imp'' b
+                     Failure pos'' msg -> Failure pos'' msg
+             Failure pos' msg -> Failure pos' msg
+-    fail msg = Parser $ \pos _ -> Failure pos msg
++
++failp :: String -> Parser a
++failp msg = Parser $ \pos _ -> Failure pos msg
+
+ instance Alternative Parser where
+     empty = mzero
+     (<|>) = mplus
+
+ instance MonadPlus Parser where
+-    mzero                     = fail "mzero"
++    mzero                     = failp "mzero"
+     Parser m `mplus` Parser n =
+         Parser $ \pos s -> case m pos s of
+             success@(Success _ _ _ _) -> success

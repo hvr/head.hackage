@@ -1,0 +1,23 @@
+diff -ru turtle-1.5.13.orig/src/Turtle/Shell.hs turtle-1.5.13/src/Turtle/Shell.hs
+--- turtle-1.5.13.orig/src/Turtle/Shell.hs	2018-12-20 11:51:10.000000000 -0500
++++ turtle-1.5.13/src/Turtle/Shell.hs	2019-03-16 07:54:57.329789876 -0400
+@@ -182,7 +182,9 @@
+         let step1 x a = _foldShell (f a) (FoldShell step0 x return)
+         _foldShell m (FoldShell step1 begin0 done0) )
+ 
+-    fail _ = mzero
++#if !(MIN_VERSION_base(4,13,0))
++    fail = Fail.fail
++#endif
+ 
+ instance Alternative Shell where
+     empty = Shell (\(FoldShell _ begin done) -> done begin)
+@@ -215,7 +217,7 @@
+ 
+ #if MIN_VERSION_base(4,9,0)
+ instance Fail.MonadFail Shell where
+-    fail = Prelude.fail
++    fail _ = mzero
+ #endif
+ 
+ #if __GLASGOW_HASKELL__ >= 804

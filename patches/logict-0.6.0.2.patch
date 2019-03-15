@@ -1,0 +1,38 @@
+diff -ru logict-0.6.0.2.orig/Control/Monad/Logic.hs logict-0.6.0.2/Control/Monad/Logic.hs
+--- logict-0.6.0.2.orig/Control/Monad/Logic.hs	2014-02-09 17:59:08.000000000 -0500
++++ logict-0.6.0.2/Control/Monad/Logic.hs	2019-03-15 10:31:35.693851930 -0400
+@@ -1,4 +1,4 @@
+-{-# LANGUAGE UndecidableInstances, Rank2Types, FlexibleInstances, MultiParamTypeClasses #-}
++{-# LANGUAGE CPP, UndecidableInstances, Rank2Types, FlexibleInstances, MultiParamTypeClasses #-}
+ 
+ -------------------------------------------------------------------------
+ -- |
+@@ -41,6 +41,7 @@
+ import Control.Applicative
+ 
+ import Control.Monad
++import qualified Control.Monad.Fail as Fail
+ import Control.Monad.Identity
+ import Control.Monad.Trans
+ 
+@@ -64,7 +65,7 @@
+ -- | Extracts the first result from a LogicT computation,
+ -- failing otherwise.
+ observeT :: Monad m => LogicT m a -> m a
+-observeT lt = unLogicT lt (const . return) (fail "No answer.")
++observeT lt = unLogicT lt (const . return) (error "No answer.")
+ 
+ -------------------------------------------------------------------------
+ -- | Extracts all results from a LogicT computation.
+@@ -138,6 +139,11 @@
+ instance Monad (LogicT m) where
+     return a = LogicT $ \sk fk -> sk a fk
+     m >>= f = LogicT $ \sk fk -> unLogicT m (\a fk' -> unLogicT (f a) sk fk') fk
++#if !(MIN_VERSION_base(4,13,0))
++    fail = Fail.fail
++#endif
++
++instance Fail.MonadFail (LogicT m) where
+     fail _ = LogicT $ \_ fk -> fk
+ 
+ instance MonadPlus (LogicT m) where

@@ -1,7 +1,7 @@
-From a2af610c08c5f5afc496f907bf6b2a4b8da6a665 Mon Sep 17 00:00:00 2001
+From 7a1b7ec3779dedebe98a4435b5d61e23a6b89598 Mon Sep 17 00:00:00 2001
 From: Shao Cheng <astrohavoc@gmail.com>
 Date: Tue, 17 Jul 2018 17:17:27 +0800
-Subject: Fix compilation error by recent ghc-head (#187)
+Subject: [PATCH 1/2] Fix compilation error by recent ghc-head (#187)
 
 ---
  Data/Primitive/MutVar.hs | 3 +--
@@ -26,5 +26,67 @@ index f707bfb..04993fa 100644
      (# s'#, a #) -> let a' = g a in a' `seq` writeMutVar# mv# a' s'#
 -
 -- 
-2.14.3 (Apple Git-98)
+2.17.1
+
+
+From 261d3572ad42482ad80b13f944f7f57bf0d4d801 Mon Sep 17 00:00:00 2001
+From: Ryan Scott <ryan.gl.scott@gmail.com>
+Date: Fri, 15 Mar 2019 10:03:57 -0400
+Subject: [PATCH 2/2] Adapt to base-4.13.0.0
+
+---
+ Data/Primitive/Array.hs      | 6 ++++++
+ Data/Primitive/SmallArray.hs | 6 ++++++
+ 2 files changed, 12 insertions(+)
+
+diff --git a/Data/Primitive/Array.hs b/Data/Primitive/Array.hs
+index 13352f6..d363a97 100644
+--- a/Data/Primitive/Array.hs
++++ b/Data/Primitive/Array.hs
+@@ -45,6 +45,7 @@ import Control.Monad.ST(ST,runST)
+ 
+ import Control.Applicative
+ import Control.Monad (MonadPlus(..), when)
++import qualified Control.Monad.Fail as Fail
+ import Control.Monad.Fix
+ #if MIN_VERSION_base(4,4,0)
+ import Control.Monad.Zip
+@@ -691,6 +692,11 @@ instance Monad Array where
+      = copyArray smb off sb 0 (lsb)
+          *> fill (off + lsb) sbs smb
+ 
++#if !(MIN_VERSION_base(4,13,0))
++  fail = Fail.fail
++#endif
++
++instance Fail.MonadFail Array where
+   fail _ = empty
+ 
+ instance MonadPlus Array where
+diff --git a/Data/Primitive/SmallArray.hs b/Data/Primitive/SmallArray.hs
+index 3a50cf2..7e0eb41 100644
+--- a/Data/Primitive/SmallArray.hs
++++ b/Data/Primitive/SmallArray.hs
+@@ -74,6 +74,7 @@ import qualified GHC.Exts
+ 
+ import Control.Applicative
+ import Control.Monad
++import qualified Control.Monad.Fail as Fail
+ import Control.Monad.Fix
+ import Control.Monad.Primitive
+ import Control.Monad.ST
+@@ -808,6 +809,11 @@ instance Monad SmallArray where
+      copySmallArray smb off sb 0 (length sb)
+        *> fill (off + length sb) sbs smb
+ 
++#if !(MIN_VERSION_base(4,13,0))
++  fail = Fail.fail
++#endif
++
++instance Fail.MonadFail SmallArray where
+   fail _ = emptySmallArray
+ 
+ instance MonadPlus SmallArray where
+-- 
+2.17.1
 

@@ -1,14 +1,7 @@
-commit d4222e5e6297bdc8c0f6ae0f51a0477142bd1401
-Author: Ryan Scott <ryan.gl.scott@gmail.com>
-Date:   Mon Dec 10 15:54:31 2018 -0500
-
-    Allow building with template-haskell-2.15.0.0
-
-diff --git a/src/Data/Store/TH/Internal.hs b/src/Data/Store/TH/Internal.hs
-index e0b777d..8d3ee34 100644
---- a/src/Data/Store/TH/Internal.hs
-+++ b/src/Data/Store/TH/Internal.hs
-@@ -354,7 +354,14 @@ getUnboxInfo = do
+diff -ru store-0.5.0.1.orig/src/Data/Store/TH/Internal.hs store-0.5.0.1/src/Data/Store/TH/Internal.hs
+--- store-0.5.0.1.orig/src/Data/Store/TH/Internal.hs	2017-11-22 10:23:16.000000000 -0500
++++ store-0.5.0.1/src/Data/Store/TH/Internal.hs	2019-03-16 09:49:48.207604408 -0400
+@@ -354,7 +354,14 @@
      FamilyI _ insts <- reify ''UV.Vector
      return (map (everywhere (id `extT` dequalVarT) . go) insts)
    where
@@ -24,3 +17,55 @@ index e0b777d..8d3ee34 100644
      go (NewtypeInstD preds _ [ty] _ con _) = (preds, ty, conToDataCons con)
      go (DataInstD preds _ [ty] _ cons _) = (preds, ty, concatMap conToDataCons cons)
  #else
+diff -ru store-0.5.0.1.orig/src/Data/Store/TH.hs store-0.5.0.1/src/Data/Store/TH.hs
+--- store-0.5.0.1.orig/src/Data/Store/TH.hs	2017-11-22 10:23:16.000000000 -0500
++++ store-0.5.0.1/src/Data/Store/TH.hs	2019-03-16 09:51:04.588196220 -0400
+@@ -37,6 +37,7 @@
+     , assertRoundtrip
+     ) where
+ 
++import qualified Control.Monad.Fail as Fail
+ import Data.Complex ()
+ import Data.Store.Impl
+ import Data.Typeable (Typeable, typeOf)
+@@ -60,7 +61,7 @@
+         expr <- [e| property $ changeDepth (\_ -> depth) $ \x -> checkRoundtrip verbose (x :: $(return ty)) |]
+         return ("Roundtrips (" ++ pprint ty ++ ")", expr)
+ 
+-assertRoundtrip :: (Eq a, Show a, Store a, Monad m, Typeable a) => Bool -> a -> m ()
++assertRoundtrip :: (Eq a, Show a, Store a, Fail.MonadFail m, Typeable a) => Bool -> a -> m ()
+ assertRoundtrip verbose x
+     | checkRoundtrip verbose x = return ()
+     | otherwise = fail $ "Failed to roundtrip "  ++ show (typeOf x)
+diff -ru store-0.5.0.1.orig/src/Data/Store/Version.hs store-0.5.0.1/src/Data/Store/Version.hs
+--- store-0.5.0.1.orig/src/Data/Store/Version.hs	2017-11-22 10:23:16.000000000 -0500
++++ store-0.5.0.1/src/Data/Store/Version.hs	2019-03-16 09:51:19.052308284 -0400
+@@ -217,7 +217,7 @@
+     goField = do
+         s <- get
+         case sFieldNames s of
+-            [] -> fail "impossible case in getStructureInfo'"
++            [] -> error "impossible case in getStructureInfo'"
+             (name:names) -> do
+                 getStructureInfo' ignore renames (Proxy :: Proxy b)
+                 s' <- get
+diff -ru store-0.5.0.1.orig/src/System/IO/ByteBuffer.hs store-0.5.0.1/src/System/IO/ByteBuffer.hs
+--- store-0.5.0.1.orig/src/System/IO/ByteBuffer.hs	2017-11-22 10:23:16.000000000 -0500
++++ store-0.5.0.1/src/System/IO/ByteBuffer.hs	2019-03-16 09:51:48.640537533 -0400
+@@ -43,6 +43,7 @@
+ import           Control.Applicative
+ import           Control.Exception (SomeException, throwIO)
+ import           Control.Exception.Lifted (Exception, bracket, catch)
++import qualified Control.Monad.Fail as Fail
+ import           Control.Monad.IO.Class (MonadIO, liftIO)
+ import           Control.Monad.Trans.Control (MonadBaseControl)
+ import           Data.ByteString (ByteString)
+@@ -280,7 +281,7 @@
+ -- such the ones created by the @network@ package.
+ --
+ -- Returns how many bytes could be read non-blockingly.
+-fillFromFd :: MonadIO m => ByteBuffer -> Fd -> Int -> m Int
++fillFromFd :: (MonadIO m, Fail.MonadFail m) => ByteBuffer -> Fd -> Int -> m Int
+ fillFromFd bb sock maxBytes = if maxBytes < 0
+     then fail ("fillFromFd: negative argument (" ++ show maxBytes ++ ")")
+     else bbHandler "fillFromFd" bb go

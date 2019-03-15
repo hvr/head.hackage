@@ -1,0 +1,106 @@
+commit 5479772132ee206696b8ae2fc67e5bd8587dd0ba
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Fri Mar 15 14:55:28 2019 -0400
+
+    Adapt to base-4.13.0.0
+
+diff --git a/src/Language/Haskell/Exts/ExactPrint.hs b/src/Language/Haskell/Exts/ExactPrint.hs
+index 394b858..0d1666a 100644
+--- a/src/Language/Haskell/Exts/ExactPrint.hs
++++ b/src/Language/Haskell/Exts/ExactPrint.hs
+@@ -129,7 +129,7 @@ printStringAt :: Pos -> String -> EP ()
+ printStringAt p str = printWhitespace p >> printString str
+ 
+ errorEP :: String -> EP a
+-errorEP = fail
++errorEP = error
+ 
+ ------------------------------------------------------------------------------
+ -- Printing of source elements
+diff --git a/src/Language/Haskell/Exts/Fixity.hs b/src/Language/Haskell/Exts/Fixity.hs
+index 56be8bf..332625d 100644
+--- a/src/Language/Haskell/Exts/Fixity.hs
++++ b/src/Language/Haskell/Exts/Fixity.hs
+@@ -39,6 +39,7 @@ import Language.Haskell.Exts.Syntax
+ import Language.Haskell.Exts.SrcLoc
+ 
+ import Control.Monad (when, (<=<), liftM, liftM2, liftM3, liftM4)
++import qualified Control.Monad.Fail as Fail
+ import Data.Traversable (mapM)
+ import Data.Maybe (fromMaybe)
+ import Data.Typeable
+@@ -59,7 +60,7 @@ class AppFixity ast where
+   -- | Tweak any expressions in the element to account for the
+   --   fixities given. Assumes that all operator expressions are
+   --   fully left associative chains to begin with.
+-  applyFixities :: Monad m => [Fixity]      -- ^ The fixities to account for.
++  applyFixities :: Fail.MonadFail m => [Fixity]      -- ^ The fixities to account for.
+                     -> ast SrcSpanInfo      -- ^ The element to tweak.
+                     -> m (ast SrcSpanInfo)  -- ^ The same element, but with operator expressions updated, or a failure.
+ 
+@@ -241,7 +242,7 @@ instance AppFixity PatternSynDirection where
+     _ -> return dir
+     where fix x = applyFixities fixs x
+ 
+-appFixDecls :: Monad m => Maybe (ModuleName SrcSpanInfo) -> [Fixity] -> [Decl SrcSpanInfo] -> m [Decl SrcSpanInfo]
++appFixDecls :: Fail.MonadFail m => Maybe (ModuleName SrcSpanInfo) -> [Fixity] -> [Decl SrcSpanInfo] -> m [Decl SrcSpanInfo]
+ appFixDecls mmdl fixs decls =
+     let extraFixs = getFixities mmdl decls
+      in mapM (applyFixities (fixs++extraFixs)) decls
+@@ -379,7 +380,7 @@ instance AppFixity XAttr where
+ -- Recursively fixes the "leaves" of the infix chains,
+ -- without yet touching the chain itself. We assume all chains are
+ -- left-associate to begin with.
+-leafFix :: Monad m => [Fixity] -> Exp SrcSpanInfo -> m (Exp SrcSpanInfo)
++leafFix :: Fail.MonadFail m => [Fixity] -> Exp SrcSpanInfo -> m (Exp SrcSpanInfo)
+ leafFix fixs e' = case e' of
+     InfixApp l e1 op e2       -> liftM2 (flip (InfixApp l) op) (leafFix fixs e1) (fix e2)
+     App l e1 e2               -> liftM2 (App l) (fix e1) (fix e2)
+@@ -427,7 +428,7 @@ leafFix fixs e' = case e' of
+   where
+     fix x = applyFixities fixs x
+ 
+-leafFixP :: Monad m => [Fixity] -> Pat SrcSpanInfo -> m (Pat SrcSpanInfo)
++leafFixP :: Fail.MonadFail m => [Fixity] -> Pat SrcSpanInfo -> m (Pat SrcSpanInfo)
+ leafFixP fixs p' = case p' of
+         PInfixApp l p1 op p2    -> liftM2 (flip (PInfixApp l) op) (leafFixP fixs p1) (fix p2)
+         PApp l n ps             -> liftM (PApp l n) $ mapM fix ps
+diff --git a/src/Language/Haskell/Exts/ParseMonad.hs b/src/Language/Haskell/Exts/ParseMonad.hs
+index 09a55c0..da95ea6 100644
+--- a/src/Language/Haskell/Exts/ParseMonad.hs
++++ b/src/Language/Haskell/Exts/ParseMonad.hs
+@@ -1,3 +1,4 @@
++{-# LANGUAGE CPP #-}
+ {-# OPTIONS_HADDOCK hide #-}
+ -----------------------------------------------------------------------------
+ -- |
+@@ -96,7 +97,9 @@ instance Applicative ParseResult where
+ 
+ instance Monad ParseResult where
+   return = ParseOk
++#if !(MIN_VERSION_base(4,13,0))
+   fail = Fail.fail
++#endif
+   ParseOk x           >>= f = f x
+   ParseFailed loc msg >>= _ = ParseFailed loc msg
+ instance Fail.MonadFail ParseResult where
+@@ -246,7 +249,9 @@ instance Monad P where
+         case m i x y l ch s mode of
+             Failed loc msg -> Failed loc msg
+             Ok s' a -> runP (k a) i x y l ch s' mode
++#if !(MIN_VERSION_base(4,13,0))
+     fail   = Fail.fail
++#endif
+ 
+ instance Fail.MonadFail P where
+     fail s = P $ \_r _col _line loc _ _stk _m -> Failed loc s
+@@ -354,7 +359,9 @@ instance Monad (Lex r) where
+     return a = Lex $ \k -> k a
+     Lex v >>= f = Lex $ \k -> v (\a -> runL (f a) k)
+     Lex v >> Lex w = Lex $ \k -> v (\_ -> w k)
++#if !(MIN_VERSION_base(4,13,0))
+     fail   = Fail.fail
++#endif
+ 
+ instance Fail.MonadFail (Lex r) where
+     fail s = Lex $ \_ -> fail s
