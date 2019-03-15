@@ -1,0 +1,31 @@
+diff -ru asn1-encoding-0.9.5.orig/Data/ASN1/Get.hs asn1-encoding-0.9.5/Data/ASN1/Get.hs
+--- asn1-encoding-0.9.5.orig/Data/ASN1/Get.hs	2016-06-07 00:53:07.000000000 -0400
++++ asn1-encoding-0.9.5/Data/ASN1/Get.hs	2019-03-16 09:34:51.248651835 -0400
+@@ -15,6 +15,7 @@
+ -- The original code has been tailored and reduced to only cover the useful
+ -- case for asn1 and augmented by a position.
+ --
++{-# LANGUAGE CPP #-}
+ {-# LANGUAGE Rank2Types #-}
+ module Data.ASN1.Get
+     ( Result(..)
+@@ -29,6 +30,7 @@
+ 
+ import Control.Applicative (Applicative(..),Alternative(..))
+ import Control.Monad (ap,MonadPlus(..))
++import qualified Control.Monad.Fail as Fail
+ import Data.Maybe (fromMaybe)
+ import Foreign
+ 
+@@ -103,6 +105,11 @@
+         let ks' s1 b1 m1 p1 a = unGet (g a) s1 b1 m1 p1 kf ks
+          in unGet m s0 b0 m0 p0 kf ks'
+ 
++#if !(MIN_VERSION_base(4,13,0))
++    fail     = Fail.fail
++#endif
++
++instance Fail.MonadFail Get where
+     fail     = failDesc
+ 
+ instance MonadPlus Get where

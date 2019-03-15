@@ -1,0 +1,29 @@
+diff -ru regex-posix-0.95.2.orig/Text/Regex/Posix/Wrap.hsc regex-posix-0.95.2/Text/Regex/Posix/Wrap.hsc
+--- regex-posix-0.95.2.orig/Text/Regex/Posix/Wrap.hsc	2012-05-20 12:35:49.000000000 -0400
++++ regex-posix-0.95.2/Text/Regex/Posix/Wrap.hsc	2019-03-15 11:14:06.871373192 -0400
+@@ -123,6 +123,7 @@
+ #endif
+ 
+ import Control.Monad(liftM)
++import qualified Control.Monad.Fail as Fail
+ import Data.Array(Array,listArray)
+ import Data.Bits(Bits(..))
+ import Data.Int(Int32,Int64)   -- need whatever RegeOffset or #regoff_t type will be
+@@ -319,7 +320,7 @@
+ 
+ (=~)  :: (RegexMaker Regex CompOption ExecOption source,RegexContext Regex source1 target)
+       => source1 -> source -> target
+-(=~~) :: (RegexMaker Regex CompOption ExecOption source,RegexContext Regex source1 target,Monad m)
++(=~~) :: (RegexMaker Regex CompOption ExecOption source,RegexContext Regex source1 target,Fail.MonadFail m)
+       => source1 -> source -> m target
+ 
+ instance RegexOptions Regex CompOption ExecOption where
+@@ -335,7 +336,7 @@
+                make = makeRegex
+            in match (make r) x
+ 
+--- (=~~) ::(RegexMaker Regex CompOption ExecOption source,RegexContext Regex source1 target,Monad m) => source1 -> source -> m target
++-- (=~~) ::(RegexMaker Regex CompOption ExecOption source,RegexContext Regex source1 target,Fail.MonadFail m) => source1 -> source -> m target
+ (=~~) x r = let make :: RegexMaker Regex CompOption ExecOption a => a -> Regex
+                 make = makeRegex
+             in matchM (make r) x

@@ -1,0 +1,40 @@
+diff -ru yaml-0.11.0.0.orig/src/Data/Yaml/Parser.hs yaml-0.11.0.0/src/Data/Yaml/Parser.hs
+--- yaml-0.11.0.0.orig/src/Data/Yaml/Parser.hs	2018-10-12 02:00:28.000000000 -0400
++++ yaml-0.11.0.0/src/Data/Yaml/Parser.hs	2019-03-15 20:18:04.718999343 -0400
+@@ -7,6 +7,7 @@
+ 
+ import Control.Applicative
+ import Control.Exception (Exception)
++import qualified Control.Monad.Fail as Fail
+ import Control.Monad (MonadPlus (..), liftM, ap)
+ import Control.Monad.Trans.Class (lift)
+ import Control.Monad.Trans.Resource (MonadThrow, throwM)
+@@ -52,6 +53,10 @@
+         case f am of
+             Left t -> Left t
+             Right x -> unYamlParser (g x) am
++#if !(MIN_VERSION_base(4,13,0))
++    fail = Fail.fail
++#endif
++instance Fail.MonadFail YamlParser where
+     fail = YamlParser . const . Left . pack
+ instance MonadPlus YamlParser where
+     mzero = fail "mzero"
+diff -ru yaml-0.11.0.0.orig/src/Data/Yaml.hs yaml-0.11.0.0/src/Data/Yaml.hs
+--- yaml-0.11.0.0.orig/src/Data/Yaml.hs	2018-10-12 02:00:28.000000000 -0400
++++ yaml-0.11.0.0/src/Data/Yaml.hs	2019-03-15 20:17:18.483454743 -0400
+@@ -86,6 +86,7 @@
+ import Control.Applicative((<$>))
+ #endif
+ import Control.Exception
++import qualified Control.Monad.Fail as Fail
+ import Control.Monad.IO.Class (MonadIO, liftIO)
+ import Control.Monad.Trans.Resource (MonadThrow, throwM)
+ import Data.Aeson
+@@ -296,5 +297,5 @@
+ array :: [Value] -> Value
+ array = Array . V.fromList
+ 
+-parseMonad :: Monad m => (a -> Parser b) -> a -> m b
++parseMonad :: Fail.MonadFail m => (a -> Parser b) -> a -> m b
+ parseMonad p = either fail return . parseEither p

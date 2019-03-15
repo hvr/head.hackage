@@ -1,0 +1,57 @@
+commit a265023518932249e2324bf4ba9947a71e7b44f9
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Sat Mar 16 07:50:28 2019 -0400
+
+    Adapt to base-4.13.0.0
+
+diff --git a/Text/Hamlet/Parse.hs b/Text/Hamlet/Parse.hs
+index 2f0642b..6eb8e49 100644
+--- a/Text/Hamlet/Parse.hs
++++ b/Text/Hamlet/Parse.hs
+@@ -1,3 +1,4 @@
++{-# LANGUAGE CPP #-}
+ {-# LANGUAGE DeriveDataTypeable #-}
+ {-# LANGUAGE FlexibleContexts #-}
+ {-# LANGUAGE TemplateHaskell #-}
+@@ -22,6 +23,7 @@ module Text.Hamlet.Parse
+ import Text.Shakespeare.Base
+ import Control.Applicative ((<$>), Applicative (..))
+ import Control.Monad
++import qualified Control.Monad.Fail as Fail
+ import Control.Arrow
+ import Data.Char (GeneralCategory(..), generalCategory, isUpper)
+ import Data.Data
+@@ -37,6 +39,10 @@ instance Monad Result where
+     return = Ok
+     Error s >>= _ = Error s
+     Ok v >>= f = f v
++#if !(MIN_VERSION_base(4,13,0))
++    fail = Fail.fail
++#endif
++instance Fail.MonadFail Result where
+     fail = Error
+ instance Functor Result where
+     fmap = liftM
+diff --git a/Text/Internal/Css.hs b/Text/Internal/Css.hs
+index 05e915c..1bedbac 100644
+--- a/Text/Internal/Css.hs
++++ b/Text/Internal/Css.hs
+@@ -298,15 +298,15 @@ getVars scope (ContentVar d) =
+ getVars scope (ContentUrl d) =
+     case lookupD d scope of
+         Nothing -> return [(d, VTUrl)]
+-        Just s -> fail $ "Expected URL for " ++ s
++        Just s -> error $ "Expected URL for " ++ s
+ getVars scope (ContentUrlParam d) =
+     case lookupD d scope of
+         Nothing -> return [(d, VTUrlParam)]
+-        Just s -> fail $ "Expected URLParam for " ++ s
++        Just s -> error $ "Expected URLParam for " ++ s
+ getVars scope (ContentMixin d) =
+     case lookupD d scope of
+         Nothing -> return [(d, VTMixin)]
+-        Just s -> fail $ "Expected Mixin for " ++ s
++        Just s -> error $ "Expected Mixin for " ++ s
+ 
+ lookupD :: Deref -> [(String, b)] -> Maybe String
+ lookupD (DerefIdent (Ident s)) scope =

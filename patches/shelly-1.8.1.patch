@@ -1,0 +1,20 @@
+diff -ru shelly-1.8.1.orig/src/Shelly/Base.hs shelly-1.8.1/src/Shelly/Base.hs
+--- shelly-1.8.1.orig/src/Shelly/Base.hs	2018-03-17 15:19:41.000000000 -0400
++++ shelly-1.8.1/src/Shelly/Base.hs	2019-03-15 18:08:54.388824423 -0400
+@@ -45,6 +45,7 @@
+          liftM
+        )
+ import Control.Monad.Base
++import qualified Control.Monad.Fail as Fail
+ import Control.Monad.Trans.Control
+ import Control.Applicative (Applicative, (<$>))
+ import Filesystem (isDirectory, listDirectory)
+@@ -71,7 +72,7 @@
+ 
+ newtype Sh a = Sh {
+       unSh :: ReaderT (IORef State) IO a
+-  } deriving (Applicative, Monad, MonadIO, MonadReader (IORef State), Functor, Catch.MonadMask)
++  } deriving (Applicative, Monad, MonadIO, MonadReader (IORef State), Functor, Catch.MonadMask, Fail.MonadFail)
+ 
+ instance MonadBase IO Sh where
+     liftBase = Sh . ReaderT . const

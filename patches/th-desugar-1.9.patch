@@ -1,6 +1,73 @@
-commit a5a7775ed0b862de9c3b942dc35d234b264fb7ac
+commit 04372a6db858203713074dd3b38b68efa17bedee
 Author: Ryan Scott <ryan.gl.scott@gmail.com>
-Date:   Mon Jan 21 22:24:11 2019 -0500
+Date:   Fri Mar 15 19:09:33 2019 -0400
+
+    Adapt to base-4.13.0.0
+
+diff --git a/Language/Haskell/TH/Desugar/Core.hs b/Language/Haskell/TH/Desugar/Core.hs
+index 0f185a1..5e2bea4 100644
+--- a/Language/Haskell/TH/Desugar/Core.hs
++++ b/Language/Haskell/TH/Desugar/Core.hs
+@@ -21,6 +21,7 @@ import Language.Haskell.TH.ExpandSyns ( expandSyns )
+ import Control.Applicative
+ #endif
+ import Control.Monad hiding (forM_, mapM)
++import qualified Control.Monad.Fail as Fail
+ import Control.Monad.Zip
+ import Control.Monad.Writer hiding (forM_, mapM)
+ import Data.Foldable hiding (notElem)
+@@ -1211,7 +1212,7 @@ reorderFieldsPat :: DsMonad q => Name -> [VarStrictType] -> [FieldPat] -> PatM q
+ reorderFieldsPat con_name field_decs field_pats =
+   reorderFields' dsPat con_name field_decs field_pats (repeat DWildPa)
+ 
+-reorderFields' :: (Applicative m, Monad m)
++reorderFields' :: (Applicative m, Fail.MonadFail m)
+                => (a -> m da)
+                -> Name -- ^ The name of the constructor (used for error reporting)
+                -> [VarStrictType] -> [(Name, a)]
+@@ -1297,7 +1298,7 @@ strictToBang = id
+ #endif
+ 
+ -- | Convert a 'DType' to a 'DPred'.
+-dTypeToDPred :: Monad q => DType -> q DPred
++dTypeToDPred :: Fail.MonadFail q => DType -> q DPred
+ dTypeToDPred (DForallT tvbs cxt ty)
+                              = DForallPr tvbs cxt `liftM` dTypeToDPred ty
+ dTypeToDPred (DAppT t1 t2)   = liftM2 DAppPr (dTypeToDPred t1) (return t2)
+diff --git a/Language/Haskell/TH/Desugar/Util.hs b/Language/Haskell/TH/Desugar/Util.hs
+index 3729601..4a74ce5 100644
+--- a/Language/Haskell/TH/Desugar/Util.hs
++++ b/Language/Haskell/TH/Desugar/Util.hs
+@@ -36,6 +36,7 @@ import Language.Haskell.TH hiding ( cxt )
+ import Language.Haskell.TH.Syntax
+ 
+ import Control.Monad ( replicateM )
++import qualified Control.Monad.Fail as Fail
+ import qualified Data.Set as S
+ import Data.Foldable
+ import Data.Generics hiding ( Fixity )
+@@ -104,7 +105,7 @@ stripPlainTV_maybe (PlainTV n) = Just n
+ stripPlainTV_maybe _           = Nothing
+ 
+ -- | Report that a certain TH construct is impossible
+-impossible :: Monad q => String -> q a
++impossible :: Fail.MonadFail q => String -> q a
+ impossible err = fail (err ++ "\n    This should not happen in Haskell.\n    Please email rae@cs.brynmawr.edu with your code if you see this.")
+ 
+ -- | Extract a 'Name' from a 'TyVarBndr'
+@@ -330,7 +331,7 @@ mapMaybeM f (x:xs) = do
+     Nothing -> ys
+     Just z  -> z : ys
+ 
+-expectJustM :: Monad m => String -> Maybe a -> m a
++expectJustM :: Fail.MonadFail m => String -> Maybe a -> m a
+ expectJustM _   (Just x) = return x
+ expectJustM err Nothing  = fail err
+ 
+
+commit c98e9a910fa97ee43719748ef1c7cd9d32e578e1
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Fri Mar 15 19:07:41 2019 -0400
 
     Allow building with template-haskell-2.15.0.0
     

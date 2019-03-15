@@ -1,0 +1,105 @@
+diff -ru foundation-0.0.23.orig/Foundation/Check/Main.hs foundation-0.0.23/Foundation/Check/Main.hs
+--- foundation-0.0.23.orig/Foundation/Check/Main.hs	2019-01-09 06:14:46.000000000 -0500
++++ foundation-0.0.23/Foundation/Check/Main.hs	2019-03-16 09:27:57.337439071 -0400
+@@ -5,6 +5,7 @@
+ --
+ -- An application to check that integrate with the .cabal test-suite
+ --
++{-# LANGUAGE CPP                        #-}
+ {-# LANGUAGE ExistentialQuantification  #-}
+ {-# LANGUAGE Rank2Types                 #-}
+ {-# LANGUAGE GADTs                      #-}
+@@ -179,11 +180,14 @@
+ test (CheckPlan name plan) = do
+     testCheckPlan name plan
+ test (Property name prop) = do
+-    r'@(PropertyResult _ nb r) <- testProperty name (property prop)
+-    case r of
+-        PropertySuccess  -> whenVerbose $ displayPropertySucceed name nb
+-        PropertyFailed w -> whenErrorOnly $ displayPropertyFailed name nb w
+-    return r'
++    r' <- testProperty name (property prop)
++    case r' of
++      PropertyResult _ nb r -> do
++        case r of
++            PropertySuccess  -> whenVerbose $ displayPropertySucceed name nb
++            PropertyFailed w -> whenErrorOnly $ displayPropertyFailed name nb w
++        return r'
++      _ -> error "Not a PropertyResult"
+ 
+ displayCurrent :: String -> CheckMain ()
+ displayCurrent name = do
+diff -ru foundation-0.0.23.orig/Foundation/Monad/Except.hs foundation-0.0.23/Foundation/Monad/Except.hs
+--- foundation-0.0.23.orig/Foundation/Monad/Except.hs	2019-01-09 06:14:46.000000000 -0500
++++ foundation-0.0.23/Foundation/Monad/Except.hs	2019-03-16 09:24:14.275704819 -0400
+@@ -1,3 +1,4 @@
++{-# LANGUAGE CPP #-}
+ {-# LANGUAGE TypeFamilies #-}
+ {-# LANGUAGE ConstraintKinds #-}
+ {-# LANGUAGE OverloadedStrings #-}
+@@ -38,7 +39,9 @@
+         case a of
+             Left e -> return (Left e)
+             Right x -> runExceptT (k x)
++#if !(MIN_VERSION_base(4,13,0))
+     fail = ExceptT . fail
++#endif
+ 
+ instance (AMPMonad m, MonadFix m) => MonadFix (ExceptT e m) where
+     mfix f = ExceptT (mfix (runExceptT . f . fromEither))
+diff -ru foundation-0.0.23.orig/Foundation/Network/IPv6.hs foundation-0.0.23/Foundation/Network/IPv6.hs
+--- foundation-0.0.23.orig/Foundation/Network/IPv6.hs	2019-01-09 06:14:46.000000000 -0500
++++ foundation-0.0.23/Foundation/Network/IPv6.hs	2019-03-16 09:32:07.559381867 -0400
+@@ -207,15 +207,18 @@
+     let (CountOf lenBs1) = length bs1
+     bs2 <- repeat (Between $ 0 `And` (fromIntegral $ 6 - lenBs1)) $ takeAWord16 <* skipColon
+     _ <- optional skipColon
+-    [i1,i2,i3,i4,i5,i6] <- format 6 bs1 bs2
+-    m1 <- takeAWord8 <* skipDot
+-    m2 <- takeAWord8 <* skipDot
+-    m3 <- takeAWord8 <* skipDot
+-    m4 <- takeAWord8
+-    return $ fromTuple ( i1,i2,i3,i4,i5,i6
+-                       , m1 `shiftL` 8 .|. m2
+-                       , m3 `shiftL` 8 .|. m4
+-                       )
++    r <- format 6 bs1 bs2
++    case r of
++      [i1,i2,i3,i4,i5,i6] -> do
++        m1 <- takeAWord8 <* skipDot
++        m2 <- takeAWord8 <* skipDot
++        m3 <- takeAWord8 <* skipDot
++        m4 <- takeAWord8
++        return $ fromTuple ( i1,i2,i3,i4,i5,i6
++                           , m1 `shiftL` 8 .|. m2
++                           , m3 `shiftL` 8 .|. m4
++                           )
++      _ -> error "Not a six-element list"
+ 
+ -- | IPv6 parser as described in RFC4291 section 2.2.2
+ --
+@@ -236,12 +239,15 @@
+     let (CountOf bs1Len) = length bs1
+     bs2 <- repeat (Between $ 0 `And` fromIntegral (8 - bs1Len)) $
+               skipColon *> takeAWord16
+-    [i1,i2,i3,i4,i5,i6,i7,i8] <- format 8 bs1 bs2
+-    return $ fromTuple (i1,i2,i3,i4,i5,i6,i7,i8)
++    r <- format 8 bs1 bs2
++    case r of
++      [i1,i2,i3,i4,i5,i6,i7,i8] ->
++        return $ fromTuple (i1,i2,i3,i4,i5,i6,i7,i8)
++      _ -> error "Not an eight-element list"
+ 
+ format :: (Integral a, Monad m) => CountOf a -> [a] -> [a] -> m [a]
+ format sz bs1 bs2
+-    | sz <= (length bs1 + length bs2) = fail "invalid compressed IPv6 addressed"
++    | sz <= (length bs1 + length bs2) = error "invalid compressed IPv6 addressed"
+     | otherwise = do
+         let len = sz `sizeSub` (length bs1 + length bs2)
+         return $ bs1 <> replicate len 0 <> bs2
+@@ -262,4 +268,4 @@
+     let lhs = readHex l
+      in case lhs of
+           [(w, [])] -> return w
+-          _ -> fail "can't fall here"
++          _ -> error "can't fall here"

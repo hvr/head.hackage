@@ -1,0 +1,43 @@
+diff -ru cborg-0.2.1.0.orig/src/Codec/CBOR/Decoding.hs cborg-0.2.1.0/src/Codec/CBOR/Decoding.hs
+--- cborg-0.2.1.0.orig/src/Codec/CBOR/Decoding.hs	2018-10-11 17:10:04.000000000 -0400
++++ cborg-0.2.1.0/src/Codec/CBOR/Decoding.hs	2019-03-16 07:38:16.792667620 -0400
+@@ -282,7 +282,9 @@
+     {-# INLINE (>>) #-}
+     (>>) = (*>)
+ 
++#if !(MIN_VERSION_base(4,13,0))
+     fail = Fail.fail
++#endif
+ 
+ -- | @since 0.2.0.0
+ instance Fail.MonadFail (Decoder s) where
+@@ -828,14 +830,14 @@
+ decodeListLenCanonicalOf = decodeListLenOfHelper decodeListLenCanonical
+ {-# INLINE decodeListLenCanonicalOf #-}
+ 
+-decodeListLenOfHelper :: (Show a, Eq a, Monad m) => m a -> a -> m ()
++decodeListLenOfHelper :: (Show a, Eq a, Fail.MonadFail m) => m a -> a -> m ()
+ decodeListLenOfHelper decodeFun = \len -> do
+   len' <- decodeFun
+   if len == len' then return ()
+                  else fail $ "expected list of length " ++ show len
+ {-# INLINE decodeListLenOfHelper #-}
+ 
+-decodeWordOfHelper :: (Show a, Eq a, Monad m) => m a -> a -> m ()
++decodeWordOfHelper :: (Show a, Eq a, Fail.MonadFail m) => m a -> a -> m ()
+ decodeWordOfHelper decodeFun = \n -> do
+   n' <- decodeFun
+   if n == n' then return ()
+diff -ru cborg-0.2.1.0.orig/src/Codec/CBOR/Pretty.hs cborg-0.2.1.0/src/Codec/CBOR/Pretty.hs
+--- cborg-0.2.1.0.orig/src/Codec/CBOR/Pretty.hs	2018-10-11 17:10:04.000000000 -0400
++++ cborg-0.2.1.0/src/Codec/CBOR/Pretty.hs	2019-03-16 07:38:42.156935413 -0400
+@@ -103,7 +103,9 @@
+     Right (toks', ind', ss', x) -> let PP g' = g x
+       in g' toks' ind' ss'
+   return = pure
++#if !(MIN_VERSION_base(4,13,0))
+   fail = Fail.fail
++#endif
+ 
+ instance Fail.MonadFail PP where
+   fail s = PP $ \_ _ _ -> Left s

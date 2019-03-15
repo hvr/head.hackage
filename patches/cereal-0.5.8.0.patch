@@ -1,0 +1,21 @@
+commit ca728de89116448b59f7baa9082ea2e9c9a5cedb
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Fri Mar 15 08:45:34 2019 -0400
+
+    Adapt to base-4.13.0.0
+
+diff --git a/src/Data/Serialize/Get.hs b/src/Data/Serialize/Get.hs
+index a18a28b..fcda52d 100644
+--- a/src/Data/Serialize/Get.hs
++++ b/src/Data/Serialize/Get.hs
+@@ -226,8 +226,10 @@ instance Monad Get where
+     (>>) = (A.*>)
+     {-# INLINE (>>) #-}
+ 
++#if !(MIN_VERSION_base(4,13,0))
+     fail     = Fail.fail
+     {-# INLINE fail #-}
++#endif
+ 
+ instance Fail.MonadFail Get where
+     fail     = failDesc

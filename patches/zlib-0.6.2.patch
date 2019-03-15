@@ -1,0 +1,82 @@
+commit a36285782a438dd6b26282c027597bfd81473672
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Fri Mar 15 08:43:45 2019 -0400
+
+    Adapt to base-4.13.0.0
+
+diff --git a/Codec/Compression/Zlib/Stream.hsc b/Codec/Compression/Zlib/Stream.hsc
+index 04e1bbb..58d96e0 100644
+--- a/Codec/Compression/Zlib/Stream.hsc
++++ b/Codec/Compression/Zlib/Stream.hsc
+@@ -26,7 +26,7 @@ module Codec.Compression.Zlib.Stream (
+   finalise,
+ 
+   -- * Initialisation
+-  deflateInit, 
++  deflateInit,
+   inflateInit,
+ 
+   -- ** Initialisation parameters
+@@ -123,6 +123,7 @@ import Data.ByteString (ByteString)
+ import Control.Applicative (Applicative(..))
+ #endif
+ import Control.Monad (ap,liftM)
++import qualified Control.Monad.Fail as Fail
+ #if __GLASGOW_HASKELL__ >= 702
+ #if __GLASGOW_HASKELL__ >= 708
+ import Control.Monad.ST.Strict
+@@ -157,8 +158,8 @@ pushInputBuffer inBuf' offset length = do
+   -- Now that we're setting a new input buffer, we can be sure that zlib no
+   -- longer has a reference to the old one. Therefore this is the last point
+   -- at which the old buffer had to be retained. It's safe to release now.
+-  inBuf <- getInBuf 
+-  unsafeLiftIO $ touchForeignPtr inBuf    
++  inBuf <- getInBuf
++  unsafeLiftIO $ touchForeignPtr inBuf
+ 
+   -- now set the available input buffer ptr and length
+   setInBuf   inBuf'
+@@ -260,11 +261,11 @@ deflate flush = do
+ 
+   result <- deflate_ flush
+   outFree' <- getOutFree
+-    
++
+   -- number of bytes of extra output there is available as a result of
+   -- the call to deflate:
+   let outExtra = outFree - outFree'
+-  
++
+   outAvail <- getOutAvail
+   setOutAvail (outAvail + outExtra)
+   return result
+@@ -374,6 +375,11 @@ instance Monad Stream where
+ --  m >>= f = (m `thenZ` \a -> consistencyCheck `thenZ_` returnZ a) `thenZ` f
+   (>>)   = (*>)
+   return = pure
++#if !(MIN_VERSION_base(4,13,0))
++  fail   = Fail.fail
++#endif
++
++instance Fail.MonadFail Stream where
+   fail   = (finalise >>) . failZ
+ 
+ returnZ :: a -> Stream a
+@@ -655,7 +661,7 @@ fromMethod Deflated = #{const Z_DEFLATED}
+ -- is a trade-off between the amount of compression and the time required to do
+ -- the compression.
+ --
+-data CompressionLevel = 
++data CompressionLevel =
+     DefaultCompression
+   | NoCompression
+   | BestSpeed
+@@ -1025,7 +1031,7 @@ newtype StreamState = StreamState (Ptr StreamState)
+ #if __GLASGOW_HASKELL__ >= 706
+ foreign import capi unsafe "zlib.h inflateInit2"
+   c_inflateInit2 :: StreamState -> CInt -> IO CInt
+- 
++
+ foreign import capi unsafe "zlib.h deflateInit2"
+   c_deflateInit2 :: StreamState
+                  -> CInt -> CInt -> CInt -> CInt -> CInt -> IO CInt

@@ -1,0 +1,23 @@
+diff -ru tar-0.5.1.0.orig/Codec/Archive/Tar/Read.hs tar-0.5.1.0/Codec/Archive/Tar/Read.hs
+--- tar-0.5.1.0.orig/Codec/Archive/Tar/Read.hs	2018-03-09 10:46:26.000000000 -0500
++++ tar-0.5.1.0/Codec/Archive/Tar/Read.hs	2019-03-15 18:06:31.923654193 -0400
+@@ -23,6 +23,7 @@
+ import Data.Typeable (Typeable)
+ import Control.Applicative
+ import Control.Monad
++import qualified Control.Monad.Fail as Fail
+ import Control.DeepSeq
+ 
+ import qualified Data.ByteString        as BS
+@@ -252,6 +253,11 @@
+     return        = pure
+     Error m >>= _ = Error m
+     Ok    x >>= k = k x
++#if !(MIN_VERSION_base(4,13,0))
++    fail          = Fail.fail
++#endif
++
++instance Fail.MonadFail (Partial e) where
+     fail          = error "fail @(Partial e)"
+ 
+ {-# SPECIALISE readOct :: BS.ByteString -> Maybe Int   #-}

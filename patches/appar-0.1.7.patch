@@ -1,0 +1,26 @@
+commit b7ab319ddfc1a5687ba94da7e2b658ffbce8d8b1
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Fri Mar 15 08:48:22 2019 -0400
+
+    Adapt to base-4.13.0.0
+
+diff --git a/Text/Appar/Parser.hs b/Text/Appar/Parser.hs
+index f949292..ab2b1f0 100644
+--- a/Text/Appar/Parser.hs
++++ b/Text/Appar/Parser.hs
+@@ -1,3 +1,4 @@
++{-# LANGUAGE CPP #-}
+ {-# LANGUAGE OverloadedStrings #-}
+ 
+ {-|
+@@ -84,8 +85,10 @@ instance Monad (MkParser inp) where
+     p >>= f  = P $ \bs -> case runParser p bs of
+         (Nothing, bs') -> (Nothing, bs')
+         (Just a,  bs') -> runParser (f a) bs'
++#if !(MIN_VERSION_base(4,13,0))
+     -- fixme: GHC 8.x will remove the fail method
+     fail = Fail.fail
++#endif
+ 
+ instance MonadFail (MkParser inp) where
+     fail _   = P $ \bs -> (Nothing, bs)

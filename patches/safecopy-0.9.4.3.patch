@@ -1,14 +1,7 @@
-commit e88729b64b06ef7cba4443c52cf8d75419c3aa2c
-Author: Ryan Scott <ryan.gl.scott@gmail.com>
-Date:   Sat Dec 29 17:47:50 2018 -0500
-
-    Allow building with template-haskell-2.15.0.0
-
-diff --git a/src/Data/SafeCopy/Derive.hs b/src/Data/SafeCopy/Derive.hs
-index ef58748..50aab3d 100644
---- a/src/Data/SafeCopy/Derive.hs
-+++ b/src/Data/SafeCopy/Derive.hs
-@@ -259,19 +259,29 @@ internalDeriveSafeCopy' deriveType versionId kindName tyName info = do
+diff -ru safecopy-0.9.4.3.orig/src/Data/SafeCopy/Derive.hs safecopy-0.9.4.3/src/Data/SafeCopy/Derive.hs
+--- safecopy-0.9.4.3.orig/src/Data/SafeCopy/Derive.hs	2018-12-26 10:51:47.000000000 -0500
++++ safecopy-0.9.4.3/src/Data/SafeCopy/Derive.hs	2019-03-16 07:43:01.091510157 -0400
+@@ -259,19 +259,29 @@
      FamilyI _ insts -> do
        decs <- forM insts $ \inst ->
          case inst of
@@ -38,7 +31,7 @@ index ef58748..50aab3d 100644
            _ -> fail $ "Can't derive SafeCopy instance for: " ++ show (tyName, inst)
        return $ concat decs
      _ -> fail $ "Can't derive SafeCopy instance for: " ++ show (tyName, info)
-@@ -305,6 +315,13 @@ internalDeriveSafeCopyIndexedType' deriveType versionId kindName tyName tyIndex'
+@@ -305,6 +315,13 @@
      FamilyI _ insts -> do
        decs <- forM insts $ \inst ->
          case inst of
@@ -52,7 +45,7 @@ index ef58748..50aab3d 100644
  #if MIN_VERSION_template_haskell(2,11,0)
            DataInstD context _name ty _kind cons _derivs
  #else
-@@ -314,7 +331,15 @@ internalDeriveSafeCopyIndexedType' deriveType versionId kindName tyName tyIndex'
+@@ -314,7 +331,15 @@
                worker' (foldl appT (conT tyName) (map return ty)) context [] (zip [0..] cons)
              | otherwise ->
                return []
@@ -68,7 +61,7 @@ index ef58748..50aab3d 100644
  #if MIN_VERSION_template_haskell(2,11,0)
            NewtypeInstD context _name ty _kind con _derivs
  #else
-@@ -324,6 +349,7 @@ internalDeriveSafeCopyIndexedType' deriveType versionId kindName tyName tyIndex'
+@@ -324,6 +349,7 @@
                worker' (foldl appT (conT tyName) (map return ty)) context [] [(0, con)]
              | otherwise ->
                return []
@@ -76,3 +69,15 @@ index ef58748..50aab3d 100644
            _ -> fail $ "Can't derive SafeCopy instance for: " ++ show (tyName, inst)
        return $ concat decs
      _ -> fail $ "Can't derive SafeCopy instance for: " ++ show (tyName, info)
+diff -ru safecopy-0.9.4.3.orig/src/Data/SafeCopy/SafeCopy.hs safecopy-0.9.4.3/src/Data/SafeCopy/SafeCopy.hs
+--- safecopy-0.9.4.3.orig/src/Data/SafeCopy/SafeCopy.hs	2018-12-26 10:51:47.000000000 -0500
++++ safecopy-0.9.4.3/src/Data/SafeCopy/SafeCopy.hs	2019-03-16 07:43:17.499665286 -0400
+@@ -337,7 +337,7 @@
+ checkConsistency :: (SafeCopy a, Monad m) => Proxy a -> m b -> m b
+ checkConsistency proxy ks
+     = case consistentFromProxy proxy of
+-        NotConsistent msg -> fail msg
++        NotConsistent msg -> error msg
+         Consistent        -> ks
+ 
+ {-# INLINE computeConsistency #-}

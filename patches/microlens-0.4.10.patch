@@ -1,0 +1,14 @@
+diff -ru microlens-0.4.10.orig/src/Lens/Micro.hs microlens-0.4.10/src/Lens/Micro.hs
+--- microlens-0.4.10.orig/src/Lens/Micro.hs	2018-11-03 07:51:53.000000000 -0400
++++ microlens-0.4.10/src/Lens/Micro.hs	2019-03-15 08:50:17.657663130 -0400
+@@ -1413,8 +1413,10 @@
+         ~(a, s') <- runStateT m s
+         runStateT (k a) s'
+     {-# INLINE (>>=) #-}
++#if !(MIN_VERSION_base(4,13,0))
+     fail str = StateT $ \ _ -> fail str
+     {-# INLINE fail #-}
++#endif
+ 
+ #if MIN_VERSION_base(4,9,0)
+ instance (Fail.MonadFail m) => Fail.MonadFail (StateT s m) where

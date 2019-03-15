@@ -1,0 +1,96 @@
+diff -ru FontyFruity-0.5.3.4.orig/src/Graphics/Text/TrueType/CharacterMap.hs FontyFruity-0.5.3.4/src/Graphics/Text/TrueType/CharacterMap.hs
+--- FontyFruity-0.5.3.4.orig/src/Graphics/Text/TrueType/CharacterMap.hs	2015-04-25 05:01:06.000000000 -0400
++++ FontyFruity-0.5.3.4/src/Graphics/Text/TrueType/CharacterMap.hs	2019-03-16 06:48:06.693682922 -0400
+@@ -102,7 +102,7 @@
+   rnf (CharacterMaps maps) = rnf maps `seq` ()
+ 
+ instance Binary CharacterMaps where
+-  put _ = fail "Unimplemented"
++  put _ = error "Unimplemented"
+   get = do
+       startIndex <- bytesRead
+       versionNumber <- getWord16be
+@@ -192,7 +192,7 @@
+     compare _ _ = GT
+ 
+ instance Binary CharacterTable where
+-    put _ = fail "Binary.put CharacterTable - Unimplemented"
++    put _ = error "Binary.put CharacterTable - Unimplemented"
+     get = do
+       format <- getWord16be
+       case format of
+@@ -305,7 +305,7 @@
+   langIdOfCharMap = _format0Language
+ 
+ instance Binary Format0 where
+-    put _ = fail "Binary.Format0.put - unimplemented"
++    put _ = error "Binary.Format0.put - unimplemented"
+     get = do
+         tableSize <- getWord16be
+         when (tableSize /= 262) $
+@@ -347,7 +347,7 @@
+ 
+ 
+ instance Binary Format2 where
+-    put _ = fail "Format2.put - unimplemented"
++    put _ = error "Format2.put - unimplemented"
+     get = do
+       _tableSize <- getWord16be
+       lang <- getWord16be
+@@ -376,7 +376,7 @@
+   langIdOfCharMap = _format6Language
+ 
+ instance Binary Format6 where
+-    put _ = fail "Format6.put - unimplemented"
++    put _ = error "Format6.put - unimplemented"
+     get = do
+         _length <- getWord16be
+         language <- getWord16be
+diff -ru FontyFruity-0.5.3.4.orig/src/Graphics/Text/TrueType/Glyph.hs FontyFruity-0.5.3.4/src/Graphics/Text/TrueType/Glyph.hs
+--- FontyFruity-0.5.3.4.orig/src/Graphics/Text/TrueType/Glyph.hs	2017-06-29 17:15:33.000000000 -0400
++++ FontyFruity-0.5.3.4/src/Graphics/Text/TrueType/Glyph.hs	2019-03-16 06:47:22.845370697 -0400
+@@ -313,7 +313,7 @@
+           where breaker array ix = VU.splitAt (fromIntegral ix + 1) array
+ 
+ instance Binary Glyph where
+-    put _ = fail "Glyph.put - unimplemented"
++    put _ = error "Glyph.put - unimplemented"
+     get = do
+       hdr <- get
+       case _glfNumberOfContours hdr of
+diff -ru FontyFruity-0.5.3.4.orig/src/Graphics/Text/TrueType/Header.hs FontyFruity-0.5.3.4/src/Graphics/Text/TrueType/Header.hs
+--- FontyFruity-0.5.3.4.orig/src/Graphics/Text/TrueType/Header.hs	2016-01-05 16:09:02.000000000 -0500
++++ FontyFruity-0.5.3.4/src/Graphics/Text/TrueType/Header.hs	2019-03-16 06:48:33.605875180 -0400
+@@ -100,7 +100,7 @@
+   rnf (FontHeader {}) = ()
+ 
+ instance Binary FontHeader where
+-  put _ = fail "Unimplemented"
++  put _ = error "Unimplemented"
+   get =
+     FontHeader <$> get <*> get <*> g32 <*> g32 <*> get
+                <*> g16 <*> g64 <*> g64 <*> get <*> get
+diff -ru FontyFruity-0.5.3.4.orig/src/Graphics/Text/TrueType/MaxpTable.hs FontyFruity-0.5.3.4/src/Graphics/Text/TrueType/MaxpTable.hs
+--- FontyFruity-0.5.3.4.orig/src/Graphics/Text/TrueType/MaxpTable.hs	2015-04-25 05:01:06.000000000 -0400
++++ FontyFruity-0.5.3.4/src/Graphics/Text/TrueType/MaxpTable.hs	2019-03-16 06:48:26.633825328 -0400
+@@ -50,7 +50,7 @@
+     rnf (MaxpTable {}) = ()
+ 
+ instance Binary MaxpTable where
+-    put _ = fail "Unimplemented"
++    put _ = error "Unimplemented"
+     get = MaxpTable 
+        <$> get <*> g16 <*> g16 <*> g16 <*> g16 <*> g16
+        <*> g16 <*> g16 <*> g16 <*> g16 <*> g16 <*> g16
+diff -ru FontyFruity-0.5.3.4.orig/src/Graphics/Text/TrueType/Name.hs FontyFruity-0.5.3.4/src/Graphics/Text/TrueType/Name.hs
+--- FontyFruity-0.5.3.4.orig/src/Graphics/Text/TrueType/Name.hs	2015-04-25 05:01:06.000000000 -0400
++++ FontyFruity-0.5.3.4/src/Graphics/Text/TrueType/Name.hs	2019-03-16 06:48:14.853741168 -0400
+@@ -35,7 +35,7 @@
+     rnf (NameTable {}) = ()
+ 
+ instance Binary NameTable where
+-  put _ = fail "Binary.put NameTable - unimplemented"
++  put _ = error "Binary.put NameTable - unimplemented"
+   get = do
+     nameFormatId <- getWord16be
+     when (nameFormatId /= 0) $

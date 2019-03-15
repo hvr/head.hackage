@@ -1,0 +1,56 @@
+diff -ru HTTP-4000.3.13.orig/Network/Browser.hs HTTP-4000.3.13/Network/Browser.hs
+--- HTTP-4000.3.13.orig/Network/Browser.hs	2019-03-17 07:46:06.000000000 -0400
++++ HTTP-4000.3.13/Network/Browser.hs	2019-03-23 09:56:07.221275392 -0400
+@@ -143,6 +143,7 @@
+ #else
+ import Control.Monad (filterM, forM_, when)
+ #endif
++import qualified Control.Monad.Fail as Fail
+ import Control.Monad.State (StateT (..), MonadIO (..), modify, gets, withStateT, evalStateT, MonadState (..))
+ 
+ import qualified System.IO
+@@ -416,13 +417,13 @@
+ newtype BrowserAction conn a
+  = BA { unBA :: StateT (BrowserState conn) IO a }
+ #ifdef MTL1
+- deriving (Functor, Monad, MonadIO, MonadState (BrowserState conn))
++ deriving (Functor, Monad, MonadIO, MonadState (BrowserState conn), Fail.MonadFail)
+ 
+ instance Applicative (BrowserAction conn) where
+   pure  = return
+   (<*>) = ap
+ #else
+- deriving (Functor, Applicative, Monad, MonadIO, MonadState (BrowserState conn))
++ deriving (Functor, Applicative, Monad, MonadIO, MonadState (BrowserState conn), Fail.MonadFail)
+ #endif
+ 
+ runBA :: BrowserState conn -> BrowserAction conn a -> IO a
+diff -ru HTTP-4000.3.13.orig/Network/HTTP/Base.hs HTTP-4000.3.13/Network/HTTP/Base.hs
+--- HTTP-4000.3.13.orig/Network/HTTP/Base.hs	2019-03-17 07:46:06.000000000 -0400
++++ HTTP-4000.3.13/Network/HTTP/Base.hs	2019-03-23 09:55:00.736769582 -0400
+@@ -108,6 +108,7 @@
+ 
+ import Control.Monad ( guard )
+ import Control.Monad.Error.Class ()
++import qualified Control.Monad.Fail as Fail
+ import Data.Bits     ( (.&.), (.|.), shiftL, shiftR )
+ import Data.Word     ( Word8 )
+ import Data.Char     ( digitToInt, intToDigit, toLower, isDigit,
+@@ -209,7 +210,7 @@
+   default_http  = 80
+   default_https = 443
+ 
+-failHTTPS :: Monad m => URI -> m ()
++failHTTPS :: Fail.MonadFail m => URI -> m ()
+ failHTTPS uri
+   | map toLower (uriScheme uri) == "https:" = fail "https not supported"
+   | otherwise = return ()
+@@ -713,7 +714,7 @@
+ 
+ -- | @getAuth req@ fishes out the authority portion of the URL in a request's @Host@
+ -- header.
+-getAuth :: Monad m => Request ty -> m URIAuthority
++getAuth :: Fail.MonadFail m => Request ty -> m URIAuthority
+ getAuth r = 
+    -- ToDo: verify that Network.URI functionality doesn't take care of this (now.)
+   case parseURIAuthority auth of

@@ -1,0 +1,19 @@
+diff -ru optparse-applicative-0.14.3.0.orig/Options/Applicative/Types.hs optparse-applicative-0.14.3.0/Options/Applicative/Types.hs
+--- optparse-applicative-0.14.3.0.orig/Options/Applicative/Types.hs	2018-10-03 21:20:14.000000000 -0400
++++ optparse-applicative-0.14.3.0/Options/Applicative/Types.hs	2019-03-15 10:37:16.505610173 -0400
+@@ -1,4 +1,4 @@
+-{-# LANGUAGE Rank2Types, ExistentialQuantification #-}
++{-# LANGUAGE CPP, Rank2Types, ExistentialQuantification #-}
+ module Options.Applicative.Types (
+   ParseError(..),
+   ParserInfo(..),
+@@ -175,7 +175,9 @@
+ instance Monad ReadM where
+   return = pure
+   ReadM r >>= f = ReadM $ r >>= unReadM . f
++#if !(MIN_VERSION_base(4,13,0))
+   fail = Fail.fail
++#endif
+ 
+ instance Fail.MonadFail ReadM where
+   fail = readerError

@@ -1,0 +1,13 @@
+diff -ru prettyprinter-1.2.1.orig/src/Data/Text/Prettyprint/Doc/Render/Util/SimpleDocTree.hs prettyprinter-1.2.1/src/Data/Text/Prettyprint/Doc/Render/Util/SimpleDocTree.hs
+--- prettyprinter-1.2.1.orig/src/Data/Text/Prettyprint/Doc/Render/Util/SimpleDocTree.hs	2018-02-22 02:08:03.000000000 -0500
++++ prettyprinter-1.2.1/src/Data/Text/Prettyprint/Doc/Render/Util/SimpleDocTree.hs	2019-03-16 08:02:11.953351543 -0400
+@@ -127,7 +127,9 @@
+         (a'', s'') <- runParser (f a') s'
+         pure (a'', s'') )
+ 
++#if !(MIN_VERSION_base(4,13,0))
+     fail _err = empty
++#endif
+ 
+ #if MONAD_FAIL
+ instance MonadFail (UniqueParser s) where

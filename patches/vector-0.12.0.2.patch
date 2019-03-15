@@ -1,0 +1,24 @@
+diff -ru vector-0.12.0.2.orig/Data/Vector.hs vector-0.12.0.2/Data/Vector.hs
+--- vector-0.12.0.2.orig/Data/Vector.hs	1969-12-31 19:00:00.000000000 -0500
++++ vector-0.12.0.2/Data/Vector.hs	2019-03-15 18:03:50.318290134 -0400
+@@ -201,6 +201,7 @@
+ import Data.Semigroup ( Semigroup(..) )
+ 
+ import qualified Control.Applicative as Applicative
++import qualified Control.Monad.Fail as Fail
+ import qualified Data.Foldable as Foldable
+ import qualified Data.Traversable as Traversable
+ 
+@@ -341,6 +342,12 @@
+   {-# INLINE (>>=) #-}
+   (>>=) = flip concatMap
+ 
++#if !(MIN_VERSION_base(4,13,0))
++  {-# INLINE fail #-}
++  fail = Fail.fail
++#endif
++
++instance Fail.MonadFail Vector where
+   {-# INLINE fail #-}
+   fail _ = empty
+ 
