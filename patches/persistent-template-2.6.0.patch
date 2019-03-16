@@ -1,0 +1,72 @@
+diff -ru persistent-template-2.6.0.orig/Database/Persist/TH.hs persistent-template-2.6.0/Database/Persist/TH.hs
+--- persistent-template-2.6.0.orig/Database/Persist/TH.hs	2019-01-27 08:37:47.000000000 -0500
++++ persistent-template-2.6.0/Database/Persist/TH.hs	2019-03-16 11:41:13.023259763 -0400
+@@ -518,8 +518,14 @@
+ 
+ uniqueTypeDec :: MkPersistSettings -> EntityDef -> Dec
+ uniqueTypeDec mps t =
+-    DataInstD [] ''Unique
++    DataInstD []
++#if MIN_VERSION_template_haskell(2,15,0)
++        Nothing
++        (ConT ''Unique `AppT` genericDataType mps (entityHaskell t) backendT)
++#else
++        ''Unique
+         [genericDataType mps (entityHaskell t) backendT]
++#endif
+ #if MIN_VERSION_template_haskell(2,11,0)
+             Nothing
+ #endif
+@@ -785,7 +791,12 @@
+                         bi <- backendKeyI
+                         return (bi, allInstances)
+ 
+-#if MIN_VERSION_template_haskell(2,12,0)
++#if MIN_VERSION_template_haskell(2,15,0)
++    cxti <- mapM conT i
++    let kd = if useNewtype
++               then NewtypeInstD [] Nothing (ConT k `AppT` recordType) Nothing dec [DerivClause Nothing cxti]
++               else DataInstD    [] Nothing (ConT k `AppT` recordType) Nothing [dec] [DerivClause Nothing cxti]
++#elif MIN_VERSION_template_haskell(2,12,0)
+     cxti <- mapM conT i
+     let kd = if useNewtype
+                then NewtypeInstD [] k [recordType] Nothing dec [DerivClause Nothing cxti]
+@@ -1076,16 +1087,30 @@
+         , puk
+         , DataInstD
+             []
++#if MIN_VERSION_template_haskell(2,15,0)
++            Nothing
++            (ConT ''EntityField `AppT`
++             genDataType `AppT`
++             (VarT $ mkName "typ"))
++#else
+             ''EntityField
+             [ genDataType
+             , VarT $ mkName "typ"
+             ]
++#endif
+ #if MIN_VERSION_template_haskell(2,11,0)
+             Nothing
+ #endif
+             (map fst fields)
+             []
+         , FunD 'persistFieldDef (map snd fields)
++#if MIN_VERSION_template_haskell(2,15,0)
++        , TySynInstD
++            (TySynEqn
++               Nothing
++               (ConT ''PersistEntityBackend `AppT` genDataType)
++               (backendDataType mps))
++#else
+         , TySynInstD
+             ''PersistEntityBackend
+ #if MIN_VERSION_template_haskell(2,9,0)
+@@ -1096,6 +1121,7 @@
+             [genDataType]
+             (backendDataType mps)
+ #endif
++#endif
+         , FunD 'persistIdField [normalClause [] (ConE $ keyIdName t)]
+         , FunD 'fieldLens lensClauses
+         ]
