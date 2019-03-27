@@ -1,9 +1,30 @@
-commit 1b8d1bc872df52f427b1a1b0ec494bc9c4b4c333
+commit 08fd62bccfb0aa1f2248678c378453e065239259
 Author: Ryan Scott <ryan.gl.scott@gmail.com>
-Date:   Sat Mar 16 11:33:08 2019 -0400
+Date:   Tue Mar 26 20:03:54 2019 -0400
 
     Adapt to GHC 8.8
 
+diff --git a/src/Data/Aeson/Config/Parser.hs b/src/Data/Aeson/Config/Parser.hs
+index 5680bbd..e0a04c3 100644
+--- a/src/Data/Aeson/Config/Parser.hs
++++ b/src/Data/Aeson/Config/Parser.hs
+@@ -31,6 +31,7 @@ module Data.Aeson.Config.Parser (
+ 
+ import           Control.Monad
+ import           Control.Applicative
++import qualified Control.Monad.Fail as Fail
+ import           Control.Monad.Trans.Class
+ import           Control.Monad.Trans.Writer
+ import           Data.Monoid ((<>))
+@@ -61,7 +62,7 @@ fromAesonPathElement e = case e of
+   Aeson.Index n -> Index n
+ 
+ newtype Parser a = Parser {unParser :: WriterT (Set JSONPath) Aeson.Parser a}
+-  deriving (Functor, Applicative, Alternative, Monad)
++  deriving (Functor, Applicative, Alternative, Monad, Fail.MonadFail)
+ 
+ liftParser :: Aeson.Parser a -> Parser a
+ liftParser = Parser . lift
 diff --git a/src/Hpack/Config.hs b/src/Hpack/Config.hs
 index 5710b49..aba76b9 100644
 --- a/src/Hpack/Config.hs
@@ -37,8 +58,68 @@ index d3a69cb..4786a3b 100644
  
  import qualified Data.License.Infer as Infer
  
+diff --git a/src/Hpack/Syntax/BuildTools.hs b/src/Hpack/Syntax/BuildTools.hs
+index a27819e..df6d917 100644
+--- a/src/Hpack/Syntax/BuildTools.hs
++++ b/src/Hpack/Syntax/BuildTools.hs
+@@ -7,6 +7,7 @@ module Hpack.Syntax.BuildTools (
+ , SystemBuildTools(..)
+ ) where
+ 
++import qualified Control.Monad.Fail as Fail
+ import           Data.Text (Text)
+ import qualified Data.Text as T
+ import           Data.Semigroup (Semigroup(..))
+@@ -53,7 +54,7 @@ instance FromValue BuildTools where
+       buildToolFromString :: Text -> Parser (ParseBuildTool, DependencyVersion)
+       buildToolFromString s = parseQualifiedBuildTool s <|> parseUnqualifiedBuildTool s
+ 
+-      parseQualifiedBuildTool :: Monad m => Text -> m (ParseBuildTool, DependencyVersion)
++      parseQualifiedBuildTool :: Fail.MonadFail m => Text -> m (ParseBuildTool, DependencyVersion)
+       parseQualifiedBuildTool = fmap fromCabal . cabalParse "build tool" . T.unpack
+         where
+           fromCabal :: D.ExeDependency -> (ParseBuildTool, DependencyVersion)
+@@ -62,7 +63,7 @@ instance FromValue BuildTools where
+             , DependencyVersion Nothing $ versionConstraintFromCabal version
+             )
+ 
+-      parseUnqualifiedBuildTool :: Monad m => Text -> m (ParseBuildTool, DependencyVersion)
++      parseUnqualifiedBuildTool :: Fail.MonadFail m => Text -> m (ParseBuildTool, DependencyVersion)
+       parseUnqualifiedBuildTool = fmap (first UnqualifiedBuildTool) . parseDependency "build tool"
+ 
+ newtype SystemBuildTools = SystemBuildTools {
+@@ -80,7 +81,7 @@ instance FromValue SystemBuildTools where
+       , parseName = T.unpack
+       }
+ 
+-      parseSystemBuildTool :: Monad m => Text -> m (String, VersionConstraint)
++      parseSystemBuildTool :: Fail.MonadFail m => Text -> m (String, VersionConstraint)
+       parseSystemBuildTool = fmap fromCabal . cabalParse "system build tool" . T.unpack
+         where
+           fromCabal :: D.LegacyExeDependency -> (String, VersionConstraint)
+diff --git a/src/Hpack/Syntax/Dependencies.hs b/src/Hpack/Syntax/Dependencies.hs
+index 14c09f7..fdd6671 100644
+--- a/src/Hpack/Syntax/Dependencies.hs
++++ b/src/Hpack/Syntax/Dependencies.hs
+@@ -7,6 +7,7 @@ module Hpack.Syntax.Dependencies (
+ , parseDependency
+ ) where
+ 
++import qualified Control.Monad.Fail as Fail
+ import           Data.Text (Text)
+ import qualified Data.Text as T
+ import           Data.Semigroup (Semigroup(..))
+@@ -59,7 +60,7 @@ objectDependencyInfo o = objectDependency o >>= addMixins o
+ dependencyInfo :: Value -> Parser DependencyInfo
+ dependencyInfo = withDependencyVersion (DependencyInfo []) addMixins
+ 
+-parseDependency :: Monad m => String -> Text -> m (String, DependencyVersion)
++parseDependency :: Fail.MonadFail m => String -> Text -> m (String, DependencyVersion)
+ parseDependency subject = fmap fromCabal . cabalParse subject . T.unpack
+   where
+     fromCabal :: D.Dependency -> (String, DependencyVersion)
 diff --git a/src/Hpack/Syntax/DependencyVersion.hs b/src/Hpack/Syntax/DependencyVersion.hs
-index cb8abcf..84a7b05 100644
+index cb8abcf..7eef78c 100644
 --- a/src/Hpack/Syntax/DependencyVersion.hs
 +++ b/src/Hpack/Syntax/DependencyVersion.hs
 @@ -1,3 +1,4 @@
@@ -46,7 +127,15 @@ index cb8abcf..84a7b05 100644
  {-# LANGUAGE OverloadedStrings #-}
  {-# LANGUAGE LambdaCase #-}
  module Hpack.Syntax.DependencyVersion (
-@@ -34,7 +35,12 @@ import           Text.PrettyPrint (renderStyle, Style(..), Mode(..))
+@@ -24,6 +25,7 @@ module Hpack.Syntax.DependencyVersion (
+ ) where
+ 
+ import           Control.Applicative
++import qualified Control.Monad.Fail as Fail
+ import           Data.Maybe
+ import           Data.Scientific
+ import           Data.Text (Text)
+@@ -34,7 +36,12 @@ import           Text.PrettyPrint (renderStyle, Style(..), Mode(..))
  import           Distribution.Version (VersionRangeF(..))
  import qualified Distribution.Text as D
  import qualified Distribution.Version as D
@@ -59,7 +148,24 @@ index cb8abcf..84a7b05 100644
  
  import           Data.Aeson.Config.FromValue
  
-@@ -147,7 +153,13 @@ cabalParse subject s = case D.eitherParsec s of
+@@ -133,13 +140,13 @@ scientificToVersion n = version
+       | otherwise = 0
+     e = base10Exponent n
+ 
+-parseVersionRange :: Monad m => String -> m VersionConstraint
++parseVersionRange :: Fail.MonadFail m => String -> m VersionConstraint
+ parseVersionRange = fmap versionConstraintFromCabal . parseCabalVersionRange
+ 
+-parseCabalVersionRange :: Monad m => String -> m D.VersionRange
++parseCabalVersionRange :: Fail.MonadFail m => String -> m D.VersionRange
+ parseCabalVersionRange = cabalParse "constraint"
+ 
+-cabalParse :: (Monad m, D.Parsec a) => String -> String -> m a
++cabalParse :: (Fail.MonadFail m, D.Parsec a) => String -> String -> m a
+ cabalParse subject s = case D.eitherParsec s of
+   Right d -> return d
+   Left _ ->fail $ unwords ["invalid",  subject, show s]
+@@ -147,7 +154,13 @@ cabalParse subject s = case D.eitherParsec s of
  versionConstraintFromCabal :: D.VersionRange -> VersionConstraint
  versionConstraintFromCabal range
    | D.isAnyVersion range = AnyVersion

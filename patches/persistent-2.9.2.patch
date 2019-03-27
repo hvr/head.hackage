@@ -1,6 +1,6 @@
-diff -ru persistent-2.9.1.orig/Database/Persist/Types/Base.hs persistent-2.9.1/Database/Persist/Types/Base.hs
---- persistent-2.9.1.orig/Database/Persist/Types/Base.hs	2018-07-15 00:56:03.000000000 -0400
-+++ persistent-2.9.1/Database/Persist/Types/Base.hs	2019-03-16 08:51:22.261213560 -0400
+diff -ru persistent-2.9.2.orig/Database/Persist/Types/Base.hs persistent-2.9.2/Database/Persist/Types/Base.hs
+--- persistent-2.9.2.orig/Database/Persist/Types/Base.hs	2019-04-03 23:02:38.000000000 -0400
++++ persistent-2.9.2/Database/Persist/Types/Base.hs	2019-04-08 07:43:42.309646084 -0400
 @@ -8,6 +8,7 @@
  import Control.Exception (Exception)
  import Web.PathPieces (PathPiece(..))
