@@ -1,0 +1,20 @@
+commit d8126acd23b70c225c591d40a18a1d6b7833bbab
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Fri Mar 29 06:46:04 2019 -0400
+
+    Adapt to base-4.13.0.0
+
+diff --git a/Test/QuickCheck/Monadic.hs b/Test/QuickCheck/Monadic.hs
+index a8f3043..23153f2 100644
+--- a/Test/QuickCheck/Monadic.hs
++++ b/Test/QuickCheck/Monadic.hs
+@@ -123,7 +123,9 @@ instance Applicative (PropertyM m) where
+ instance Monad m => Monad (PropertyM m) where
+   return = pure
+   (>>=) = bind
++#if !defined(NO_MONADFAIL) && !(MIN_VERSION_base(4,13,0))
+   fail = fail_
++#endif
+ 
+ #ifndef NO_MONADFAIL
+ instance Monad m => Fail.MonadFail (PropertyM m) where

@@ -1,0 +1,20 @@
+commit 5df9f75585a3f1aef9c4dfa593b6874e38f074dc
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Tue Mar 26 19:48:10 2019 -0400
+
+    Adapt to base-4.13.0.0
+
+diff --git a/src/Control/Monad/Catch/Pure.hs b/src/Control/Monad/Catch/Pure.hs
+index 72a8401..4e433b5 100644
+--- a/src/Control/Monad/Catch/Pure.hs
++++ b/src/Control/Monad/Catch/Pure.hs
+@@ -110,7 +110,9 @@ instance Monad m => Monad (CatchT m) where
+   CatchT m >>= k = CatchT $ m >>= \ea -> case ea of
+     Left e -> return (Left e)
+     Right a -> runCatchT (k a)
++#if !(MIN_VERSION_base(4,13,0))
+   fail = Fail.fail
++#endif
+ 
+ instance Monad m => Fail.MonadFail (CatchT m) where
+   fail = CatchT . return . Left . toException . userError
