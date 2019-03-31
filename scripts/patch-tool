@@ -39,12 +39,24 @@ add_pkg_dirs() {
 
 patch_pkg() {
     local pkg=$(basename $1 .patch)
+    local pkg_dir=packages/$pkg
     local patch=$patches_dir/$pkg.patch
-    if [ ! -e "$patch" ]; then
-        echo "No patches for $pkg; skipping patching." return
-    else
-        local pkg_dir=packages/$pkg
+    local cabal=$patches_dir/$pkg.cabal
+
+    local patched=
+    if [ -f "$patch" ]; then
+        echo "Applied patch $patch to $pkg"
         git -C $pkg_dir apply $patch
+        patched=1
+    fi
+
+    if [ -f "$cabal" ]; then
+        echo "Updated cabal file of $pkg with $cabal"
+        cp "$cabal" $pkg_dir/*.cabal
+        patched=1
+    fi
+
+    if [ -n "$patched" ]; then
         git -C $pkg_dir commit -q -a -m "head.hackage.org patch"
     fi
 }
