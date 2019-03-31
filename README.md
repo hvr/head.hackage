@@ -140,6 +140,17 @@ build `head.hackage` packages:
 ```
 $ nix build -f ./. --arg ghc "(import ghc-from-source.nix {ghc-path=$GHC_TREE;})"
 ```
+### GitLab CI
+
+[GHC's GitLab instance](https://gitlab.haskell.org/ghc/head.hackage) uses
+GitLab CI and `nix` to build a subset of the head.hackage package set using GHC
+snapshots.
+
+To run a similar build locally simply download a binary distribution from a
+`x86_64-fedora27-linux` CI job and run:
+```
+$ nix build -f scripts/build-all.nix --arg bindistTarball ./ghc-x86_64-fedora27-linux.tar.xz testedPackages
+```
 
 ### Travis CI
 
