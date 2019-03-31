@@ -103,7 +103,13 @@ $ cp ${WhereThisGitHubRepoIsCloned}/patches/$PKGID.cabal ./*.cabal
 $ cd ..
 ```
 
-TODO: implement script
+Alternatively, you can use the handy `patch-tool` utility:
+
+```
+$ scripts/patch-tool unpack-patch patches/$PKGID.patch
+```
+This will extract the given package into the `packages/$PKGID` directory,
+initialize it as a git repository, and the patch.
 
 ### Adding a patch
 
