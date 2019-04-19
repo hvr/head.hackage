@@ -1,0 +1,50 @@
+name:		STMonadTrans
+version:	0.4.3
+x-revision: 1
+cabal-version:  >= 1.8
+license:	BSD3
+license-file:	LICENSE
+author:		Josef Svenningsson
+maintainer:	josef.svenningsson@gmail.com
+category:	Monads
+build-type:	Simple
+synopsis:	A monad transformer version of the ST monad
+description:
+   A monad transformer version of the ST monad
+
+   Warning! This monad transformer should not be used with monads that
+   can contain multiple answers, like the list monad. The reason is that
+   the state token will be duplicated across the different answers and
+   this causes Bad Things to happen (such as loss of referential
+   transparency). Safe monads include the monads State, Reader, Writer,
+   Maybe and combinations of their corresponding monad transformers.
+
+extra-source-files:
+        changelog.md
+
+source-repository head
+  type:     git
+  location: https://github.com/josefs/STMonadTrans
+
+flag splitBase
+  description: Choose the new smaller, split-up base package.
+
+library
+  build-depends: base >= 4.6
+
+  if flag(splitBase)
+    build-depends: base >= 3, base < 5, mtl, array
+  else
+    build-depends: base < 3
+
+  exposed-modules:
+    Control.Monad.ST.Trans,
+    Control.Monad.ST.Trans.Internal
+  extensions:	CPP, MagicHash, UnboxedTuples, Rank2Types, FlexibleInstances,
+        MultiParamTypeClasses, UndecidableInstances
+
+Test-Suite foo
+  type: detailed-0.9
+  hs-source-dirs: test
+  test-module: Test
+  build-depends: STMonadTrans, base, mtl, array, Cabal

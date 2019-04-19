@@ -1,0 +1,19 @@
+commit 779b484beeeba9e6c7229da672da9be5d618dc5d
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Fri Apr 19 15:31:27 2019 -0400
+
+    Adapt to base-4.13.0.0
+
+diff --git a/src/Data/Equivalence/STT.hs b/src/Data/Equivalence/STT.hs
+index 77cb9c2..c3a41c7 100644
+--- a/src/Data/Equivalence/STT.hs
++++ b/src/Data/Equivalence/STT.hs
+@@ -264,7 +264,7 @@ equateEntry Equiv {combDesc = mkDesc} repx@(Entry rx) repy@(Entry ry) =
+           writeSTRef ry dy{entryWeight = wx + wy, entryDesc = mkDesc chx chy}
+           return repy
+ 
+-      _ -> fail "error on `equateEntry`"
++      _ -> error "error on `equateEntry`"
+   else return  repx
+ 
+ combineEntries :: (Monad m, Applicative m, Ord a)

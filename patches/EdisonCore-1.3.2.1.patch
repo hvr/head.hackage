@@ -1,0 +1,1015 @@
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Assoc/AssocList.hs EdisonCore-1.3.2.1/src/Data/Edison/Assoc/AssocList.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Assoc/AssocList.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Assoc/AssocList.hs	2019-04-19 14:27:30.278406081 -0400
+@@ -311,7 +311,7 @@
+ 
+ lookup key m = runIdentity (lookupM key m)
+ 
+-lookupM _ E = fail "AssocList.lookup: lookup failed"
++lookupM _ E = error "AssocList.lookup: lookup failed"
+ lookupM key (I k x m) | key == k  = return x
+                       | otherwise = lookupM key m
+ 
+@@ -321,7 +321,7 @@
+ 
+ lookupAndDelete key m = runIdentity (lookupAndDeleteM key m)
+ 
+-lookupAndDeleteM _ E = fail "AssocList.lookupAndDeleteM: lookup failed"
++lookupAndDeleteM _ E = error "AssocList.lookupAndDeleteM: lookup failed"
+ lookupAndDeleteM key (I k x m)
+    | key == k  = return (x,delete k m)
+    | otherwise = lookupAndDeleteM key m >>=
+@@ -424,7 +424,7 @@
+         | k > k0    = findMax k  a  (delete k m)
+         | otherwise = findMax k0 a0 (delete k m)
+ 
+-minView E = fail (moduleName++".minView: empty map")
++minView E = error (moduleName++".minView: empty map")
+ minView n@(I k a m) = let (k',x) = findMin k a m in return (x,delete k' n)
+ 
+ minElem E = error (moduleName++".minElem: empty map")
+@@ -435,7 +435,7 @@
+ 
+ unsafeInsertMin  = insert
+ 
+-maxView E = fail (moduleName++".maxView: empty map")
++maxView E = error (moduleName++".maxView: empty map")
+ maxView n@(I k a m) = let (k',x) = findMax k a m in return (x,delete k' n)
+ 
+ maxElem E = error (moduleName++".maxElem: empty map")
+@@ -482,13 +482,13 @@
+ partitionLE_GT k   = spanFM (<=k) . mergeSortFM
+ partitionLT_GT k   = (\(x,y) -> (x,delete k y)) . spanFM (<k)  . mergeSortFM
+ 
+-minViewWithKey E   = fail $ moduleName++".minViewWithKey: empty map"
++minViewWithKey E   = error $ moduleName++".minViewWithKey: empty map"
+ minViewWithKey n@(I k a m) = let (k',x) = findMin k a m in return ((k',x),delete k' n)
+ 
+ minElemWithKey E   = error $ moduleName++".minElemWithKey: empty map"
+ minElemWithKey (I k a m) = findMin k a m
+ 
+-maxViewWithKey E   = fail $ moduleName++".maxViewWithKey: empty map"
++maxViewWithKey E   = error $ moduleName++".maxViewWithKey: empty map"
+ maxViewWithKey n@(I k a m) = let (k',x) = findMax k a m in return ((k',x),delete k' n)
+ 
+ maxElemWithKey E   = error $ moduleName++".maxElemWithKey: empty map"
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Assoc/Defaults.hs EdisonCore-1.3.2.1/src/Data/Edison/Assoc/Defaults.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Assoc/Defaults.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Assoc/Defaults.hs	2019-04-19 14:19:15.118124131 -0400
+@@ -193,7 +193,7 @@
+ lookupAndDeleteMDefault :: (Monad rm, AssocX m k) => k -> m a -> rm (a, m a)
+ lookupAndDeleteMDefault k m =
+   case lookupM k m of
+-     Nothing -> fail (instanceName m ++ ".lookupAndDelete: lookup failed")
++     Nothing -> error (instanceName m ++ ".lookupAndDelete: lookup failed")
+      Just x  -> return (x, delete k m)
+ 
+ lookupAndDeleteAllDefault :: (S.Sequence seq, AssocX m k) => k -> m a -> (seq a,m a)
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Assoc/PatriciaLoMap.hs EdisonCore-1.3.2.1/src/Data/Edison/Assoc/PatriciaLoMap.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Assoc/PatriciaLoMap.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Assoc/PatriciaLoMap.hs	2019-04-19 14:26:19.237793376 -0400
+@@ -213,10 +213,10 @@
+ lookup k m = runIdentity (lookupM k m)
+ 
+ lookupM :: (Monad rm) => Int -> FM a -> rm a
+-lookupM _ E = fail "PatriciaLoMap.lookup: lookup failed"
++lookupM _ E = error "PatriciaLoMap.lookup: lookup failed"
+ lookupM k (L j x)
+   | j == k    = return x
+-  | otherwise = fail "PatriciaLoMap.lookup: lookup failed"
++  | otherwise = error "PatriciaLoMap.lookup: lookup failed"
+ lookupM k (B _ m t0 t1) = if zeroBit k m then lookupM k t0 else lookupM k t1
+ 
+ doLookupAndDelete :: z -> (a -> FM a -> z) -> Int -> FM a -> z
+@@ -235,7 +235,7 @@
+ 
+ lookupAndDeleteM :: Monad m => Int -> FM a -> m (a, FM a)
+ lookupAndDeleteM       = doLookupAndDelete
+-                           (fail "PatriciaLoMap.lookupAndDelete: lookup failed")
++                           (error "PatriciaLoMap.lookupAndDelete: lookup failed")
+                            (\x m -> return (x,m))
+ 
+ lookupAndDeleteAll :: S.Sequence seq => Int -> FM a -> (seq a,FM a)
+@@ -586,25 +586,25 @@
+ minView :: Monad m => FM a -> m (a, FM a)
+ minView fm =
+    case ordListFM fm of
+-     [] -> fail $ moduleName++".minView: empty map"
++     [] -> error $ moduleName++".minView: empty map"
+      ((k,x):_) -> return (x,delete k fm)
+ 
+ minViewWithKey :: Monad m => FM a -> m ((Int, a), FM a)
+ minViewWithKey fm =
+    case ordListFM fm of
+-     [] -> fail $ moduleName++".minViewWithKey: empty map"
++     [] -> error $ moduleName++".minViewWithKey: empty map"
+      ((k,x):_) -> return ((k,x),delete k fm)
+ 
+ maxView :: Monad m => FM a -> m (a, FM a)
+ maxView fm =
+   case ordListFM_rev fm of
+-     [] -> fail $ moduleName++".maxView: empty map"
++     [] -> error $ moduleName++".maxView: empty map"
+      ((k,x):_) -> return (x,delete k fm)
+ 
+ maxViewWithKey :: Monad m => FM a -> m ((Int, a), FM a)
+ maxViewWithKey fm =
+    case ordListFM_rev fm of
+-     [] -> fail $ moduleName++".maxViewWithKey: empty map"
++     [] -> error $ moduleName++".maxViewWithKey: empty map"
+      ((k,x):_) -> return ((k,x),delete k fm)
+ 
+ minElem :: FM a -> a
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Assoc/StandardMap.hs EdisonCore-1.3.2.1/src/Data/Edison/Assoc/StandardMap.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Assoc/StandardMap.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Assoc/StandardMap.hs	2019-04-19 14:25:37.089429664 -0400
+@@ -199,7 +199,7 @@
+ member             = DM.member
+ count              = countUsingMember
+ lookup k m         = maybe (error (moduleName ++ ".lookup: failed")) id (DM.lookup k m)
+-lookupM k m        = maybe (fail (moduleName ++ ".lookupM: failed")) return (DM.lookup k m)
++lookupM k m        = maybe (error (moduleName ++ ".lookupM: failed")) return (DM.lookup k m)
+ lookupAll          = lookupAllUsingLookupM
+ lookupWithDefault  = DM.findWithDefault
+ lookupAndDelete    = lookupAndDeleteDefault
+@@ -223,14 +223,14 @@
+ elements           = elementsUsingFold
+ 
+ minView m          = if DM.null m
+-                       then fail (moduleName ++ ".minView: failed")
++                       then error (moduleName ++ ".minView: failed")
+                        else let ((_,x),m') = DM.deleteFindMin m
+                             in return (x,m')
+ minElem            = snd . DM.findMin
+ deleteMin          = DM.deleteMin
+ unsafeInsertMin    = DM.insert
+ maxView m          = if DM.null m
+-                       then fail (moduleName ++ ".maxView: failed")
++                       then error (moduleName ++ ".maxView: failed")
+                        else let ((_,x),m') = DM.deleteFindMax m
+                             in return (x,m')
+ maxElem            = snd . DM.findMax
+@@ -283,11 +283,11 @@
+ partitionWithKey   = DM.partitionWithKey
+ 
+ minViewWithKey m   = if DM.null m
+-                        then fail (moduleName ++ ".minViewWithKey: failed")
++                        then error (moduleName ++ ".minViewWithKey: failed")
+                         else return (DM.deleteFindMin m)
+ minElemWithKey     = DM.findMin
+ maxViewWithKey m   = if DM.null m
+-                        then fail (moduleName ++ ".maxViewWithKey: failed")
++                        then error (moduleName ++ ".maxViewWithKey: failed")
+                         else return (DM.deleteFindMax m)
+ maxElemWithKey     = DM.findMax
+ foldrWithKey        = DM.foldrWithKey
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Assoc/TernaryTrie.hs EdisonCore-1.3.2.1/src/Data/Edison/Assoc/TernaryTrie.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Assoc/TernaryTrie.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Assoc/TernaryTrie.hs	2019-04-19 14:20:46.006912560 -0400
+@@ -530,12 +530,12 @@
+ lookup m k = runIdentity (lookupM m k)
+ 
+ lookupM [] (FM Nothing _)
+-  = fail "TernaryTrie.lookup: lookup failed"
++  = error "TernaryTrie.lookup: lookup failed"
+ lookupM [] (FM (Just v) _)
+   = return v
+ lookupM xs (FM _ fmb)
+   = case  lookupFMB xs fmb  of
+-        Nothing -> fail "TernaryTrie.lookup: lookup failed"
++        Nothing -> error "TernaryTrie.lookup: lookup failed"
+         Just v  -> return v
+ 
+ lookupAll = lookupAllUsingLookupM
+@@ -547,7 +547,7 @@
+ 
+ lookupAndDeleteM =
+     lookupAndDelFromFM
+-      (fail  "TernaryTrie.lookupAndDeleteM: lookup failed")
++      (error "TernaryTrie.lookupAndDeleteM: lookup failed")
+       (\w m -> return (w,m))
+ 
+ lookupAndDeleteAll k m =
+@@ -855,7 +855,7 @@
+ -- OrdAssocX
+ 
+ minViewFMB :: Monad m => FMB k a -> (FMB k a -> FM k a) -> m (a, FM k a)
+-minViewFMB E _ = fail $ moduleName++".minView: empty map"
++minViewFMB E _ = error $ moduleName++".minView: empty map"
+ minViewFMB (I i k (Just v) E m r)        f = return (v, f (I i k Nothing E m r))
+ minViewFMB (I _ _ Nothing  E (FMB' E) _) _ = error $ moduleName++".minView: bug!"
+ minViewFMB (I _ k Nothing  E (FMB' m) r) f = minViewFMB m (\m' -> f (mkVBalancedFMB k Nothing E (FMB' m') r))
+@@ -866,7 +866,7 @@
+ minView (FM Nothing fmb)  = minViewFMB fmb (FM Nothing)
+ 
+ minViewWithKeyFMB :: Monad m => FMB k a -> ([k] -> [k]) -> (FMB k a -> FM k a) -> m (([k],a),FM k a)
+-minViewWithKeyFMB E _ _ = fail $ moduleName++".minView: empty map"
++minViewWithKeyFMB E _ _ = error $ moduleName++".minView: empty map"
+ minViewWithKeyFMB (I i k (Just v) E m r)        kf f = return ((kf [k],v),f (I i k Nothing E m r))
+ minViewWithKeyFMB (I _ _ Nothing  E (FMB' E) _) _ _ = error $ moduleName++".minViewWithKey: bug!"
+ minViewWithKeyFMB (I _ k Nothing  E (FMB' m) r) kf f = minViewWithKeyFMB m (kf . (k:))
+@@ -915,7 +915,7 @@
+ maxViewFMB E                             _ = error $ moduleName++".maxView: bug!"
+ 
+ maxView :: Monad m => FM k a -> m (a, FM k a)
+-maxView (FM Nothing E)  = fail $ moduleName++".maxView: empty map"
++maxView (FM Nothing E)  = error $ moduleName++".maxView: empty map"
+ maxView (FM (Just v) E) = return (v,FM Nothing E)
+ maxView (FM mv fmb)     = maxViewFMB fmb (FM mv)
+ 
+@@ -931,7 +931,7 @@
+ 
+ 
+ maxViewWithKey :: Monad m => FM k a -> m (([k],a), FM k a)
+-maxViewWithKey (FM Nothing E)  = fail $ moduleName++".maxViewWithKey: empty map"
++maxViewWithKey (FM Nothing E)  = error $ moduleName++".maxViewWithKey: empty map"
+ maxViewWithKey (FM (Just v) E) = return (([],v),FM Nothing E)
+ maxViewWithKey (FM mv fmb)     = maxViewWithKeyFMB fmb id (FM mv)
+ 
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Coll/Defaults.hs EdisonCore-1.3.2.1/src/Data/Edison/Coll/Defaults.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Coll/Defaults.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Coll/Defaults.hs	2019-04-19 14:12:05.390426953 -0400
+@@ -89,7 +89,7 @@
+             EQ -> return (x, y)
+             GT -> witness a ys
+         -- XXX
+-        witness _ _ = fail $ instanceName as ++ ".intersect: failed"
++        witness _ _ = error $ instanceName as ++ ".intersect: failed"
+ 
+ lookupUsingLookupM :: Coll c a => a -> c -> a
+ lookupUsingLookupM x ys = runIdentity (lookupM x ys)
+@@ -104,7 +104,7 @@
+ lookupMUsingLookupAll x ys =
+   case lookupAll x ys of
+     (y:_) -> return y
+-    []    -> fail $ instanceName ys ++ ".lookupM: lookup failed"
++    []    -> error $ instanceName ys ++ ".lookupM: lookup failed"
+ 
+ lookupWithDefaultUsingLookupAll :: Coll c a => a -> a -> c -> a
+ lookupWithDefaultUsingLookupAll dflt x ys =
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Coll/EnumSet.hs EdisonCore-1.3.2.1/src/Data/Edison/Coll/EnumSet.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Coll/EnumSet.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Coll/EnumSet.hs	2019-04-19 14:18:03.381500731 -0400
+@@ -254,7 +254,7 @@
+ lookupM :: (Eq a, Enum a, Monad m) => a -> Set a -> m a
+ lookupM x s
+    | member x s = return x
+-   | otherwise  = fail (moduleName++".lookupM: lookup failed")
++   | otherwise  = error (moduleName++".lookupM: lookup failed")
+ 
+ lookupAll  :: (Eq a, Enum a, S.Sequence s) => a -> Set a -> s a
+ lookupAll = lookupAllUsingLookupM
+@@ -342,12 +342,12 @@
+ 
+ minView :: (Enum a, Monad m) => Set a -> m (a, Set a)
+ minView (Set w)
+-   | w == 0    = fail (moduleName++".minView: empty set")
++   | w == 0    = error (moduleName++".minView: empty set")
+    | otherwise = let i = lsb w in return (toEnum i,Set $ clearBit w i)
+ 
+ maxView :: (Enum a, Monad m) => Set a -> m (a, Set a)
+ maxView (Set w)
+-   | w == 0    = fail (moduleName++".maxView: empty set")
++   | w == 0    = error (moduleName++".maxView: empty set")
+    | otherwise = let i = msb w in return (toEnum i, Set $ clearBit w i)
+ 
+ unsafeInsertMin :: (Ord a, Enum a) => a -> Set a -> Set a
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Coll/LazyPairingHeap.hs EdisonCore-1.3.2.1/src/Data/Edison/Coll/LazyPairingHeap.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Coll/LazyPairingHeap.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Coll/LazyPairingHeap.hs	2019-04-19 14:16:29.236692426 -0400
+@@ -360,7 +360,7 @@
+             GT -> rest
+ 
+ minView :: (Ord a, Monad m) => Heap a -> m (a, Heap a)
+-minView E = fail "LazyPairingHeap.minView: empty heap"
++minView E = error "LazyPairingHeap.minView: empty heap"
+ minView (H1 x xs) = return (x,xs)
+ minView (H2 x h xs) = return (x,union h xs)
+ 
+@@ -370,7 +370,7 @@
+ minElem (H2 x _ _) = x
+ 
+ maxView :: (Ord a, Monad m) => Heap a -> m (a, Heap a)
+-maxView E = fail "LazyPairingHeap.maxView: empty heap"
++maxView E = error "LazyPairingHeap.maxView: empty heap"
+ maxView xs = return (y,xs')
+   where (xs', y) = maxView' xs
+ 
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Coll/LeftistHeap.hs EdisonCore-1.3.2.1/src/Data/Edison/Coll/LeftistHeap.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Coll/LeftistHeap.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Coll/LeftistHeap.hs	2019-04-19 14:16:11.996544459 -0400
+@@ -174,13 +174,13 @@
+         tol (L _ x a b) rest = S.lcons x (tol b (tol a rest))
+ 
+ lookupM :: (Ord a, Monad m) => a -> Heap a -> m a
+-lookupM _ E = fail "LeftistHeap.lookupM: XXX"
++lookupM _ E = error "LeftistHeap.lookupM: XXX"
+ lookupM x (L _ y a b) =
+   case compare x y of
+-    LT -> fail "LeftistHeap.lookupM: XXX"
++    LT -> error "LeftistHeap.lookupM: XXX"
+     EQ -> return y
+     GT -> case lookupM x b `mplus` lookupM x a of
+-                Nothing -> fail "LeftistHeap.lookupM: XXX"
++                Nothing -> error "LeftistHeap.lookupM: XXX"
+                 Just q -> return q
+ 
+ lookupAll :: (Ord a,S.Sequence seq) => a -> Heap a -> seq a
+@@ -300,7 +300,7 @@
+                   in (node x a' b', hs'')
+ 
+ minView :: (Ord a, Monad m) => Heap a -> m (a, Heap a)
+-minView E = fail "LeftistHeap.minView: empty collection"
++minView E = error "LeftistHeap.minView: empty collection"
+ minView (L _ x a b) = return (x, union a b)
+ 
+ minElem :: Ord a => Heap a -> a
+@@ -308,7 +308,7 @@
+ minElem (L _ x _ _) = x
+ 
+ maxView :: (Ord a, Monad m) => Heap a -> m (a, Heap a)
+-maxView E = fail "LeftistHeap.maxView: empty collection"
++maxView E = error "LeftistHeap.maxView: empty collection"
+ maxView (L _ x E _) = return (x, E)
+ maxView (L _ x a E) = return (y, L 1 x a' E)
+   where Just (y,a') = maxView a
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Coll/MinHeap.hs EdisonCore-1.3.2.1/src/Data/Edison/Coll/MinHeap.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Coll/MinHeap.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Coll/MinHeap.hs	2019-04-19 14:14:14.447535351 -0400
+@@ -201,7 +201,7 @@
+ lookupM x (M y ys)
+   | x > y  = C.lookupM x ys
+   | x == y = return y
+-lookupM _ _ = fail "lookupM.lookup: XXX"
++lookupM _ _ = error "lookupM.lookup: XXX"
+ 
+ lookupAll x (M y ys)
+   | x > y  = C.lookupAll x ys
+@@ -286,13 +286,13 @@
+ partitionLT_GT _ h = (E, h)
+ 
+ 
+-minView E = fail "MinHeap.minView: empty heap"
++minView E = error "MinHeap.minView: empty heap"
+ minView (M x xs) = return (x, fromPrim xs)
+ 
+ minElem E = error "MinHeap.minElem: empty heap"
+ minElem (M x _) = x
+ 
+-maxView E = fail "MinHeap.maxView: empty heap"
++maxView E = error "MinHeap.maxView: empty heap"
+ maxView (M x xs) = case C.maxView xs of
+                      Nothing     -> return (x, E)
+                      Just (y,ys) -> return (y, M x ys)
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Coll/SkewHeap.hs EdisonCore-1.3.2.1/src/Data/Edison/Coll/SkewHeap.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Coll/SkewHeap.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Coll/SkewHeap.hs	2019-04-19 14:13:55.407371862 -0400
+@@ -143,13 +143,13 @@
+         tol (T x a b) rest = S.lcons x (tol b (tol a rest))
+ 
+ lookupM :: (Ord a, Monad m) => a -> Heap a -> m a
+-lookupM _ E = fail "SkewHeap.lookupM: XXX"
++lookupM _ E = error "SkewHeap.lookupM: XXX"
+ lookupM x (T y a b) =
+   case compare x y of
+-    LT -> fail "SkewHeap.lookupM: XXX"
++    LT -> error "SkewHeap.lookupM: XXX"
+     EQ -> return y
+     GT -> case lookupM x b `mplus` lookupM x a of
+-                Nothing -> fail "SkewHeap.lookupM: XXX"
++                Nothing -> error "SkewHeap.lookupM: XXX"
+                 Just x  -> return x
+ 
+ lookupAll :: (Ord a,S.Sequence seq) => a -> Heap a -> seq a
+@@ -268,7 +268,7 @@
+                   in (T x a' b', hs'')
+ 
+ minView :: (Ord a, Monad m) => Heap a -> m (a, Heap a)
+-minView E = fail "SkewHeap.minView: empty heap"
++minView E = error "SkewHeap.minView: empty heap"
+ minView (T x a b) = return (x, union a b)
+ 
+ minElem :: Ord a => Heap a -> a
+@@ -276,7 +276,7 @@
+ minElem (T x _ _) = x
+ 
+ maxView :: (Ord a, Monad m) => Heap a -> m (a, Heap a)
+-maxView E = fail "SkewHeap.maxView: empty heap"
++maxView E = error "SkewHeap.maxView: empty heap"
+ maxView (T x E E) = return (x, E)
+ maxView (T x a E) = return (y, T x a' E)
+   where Just (y, a') = maxView a
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Coll/SplayHeap.hs EdisonCore-1.3.2.1/src/Data/Edison/Coll/SplayHeap.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Coll/SplayHeap.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Coll/SplayHeap.hs	2019-04-19 14:13:12.815006098 -0400
+@@ -182,7 +182,7 @@
+   | x > y     = lookup x b
+   | otherwise = y
+ 
+-lookupM _ E = fail "SplayHeap.lookup: empty heap"
++lookupM _ E = error "SplayHeap.lookup: empty heap"
+ lookupM x (T a y b)
+   | x < y     = lookupM x a
+   | x > y     = lookupM x b
+@@ -354,7 +354,7 @@
+         else (T a x (filterLT k ba), filterGT k bb)
+   else (filterLT k a, filterGT k b)
+ 
+-minView E = fail "SplayHeap.minView: empty heap"
++minView E = error "SplayHeap.minView: empty heap"
+ minView (T a x b) = return (y, ys)
+   where (y,ys) = minv a x b
+         minv E x b = (x,b)
+@@ -368,7 +368,7 @@
+         minel (T a x _) _ = minel a x
+ 
+ 
+-maxView E = fail "SplayHeap.maxView: empty heap"
++maxView E = error "SplayHeap.maxView: empty heap"
+ maxView (T a x b) = return (y,ys)
+   where (ys,y) = maxv a x b
+         maxv a x E = (a,x)
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Coll/StandardSet.hs EdisonCore-1.3.2.1/src/Data/Edison/Coll/StandardSet.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Coll/StandardSet.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Coll/StandardSet.hs	2019-04-19 14:12:47.094785195 -0400
+@@ -179,12 +179,12 @@
+ partitionLT_GT     = DS.split
+ 
+ minView set        = if DS.null set
+-                        then fail (moduleName ++ ".minView: failed")
++                        then error (moduleName ++ ".minView: failed")
+                         else return (DS.deleteFindMin set)
+ minElem            = DS.findMin
+ 
+ maxView set        = if DS.null set
+-                        then fail (moduleName ++ ".maxView: failed")
++                        then error (moduleName ++ ".maxView: failed")
+                         else return (DS.deleteFindMax set)
+ maxElem            = DS.findMax
+ 
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Coll/UnbalancedSet.hs EdisonCore-1.3.2.1/src/Data/Edison/Coll/UnbalancedSet.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Coll/UnbalancedSet.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Coll/UnbalancedSet.hs	2019-04-19 14:12:31.738653293 -0400
+@@ -179,7 +179,7 @@
+     EQ -> True
+     GT -> member x b
+ 
+-lookupM _ E = fail "UnbalancedSet.lookupM: XXX"
++lookupM _ E = error "UnbalancedSet.lookupM: XXX"
+ lookupM x (T a y b) =
+   case compare x y of
+     LT -> lookupM x a
+@@ -276,7 +276,7 @@
+     GT -> (a0,T a1 x b)
+           where (a0,a1) = partitionLT_GT y a
+ 
+-minView E = fail "UnbalancedSet.minView: empty collection"
++minView E = error "UnbalancedSet.minView: empty collection"
+ minView (T E x b) = return (x, b)
+ minView (T a x b) = return (y, T a' x b)
+   where Just (y,a') = minView a
+@@ -285,7 +285,7 @@
+ minElem (T E x _) = x
+ minElem (T a _ _) = minElem a
+ 
+-maxView E = fail "UnbalancedSet.maxView: empty collection"
++maxView E = error "UnbalancedSet.maxView: empty collection"
+ maxView (T a x E) = return (x, a)
+ maxView (T a x b) = return (y, T a x b')
+   where Just (y, b') = maxView b
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Concrete/FingerTree.hs EdisonCore-1.3.2.1/src/Data/Edison/Concrete/FingerTree.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Concrete/FingerTree.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Concrete/FingerTree.hs	2019-04-19 14:08:25.368535687 -0400
+@@ -335,7 +335,7 @@
+ 
+ -- | /O(1)/. Analyse the left end of a sequence.
+ lview :: (Measured v a, Monad m) => FingerTree v a -> m (a,FingerTree v a)
+-lview Empty                 =  fail "FingerTree.lview: empty tree"
++lview Empty                 =  error "FingerTree.lview: empty tree"
+ lview (Single x)            =  return (x, Empty)
+ lview (Deep _ (One x) m sf) =  return . (,) x $
+         case lview m of
+@@ -358,7 +358,7 @@
+ 
+ -- | /O(1)/. Analyse the right end of a sequence.
+ rview :: (Measured v a, Monad m) => FingerTree v a -> m (a, FingerTree v a)
+-rview Empty                  = fail "FingerTree.rview: empty tree"
++rview Empty                  = error "FingerTree.rview: empty tree"
+ rview (Single x)             = return (x, Empty)
+ rview (Deep _ pr m (One x))  = return . (,) x $
+         case rview m of
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Seq/BankersQueue.hs EdisonCore-1.3.2.1/src/Data/Edison/Seq/BankersQueue.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Seq/BankersQueue.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Seq/BankersQueue.hs	2019-04-19 14:11:34.886164882 -0400
+@@ -161,25 +161,25 @@
+ append (Q i1 xs1 ys1 j1) (Q i2 xs2 ys2 j2) =
+     Q (i1 + j1 + i2) (xs1 ++ L.reverseOnto ys1 xs2) ys2 j2
+ 
+-lview (Q _ [] _ _) = fail "BankersQueue.lview: empty sequence"
++lview (Q _ [] _ _) = error "BankersQueue.lview: empty sequence"
+ lview (Q i (x:xs) ys j) = return (x, makeQ (i-1) xs ys j)
+ 
+ lhead (Q _ [] _ _) = error "BankersQueue.lhead: empty sequence"
+ lhead (Q _ (x:_) _ _) = x
+ 
+-lheadM (Q _ [] _ _) = fail "BankersQueue.lheadM: empty sequence"
++lheadM (Q _ [] _ _) = error "BankersQueue.lheadM: empty sequence"
+ lheadM (Q _ (x:_) _ _) = return x
+ 
+ ltail (Q i (_:xs) ys j) = makeQ (i-1) xs ys j
+ ltail _ = error "BankersQueue.ltail: empty sequence"
+ 
+ ltailM (Q i (_:xs) ys j) = return (makeQ (i-1) xs ys j)
+-ltailM _ = fail "BankersQueue.ltail: empty sequence"
++ltailM _ = error "BankersQueue.ltail: empty sequence"
+ 
+ rview (Q i xs (y:ys) j) = return (y, Q i xs ys (j-1))
+ rview (Q i xs [] _) =
+   case L.rview xs of
+-    Nothing      -> fail "BankersQueue.rview: empty sequence"
++    Nothing      -> error "BankersQueue.rview: empty sequence"
+     Just (x,xs') -> return (x, Q (i-1) xs' [] 0)
+ 
+ rhead (Q _ _ (y:_) _) = y
+@@ -187,7 +187,7 @@
+ rhead (Q _ xs [] _) = L.rhead xs
+ 
+ rheadM (Q _ _ (y:_) _) = return y
+-rheadM (Q _ [] [] _) = fail "BankersQueue.rheadM: empty sequence"
++rheadM (Q _ [] [] _) = error "BankersQueue.rheadM: empty sequence"
+ rheadM (Q _ xs [] _) = return (L.rhead xs)
+ 
+ rtail (Q i xs (_:ys) j) = Q i xs ys (j-1)
+@@ -195,7 +195,7 @@
+ rtail (Q i xs [] _) = Q (i-1) (L.rtail xs) [] 0
+ 
+ rtailM (Q i xs (_:ys) j) = return (Q i xs ys (j-1))
+-rtailM (Q _ [] [] _) = fail "BankersQueue.rtailM: empty sequence"
++rtailM (Q _ [] [] _) = error "BankersQueue.rtailM: empty sequence"
+ rtailM (Q i xs [] _) = return (Q (i-1) (L.rtail xs) [] 0)
+ 
+ null (Q i _ _ _) = (i == 0)
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Seq/BinaryRandList.hs EdisonCore-1.3.2.1/src/Data/Edison/Seq/BinaryRandList.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Seq/BinaryRandList.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Seq/BinaryRandList.hs	2019-04-19 14:10:54.933821577 -0400
+@@ -181,7 +181,7 @@
+           | n == 0 = E
+           | otherwise = Even (cp (half n) (x,x))
+ 
+-lview E = fail "BinaryRandList.lview: empty sequence"
++lview E = error "BinaryRandList.lview: empty sequence"
+ lview (Even ps) = case lview ps of
+                     Just ((x,y), ps') -> return (x, Odd y ps')
+                     Nothing -> error "BinaryRandList.lview: bug!"
+@@ -191,7 +191,7 @@
+ lhead (Even ps) = fst (lhead ps)
+ lhead (Odd x _) = x
+ 
+-lheadM E = fail "BinaryRandList.lheadM: empty sequence"
++lheadM E = error "BinaryRandList.lheadM: empty sequence"
+ lheadM (Even ps) = return (fst (lhead ps))
+ lheadM (Odd x _) = return (x)
+ 
+@@ -201,7 +201,7 @@
+                     Nothing -> error "BinaryRandList.ltail: bug!"
+ ltail (Odd _ ps) = mkEven ps
+ 
+-ltailM E = fail "BinaryRandList.ltailM: empty sequence"
++ltailM E = error "BinaryRandList.ltailM: empty sequence"
+ ltailM (Even ps) = case lview ps of
+                       Just ((_,y), ps') -> return (Odd y ps')
+                       Nothing -> error "BinaryRandList.ltailM: bug!"
+@@ -212,7 +212,7 @@
+ rhead (Odd x E) = x
+ rhead (Odd _ ps) = snd (rhead ps)
+ 
+-rheadM E = fail "BinaryRandList.rheadM: empty sequence"
++rheadM E = error "BinaryRandList.rheadM: empty sequence"
+ rheadM (Even ps) = return (snd (rhead ps))
+ rheadM (Odd x E) = return x
+ rheadM (Odd _ ps) = return (snd (rhead ps))
+@@ -270,10 +270,10 @@
+ lookup i xs = runIdentity (lookupM i xs)
+ 
+ lookupM i xs
+-    | i < 0     = fail "BinaryRandList.lookup: bad subscript"
++    | i < 0     = error "BinaryRandList.lookup: bad subscript"
+     | otherwise = lookFun nothing xs i return
+     where
+-        nothing = fail "BinaryRandList.lookup: not found"
++        nothing = error "BinaryRandList.lookup: not found"
+ 
+ lookupWithDefault d i xs
+     | i < 0 = d
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Seq/BraunSeq.hs EdisonCore-1.3.2.1/src/Data/Edison/Seq/BraunSeq.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Seq/BraunSeq.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Seq/BraunSeq.hs	2019-04-19 14:10:16.849494254 -0400
+@@ -193,7 +193,7 @@
+         app _ _ _ = error "BraunSeq.append: bug!"
+   -- how does it compare to converting to/from lists?
+ 
+-lview E = fail "BraunSeq.lview: empty sequence"
++lview E = error "BraunSeq.lview: empty sequence"
+ lview (B x a b) = return (x, combine a b)
+ 
+ -- not exported
+@@ -204,13 +204,13 @@
+ lhead E = error "BraunSeq.lhead: empty sequence"
+ lhead (B x _ _) = x
+ 
+-lheadM E = fail "BraunSeq.lheadM: empty sequence"
++lheadM E = error "BraunSeq.lheadM: empty sequence"
+ lheadM (B x _ _) = return x
+ 
+ ltail E = error "BraunSeq.ltail: empty sequence"
+ ltail (B _ a b) = combine a b
+ 
+-ltailM E = fail "BraunSeq.ltailM: empty sequence"
++ltailM E = error "BraunSeq.ltailM: empty sequence"
+ ltailM (B _ a b) = return (combine a b)
+ 
+ -- not exported
+@@ -222,20 +222,20 @@
+   | otherwise = B x a (delAt (half i - 1) b)
+ delAt _ _ = error "BraunSeq.delAt: bug.  Impossible case!"
+ 
+-rview E = fail "BraunSeq.rview: empty sequence"
++rview E = error "BraunSeq.rview: empty sequence"
+ rview xs = return (lookup m xs, delAt m xs)
+   where m = size xs - 1
+ 
+ rhead E = error "BraunSeq.rhead: empty sequence"
+ rhead xs = lookup (size xs - 1) xs
+ 
+-rheadM E = fail  "BraunSeq.rheadM: empty sequence"
++rheadM E = error  "BraunSeq.rheadM: empty sequence"
+ rheadM xs = return (lookup (size xs - 1) xs)
+ 
+ rtail E = error "BraunSeq.rtail: empty sequence"
+ rtail xs = delAt (size xs - 1) xs
+ 
+-rtailM E = fail "BraunSeq.rtailM: empty sequence"
++rtailM E = error "BraunSeq.rtailM: empty sequence"
+ rtailM xs = return (delAt (size xs - 1) xs)
+ 
+ null E = True
+@@ -347,14 +347,14 @@
+ lookup i xs = runIdentity (lookupM i xs)
+ 
+ lookupM i xs
+-  | i < 0     = fail "BraunSeq.lookupM: bad subscript"
++  | i < 0     = error "BraunSeq.lookupM: bad subscript"
+   | otherwise = look xs i
+   where look E _ = nothing
+         look (B x a b) i
+           | odd i     = look a (half i)
+           | i == 0    = return x
+           | otherwise = look b (half i - 1)
+-        nothing = fail "BraunSeq.lookupM: not found"
++        nothing = error "BraunSeq.lookupM: not found"
+ 
+ lookupWithDefault d i xs = if i < 0 then d
+                            else look xs i
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Seq/Defaults.hs EdisonCore-1.3.2.1/src/Data/Edison/Seq/Defaults.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Seq/Defaults.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Seq/Defaults.hs	2019-04-19 14:09:11.124929205 -0400
+@@ -35,7 +35,7 @@
+ 
+ rviewDefault :: (Monad m, Sequence s) => s a -> m (a, s a)
+ rviewDefault xs
+-  | null xs   = fail $ instanceName xs ++ ".rview: empty sequence"
++  | null xs   = error $ instanceName xs ++ ".rview: empty sequence"
+   | otherwise = return (rhead xs, rtail xs)
+ 
+ 
+@@ -52,7 +52,7 @@
+ rtailMUsingLview :: (Monad m,Sequence s) => s a -> m (s a)
+ rtailMUsingLview xs =
+     case lview xs of
+-      Nothing      -> fail $ instanceName xs ++ ".rtailM: empty sequence"
++      Nothing      -> error $ instanceName xs ++ ".rtailM: empty sequence"
+       Just (x, xs) -> return (rt x xs)
+   where rt x xs =
+           case lview xs of
+@@ -223,7 +223,7 @@
+ lookupMUsingDrop :: (Monad m, Sequence s) => Int -> s a -> m a
+ lookupMUsingDrop i s
+   -- XXX better error message!
+-  | i < 0 || null s' = fail $ instanceName s
++  | i < 0 || null s' = error $ instanceName s
+                         ++ ".lookupMUsingDrop: empty sequence"
+   | otherwise        = return (lhead s')
+   where s' = drop i s
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Seq/FingerSeq.hs EdisonCore-1.3.2.1/src/Data/Edison/Seq/FingerSeq.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Seq/FingerSeq.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Seq/FingerSeq.hs	2019-04-19 14:27:49.618572817 -0400
+@@ -243,7 +243,7 @@
+         case FT.splitTree (> (SizeM i)) (SizeM 0) xs of
+            FT.Split _ (Elem x) _ -> return x
+ 
+-    | otherwise = fail "FingerSeq.lookupM: index out of bounds"
++    | otherwise = error "FingerSeq.lookupM: index out of bounds"
+ 
+ lookupWithDefault d i (Seq xs)
+     | inBounds i (Seq xs) =
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Seq/JoinList.hs EdisonCore-1.3.2.1/src/Data/Edison/Seq/JoinList.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Seq/JoinList.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Seq/JoinList.hs	2019-04-19 14:28:45.083050856 -0400
+@@ -162,7 +162,7 @@
+ 
+ -- path reversal on lview/ltail
+ 
+-lview E = fail "JoinList.lview: empty sequence"
++lview E = error "JoinList.lview: empty sequence"
+ lview (L x) = return (x, E)
+ lview (A xs ys) = lvw xs ys
+   where lvw E _ = error "JoinList.lvw: bug"
+@@ -173,7 +173,7 @@
+ lhead (L x) = x
+ lhead (A xs _) = lhead xs
+ 
+-lheadM E = fail "JoinList.lheadM: empty sequence"
++lheadM E = error "JoinList.lheadM: empty sequence"
+ lheadM (L x) = return x
+ lheadM (A xs _) = lheadM xs
+ 
+@@ -184,7 +184,7 @@
+         ltl (L _) zs = zs
+         ltl (A xs ys) zs = ltl xs (A ys zs)
+ 
+-ltailM E = fail "JoinList.ltailM: empty sequence"
++ltailM E = error "JoinList.ltailM: empty sequence"
+ ltailM (L _) = return E
+ ltailM (A xs ys) = return (ltl xs ys)
+   where ltl E _ = error "JoinList.ltl: bug"
+@@ -196,7 +196,7 @@
+ -- that left accesses are more common, so we would prefer to keep the left
+ -- spine short.
+ 
+-rview E = fail "JoinLis.rview: empty sequence"
++rview E = error "JoinLis.rview: empty sequence"
+ rview (L x) = return (x, E)
+ rview (A xs ys) = rvw xs ys
+   where rvw xs (A ys (A zs s)) = rvw (A xs (A ys zs)) s
+@@ -208,7 +208,7 @@
+ rhead (L x) = x
+ rhead (A _ ys) = rhead ys
+ 
+-rheadM E = fail "JoinList.rheadM: empty sequence"
++rheadM E = error "JoinList.rheadM: empty sequence"
+ rheadM (L x) = return x
+ rheadM (A _ ys) = rheadM ys
+ 
+@@ -220,7 +220,7 @@
+         rtl xs (L _) = xs
+         rtl _ _ = error "JoinList.rtl: bug"
+ 
+-rtailM E = fail "JoinList.rtailM: empty sequence"
++rtailM E = error "JoinList.rtailM: empty sequence"
+ rtailM (L _) = return E
+ rtailM (A xs ys) = return (rtl xs ys)
+   where rtl xs (A ys (A zs s)) = A (A xs ys) (rtl zs s)
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Seq/MyersStack.hs EdisonCore-1.3.2.1/src/Data/Edison/Seq/MyersStack.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Seq/MyersStack.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Seq/MyersStack.hs	2019-04-19 14:29:37.987506639 -0400
+@@ -151,22 +151,22 @@
+     | i == j = C (1 + i + j) x xs xs'
+ lcons x xs = C 1 x xs xs
+ 
+-lview E = fail "MyersStack.lview: empty sequence"
++lview E = error "MyersStack.lview: empty sequence"
+ lview (C _ x xs _) = return (x, xs)
+ 
+ lhead E = error "MyersStack.lhead: empty sequence"
+ lhead (C _ x _ _) = x
+ 
+-lheadM E = fail "MyersStack.lheadM: empty sequence"
++lheadM E = error "MyersStack.lheadM: empty sequence"
+ lheadM (C _ x _ _) = return x
+ 
+ ltail E = error "MyersStack.ltail: empty sequence"
+ ltail (C _ _ xs _) = xs
+ 
+-ltailM E = fail "MyersStack.ltailM: empty sequence"
++ltailM E = error "MyersStack.ltailM: empty sequence"
+ ltailM (C _ _ xs _) = return xs
+ 
+-rview E = fail "MyersStack.rview: empty sequence"
++rview E = error "MyersStack.rview: empty sequence"
+ rview xs = return (rhead xs, rtail xs)
+ 
+ rhead E = error "MyersStack.rhead: empty sequence"
+@@ -175,7 +175,7 @@
+         rh _ (C _ y ys ys') E = rh y ys ys'
+         rh x E E = x
+ 
+-rheadM E = fail "MyersStack.rheadM: empty sequence"
++rheadM E = error "MyersStack.rheadM: empty sequence"
+ rheadM (C _ x xs xs') = return (rh x xs xs')
+   where rh _ _ (C _ y ys ys') = rh y ys ys'
+         rh _ (C _ y ys ys') E = rh y ys ys'
+@@ -186,7 +186,7 @@
+   where rt _ E = E
+         rt y (C _ x xs _) = lcons y (rt x xs)
+ 
+-rtailM E = fail "MyersStack.rtailM: empty sequence"
++rtailM E = error "MyersStack.rtailM: empty sequence"
+ rtailM (C _ x xs _) = return (rt x xs)
+   where rt _ E = E
+         rt y (C _ x xs _) = lcons y (rt x xs)
+@@ -249,13 +249,13 @@
+ lookup i xs = runIdentity (lookupM i xs)
+ 
+ lookupM i xs = look xs i
+-  where look E _ = fail "MyersStack.lookup: bad subscript"
++  where look E _ = error "MyersStack.lookup: bad subscript"
+         look (C j x xs xs') i
+           | i >= j   = look xs' (i - j)
+           | i > 0    = look xs  (i - 1)
+           | i == 0   = return x
+           | otherwise = nothing
+-        nothing = fail "MyersStack.lookup: not found"
++        nothing = error "MyersStack.lookup: not found"
+ 
+ lookupWithDefault d i xs = look xs i
+   where look E _ = d
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Seq/RandList.hs EdisonCore-1.3.2.1/src/Data/Edison/Seq/RandList.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Seq/RandList.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Seq/RandList.hs	2019-04-19 14:33:51.057684970 -0400
+@@ -166,7 +166,7 @@
+         child (T _ _ t) = t
+         child _ = error "RandList.copy: bug!"
+ 
+-lview E = fail "RandList.lview: empty sequence"
++lview E = error "RandList.lview: empty sequence"
+ lview (C _ (L x) xs) = return (x, xs)
+ lview (C i (T x s t) xs) = return (x, C j s (C j t xs))
+   where j = half i
+@@ -175,7 +175,7 @@
+ lhead (C _ (L x) _) = x
+ lhead (C _ (T x _ _) _) = x
+ 
+-lheadM E = fail "RandList.lheadM: empty sequence"
++lheadM E = error "RandList.lheadM: empty sequence"
+ lheadM (C _ (L x) _) = return x
+ lheadM (C _ (T x _ _) _) = return x
+ 
+@@ -184,7 +184,7 @@
+ ltail (C i (T _ s t) xs) = C j s (C j t xs)
+   where j = half i
+ 
+-ltailM E = fail "RandList.ltailM: empty sequence"
++ltailM E = error "RandList.ltailM: empty sequence"
+ ltailM (C _ (L _) xs) = return xs
+ ltailM (C i (T _ s t) xs) = return (C j s (C j t xs))
+   where j = half i
+@@ -195,7 +195,7 @@
+         treeLast (T _ _ t) = treeLast t
+ rhead (C _ _ xs) = rhead xs
+ 
+-rheadM E = fail "RandList.rhead: empty sequence"
++rheadM E = error "RandList.rhead: empty sequence"
+ rheadM (C _ t E) = return(treeLast t)
+   where treeLast (L x) = x
+         treeLast (T _ _ t) = treeLast t
+@@ -272,7 +272,7 @@
+ lookup i xs = runIdentity (lookupM i xs)
+ 
+ lookupM i xs = look xs i
+-  where look E _ = fail "RandList.lookup bad subscript"
++  where look E _ = error "RandList.lookup bad subscript"
+         look (C j t xs) i
+             | i < j     = lookTree j t i
+             | otherwise = look xs (i - j)
+@@ -285,7 +285,7 @@
+             | i /= 0 = lookTree k s (i - 1)
+             | otherwise = return x
+           where k = half j
+-        nothing = fail "RandList.lookup: not found"
++        nothing = error "RandList.lookup: not found"
+ 
+ lookupWithDefault d i xs = look xs i
+   where look E _ = d
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Seq/RevSeq.hs EdisonCore-1.3.2.1/src/Data/Edison/Seq/RevSeq.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Seq/RevSeq.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Seq/RevSeq.hs	2019-04-19 14:35:45.666670672 -0400
+@@ -167,7 +167,7 @@
+ append (N m xs) (N n ys) = N (m+n+1) (S.append ys xs)
+ 
+ lview (N m xs) = case S.rview xs of
+-                   Nothing     -> fail "RevSeq.lview: empty sequence"
++                   Nothing     -> error "RevSeq.lview: empty sequence"
+                    Just (x,xs) -> return (x, N (m-1) xs)
+ 
+ lhead (N _ xs) = S.rhead xs
+@@ -177,11 +177,11 @@
+ ltail (N (-1) _) = error "RevSeq.ltail: empty sequence"
+ ltail (N m xs) = N (m-1) (S.rtail xs)
+ 
+-ltailM (N (-1) _) = fail "RevSeq.ltailM: empty sequence"
++ltailM (N (-1) _) = error "RevSeq.ltailM: empty sequence"
+ ltailM (N m xs) = return (N (m-1) (S.rtail xs))
+ 
+ rview (N m xs) = case S.lview xs of
+-                   Nothing     -> fail "RevSeq.rview: empty sequence"
++                   Nothing     -> error "RevSeq.rview: empty sequence"
+                    Just (x,xs) -> return (x, N (m-1) xs)
+ 
+ rhead (N _ xs) = S.lhead xs
+@@ -191,7 +191,7 @@
+ rtail (N (-1) _) = error "RevSeq.rtail: empty sequence"
+ rtail (N m xs) = N (m-1) (S.ltail xs)
+ 
+-rtailM (N (-1) _) = fail "RevSeq.rtailM: empty sequence"
++rtailM (N (-1) _) = error "RevSeq.rtailM: empty sequence"
+ rtailM (N m xs) = return (N (m-1) (S.ltail xs))
+ 
+ null (N m _) = m == -1
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Seq/SimpleQueue.hs EdisonCore-1.3.2.1/src/Data/Edison/Seq/SimpleQueue.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Seq/SimpleQueue.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Seq/SimpleQueue.hs	2019-04-19 14:36:21.446978325 -0400
+@@ -159,14 +159,14 @@
+ append (Q xs1 ys1) (Q xs2 ys2) =
+     Q (xs1 ++ L.reverseOnto ys1 xs2) ys2
+ 
+-lview (Q [] _) = fail "SimpleQueue.lview: empty sequence"
++lview (Q [] _) = error "SimpleQueue.lview: empty sequence"
+ lview (Q [x] ys) = return (x, Q (L.reverse ys) [])
+ lview (Q (x:xs) ys) = return (x, Q xs ys)
+ 
+ lhead (Q [] _) = error "SimpleQueue.lhead: empty sequence"
+ lhead (Q (x:_) _) = x
+ 
+-lheadM (Q [] _) = fail "SimpleQueue.lheadM: empty sequence"
++lheadM (Q [] _) = error "SimpleQueue.lheadM: empty sequence"
+ lheadM (Q (x:_) _) = return x
+ 
+ ltail (Q [_] ys) = Q (L.reverse ys) []
+@@ -175,12 +175,12 @@
+ 
+ ltailM (Q [_] ys) = return (Q (L.reverse ys) [])
+ ltailM (Q (_:xs) ys) = return (Q xs ys)
+-ltailM (Q [] _) = fail "SimpleQueue.ltailM: empty sequence"
++ltailM (Q [] _) = error "SimpleQueue.ltailM: empty sequence"
+ 
+ rview (Q xs (y:ys)) = return (y, Q xs ys)
+ rview (Q xs []) =
+   case L.rview xs of
+-    Nothing      -> fail "SimpleQueue.rview: empty sequence"
++    Nothing      -> error "SimpleQueue.rview: empty sequence"
+     Just (x,xs') -> return (x, Q xs' [])
+ 
+ rhead (Q _ (y:_)) = y
+@@ -188,7 +188,7 @@
+ rhead (Q xs []) = L.rhead xs
+ 
+ rheadM (Q _ (y:_)) = return y
+-rheadM (Q [] []) = fail "SimpleQueue.rheadM: empty sequence"
++rheadM (Q [] []) = error "SimpleQueue.rheadM: empty sequence"
+ rheadM (Q xs []) = return (L.rhead xs)
+ 
+ rtail (Q xs (_:ys)) = Q xs ys
+@@ -196,7 +196,7 @@
+ rtail (Q xs []) = Q (L.rtail xs) []
+ 
+ rtailM (Q xs (_:ys)) = return (Q xs ys)
+-rtailM (Q [] []) = fail "SimpleQueue.rtailM: empty sequence"
++rtailM (Q [] []) = error "SimpleQueue.rtailM: empty sequence"
+ rtailM (Q xs []) = return (Q (L.rtail xs) [])
+ 
+ null (Q [] _) = True
+diff -ru EdisonCore-1.3.2.1.orig/src/Data/Edison/Seq/SizedSeq.hs EdisonCore-1.3.2.1/src/Data/Edison/Seq/SizedSeq.hs
+--- EdisonCore-1.3.2.1.orig/src/Data/Edison/Seq/SizedSeq.hs	2018-01-05 02:46:48.000000000 -0500
++++ EdisonCore-1.3.2.1/src/Data/Edison/Seq/SizedSeq.hs	2019-04-19 14:36:46.459193369 -0400
+@@ -156,7 +156,7 @@
+ append (N m xs) (N n ys) = N (m+n) (S.append xs ys)
+ 
+ lview (N n xs) = case S.lview xs of
+-                   Nothing     -> fail "SizedSeq.lview: empty sequence"
++                   Nothing     -> error "SizedSeq.lview: empty sequence"
+                    Just (x,xs) -> return (x, N (n-1) xs)
+ 
+ lhead (N _ xs) = S.lhead xs
+@@ -166,11 +166,11 @@
+ ltail (N 0 _) = error "SizedSeq.ltail: empty sequence"
+ ltail (N n xs) = N (n-1) (S.ltail xs)
+ 
+-ltailM (N 0 _) = fail "SizedSeq.ltailM: empty sequence"
++ltailM (N 0 _) = error "SizedSeq.ltailM: empty sequence"
+ ltailM (N n xs) = return (N (n-1) (S.ltail xs))
+ 
+ rview (N n xs) = case S.rview xs of
+-                   Nothing     -> fail "SizedSeq.rview: empty sequence"
++                   Nothing     -> error "SizedSeq.rview: empty sequence"
+                    Just (x,xs) -> return (x, N (n-1) xs)
+ 
+ rhead (N _ xs) = S.rhead xs
+@@ -180,7 +180,7 @@
+ rtail (N 0 _) = error "SizedSeq.rtail: empty sequence"
+ rtail (N n xs) = N (n-1) (S.rtail xs)
+ 
+-rtailM (N 0 _) = fail "SizedSeq.rtailM: empty sequence"
++rtailM (N 0 _) = error "SizedSeq.rtailM: empty sequence"
+ rtailM (N n xs) = return (N (n-1) (S.rtail xs))
+ 
+ null (N n _) = n == 0
