@@ -1,0 +1,55 @@
+diff -ru EdisonAPI-1.3.1.orig/src/Data/Edison/Seq/ListSeq.hs EdisonAPI-1.3.1/src/Data/Edison/Seq/ListSeq.hs
+--- EdisonAPI-1.3.1.orig/src/Data/Edison/Seq/ListSeq.hs	2016-06-03 00:49:51.000000000 -0400
++++ EdisonAPI-1.3.1/src/Data/Edison/Seq/ListSeq.hs	2019-04-19 13:54:07.461113622 -0400
+@@ -131,25 +131,25 @@
+ rcons x s = s ++ [x]
+ append = (++)
+ 
+-lview [] = fail "ListSeq.lview: empty sequence"
++lview [] = error "ListSeq.lview: empty sequence"
+ lview (x:xs) = return (x, xs)
+ 
+-lheadM [] = fail "ListSeq.lheadM: empty sequence"
++lheadM [] = error "ListSeq.lheadM: empty sequence"
+ lheadM (x:xs) = return x
+ 
+ lhead [] = error "ListSeq.lhead: empty sequence"
+ lhead (x:xs) = x
+ 
+-ltailM [] = fail "ListSeq.ltailM: empty sequence"
++ltailM [] = error "ListSeq.ltailM: empty sequence"
+ ltailM (x:xs) = return xs
+ 
+ ltail [] = error "ListSeq.ltail: empty sequence"
+ ltail (x:xs) = xs
+ 
+-rview [] = fail "ListSeq.rview: empty sequence"
++rview [] = error "ListSeq.rview: empty sequence"
+ rview xs = return (rhead xs, rtail xs)
+ 
+-rheadM [] = fail "ListSeq.rheadM: empty sequence"
++rheadM [] = error "ListSeq.rheadM: empty sequence"
+ rheadM (x:xs) = rh x xs
+   where rh y [] = return y
+         rh y (x:xs) = rh x xs
+@@ -159,7 +159,7 @@
+   where rh y [] = y
+         rh y (x:xs) = rh x xs
+ 
+-rtailM [] = fail "ListSeq.rtailM: empty sequence"
++rtailM [] = error "ListSeq.rtailM: empty sequence"
+ rtailM (x:xs) = return (rt x xs)
+   where rt y [] = []
+         rt y (x:xs) = y : rt x xs
+@@ -255,9 +255,9 @@
+ lookup i xs = ID.runIdentity (lookupM i xs)
+ 
+ lookupM i xs
+-  | i < 0 = fail "ListSeq.lookup: not found"
++  | i < 0 = error "ListSeq.lookup: not found"
+   | otherwise = case drop i xs of
+-                  [] -> fail "ListSeq.lookup: not found"
++                  [] -> error "ListSeq.lookup: not found"
+                   (x:_) -> return x
+ 
+ lookupWithDefault d i xs

@@ -1,6 +1,6 @@
-diff -ru turtle-1.5.13.orig/src/Turtle/Shell.hs turtle-1.5.13/src/Turtle/Shell.hs
---- turtle-1.5.13.orig/src/Turtle/Shell.hs	2018-12-20 11:51:10.000000000 -0500
-+++ turtle-1.5.13/src/Turtle/Shell.hs	2019-03-16 07:54:57.329789876 -0400
+diff -ru turtle-1.5.14.orig/src/Turtle/Shell.hs turtle-1.5.14/src/Turtle/Shell.hs
+--- turtle-1.5.14.orig/src/Turtle/Shell.hs	2019-04-18 13:54:20.000000000 -0400
++++ turtle-1.5.14/src/Turtle/Shell.hs	2019-04-19 11:03:20.586908168 -0400
 @@ -182,7 +182,9 @@
          let step1 x a = _foldShell (f a) (FoldShell step0 x return)
          _foldShell m (FoldShell step1 begin0 done0) )

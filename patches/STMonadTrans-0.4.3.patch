@@ -1,0 +1,31 @@
+diff -ru STMonadTrans-0.4.3.orig/Control/Monad/ST/Trans/Internal.hs STMonadTrans-0.4.3/Control/Monad/ST/Trans/Internal.hs
+--- STMonadTrans-0.4.3.orig/Control/Monad/ST/Trans/Internal.hs	2017-02-09 08:18:16.000000000 -0500
++++ STMonadTrans-0.4.3/Control/Monad/ST/Trans/Internal.hs	2019-04-19 13:40:49.646093718 -0400
+@@ -1,5 +1,5 @@
+ {-# LANGUAGE MagicHash, UnboxedTuples, Rank2Types, FlexibleInstances,
+-    MultiParamTypeClasses, UndecidableInstances, RecursiveDo #-}
++    MultiParamTypeClasses, UndecidableInstances, RecursiveDo, CPP #-}
+ {- |
+    Module      :  Control.Monad.ST.Trans
+    Copyright   :  Josef Svenningsson 2008-2010
+@@ -26,6 +26,7 @@
+ import GHC.Base
+ import GHC.ST hiding (liftST)
+ 
++import qualified Control.Monad.Fail as Fail
+ import Control.Monad.Fix
+ import Control.Monad.Trans
+ import Control.Monad.Error.Class
+@@ -69,7 +70,12 @@
+        case ret of
+          STTRet new_st a -> 
+              unSTT (k a) new_st
++#if !(MIN_VERSION_base(4,13,0))
+   fail msg = lift (fail msg)
++#endif
++
++instance Fail.MonadFail m => Fail.MonadFail (STT s m) where
++  fail msg = lift (Fail.fail msg)
+ 
+ instance MonadTrans (STT s) where
+   lift m = STT $ \st ->

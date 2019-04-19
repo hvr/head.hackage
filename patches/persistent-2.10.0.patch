@@ -1,15 +1,15 @@
-diff -ru persistent-2.9.2.orig/Database/Persist/Types/Base.hs persistent-2.9.2/Database/Persist/Types/Base.hs
---- persistent-2.9.2.orig/Database/Persist/Types/Base.hs	2019-04-03 23:02:38.000000000 -0400
-+++ persistent-2.9.2/Database/Persist/Types/Base.hs	2019-04-08 07:43:42.309646084 -0400
-@@ -8,6 +8,7 @@
+diff -ru persistent-2.10.0.orig/Database/Persist/Types/Base.hs persistent-2.10.0/Database/Persist/Types/Base.hs
+--- persistent-2.10.0.orig/Database/Persist/Types/Base.hs	2019-04-14 22:27:15.000000000 -0400
++++ persistent-2.10.0/Database/Persist/Types/Base.hs	2019-04-19 16:55:07.211353215 -0400
+@@ -4,6 +4,7 @@
+ 
+ import Control.Arrow (second)
  import Control.Exception (Exception)
- import Web.PathPieces (PathPiece(..))
- import Web.HttpApiData (ToHttpApiData (..), FromHttpApiData (..), parseUrlPieceMaybe, showTextData, readTextData, parseBoundedTextData)
 +import qualified Control.Monad.Fail as Fail
  import Control.Monad.Trans.Error (Error (..))
- import Data.Typeable (Typeable)
- import Data.Text (Text, pack)
-@@ -400,10 +401,10 @@
+ import qualified Data.Aeson as A
+ import Data.Bits (shiftL, shiftR)
+@@ -433,10 +434,10 @@
      parseJSON (A.String t0) =
          case T.uncons t0 of
              Nothing -> fail "Null string"
@@ -22,7 +22,7 @@ diff -ru persistent-2.9.2.orig/Database/Persist/Types/Base.hs persistent-2.9.2/D
                             $ B64.decode $ TE.encodeUtf8 t
              Just ('t', t) -> fmap PersistTimeOfDay $ readMay t
              Just ('u', t) -> fmap PersistUTCTime $ readMay t
-@@ -415,7 +416,7 @@
+@@ -448,7 +449,7 @@
        where
          headMay []    = Nothing
          headMay (x:_) = Just x

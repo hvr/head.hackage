@@ -1,0 +1,27 @@
+commit 8351e8f2db8655cbe821986f0cebcda119bd0123
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Fri Apr 19 15:56:05 2019 -0400
+
+    Adapt to base-4.13.0.0
+
+diff --git a/src/Development/Shake/Command.hs b/src/Development/Shake/Command.hs
+index 84d2465f..aac974f1 100644
+--- a/src/Development/Shake/Command.hs
++++ b/src/Development/Shake/Command.hs
+@@ -20,6 +20,7 @@ module Development.Shake.Command(
+ 
+ import Data.Tuple.Extra
+ import Control.Monad.Extra
++import qualified Control.Monad.Fail as Fail
+ import Control.Monad.IO.Class
+ import Data.Char
+ import Data.Either.Extra
+@@ -181,7 +182,7 @@ copyFSABinary prog
+             _ -> return prog
+ 
+ removeOptionFSATrace
+-    :: MonadTempDir m
++    :: (Fail.MonadFail m, MonadTempDir m)
+     => Params -- ^ Given the parameter
+     -> (Params -> m [Result]) -- ^ Call with the revised params, program name and command line
+     -> m [Result]
