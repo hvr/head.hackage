@@ -1,57 +1,6 @@
-commit c047d22db63f5d7ed32bd0252c59c6615d6d6a63
+commit 53e1d423703c3cbce05d73250af107517b235c83
 Author: Ryan Scott <ryan.gl.scott@gmail.com>
-Date:   Thu Feb 21 07:06:00 2019 -0500
-
-    Allow building with GHC 8.9
-
-diff --git a/src/Control/Lens/Equality.hs b/src/Control/Lens/Equality.hs
-index c4f1f9f1..c186b3ed 100644
---- a/src/Control/Lens/Equality.hs
-+++ b/src/Control/Lens/Equality.hs
-@@ -73,7 +73,13 @@ substEq l = case runEq l of
- 
- -- | We can use 'Equality' to do substitution into anything.
- #if __GLASGOW_HASKELL__ >= 706
--mapEq :: forall (s :: k1) (t :: k2) (a :: k1) (b :: k2) (f :: k1 -> *) . AnEquality s t a b -> f s -> f a
-+# if __GLASGOW_HASKELL__ >= 809
-+#  define KVS(kvs) kvs
-+# else
-+#  define KVS(kvs)
-+# endif
-+
-+mapEq :: forall KVS(k1 k2) (s :: k1) (t :: k2) (a :: k1) (b :: k2) (f :: k1 -> *) . AnEquality s t a b -> f s -> f a
- #else
- mapEq :: AnEquality s t a b -> f s -> f a
- #endif
-diff --git a/tests/properties.hs b/tests/properties.hs
-index 90e74f35..4bd53a2a 100644
---- a/tests/properties.hs
-+++ b/tests/properties.hs
-@@ -123,12 +123,18 @@ sampleExtremePoly f foo = f foo
- samplePolyEquality :: Equality Monad Identity Monad Identity
- samplePolyEquality f = f
- 
--lessSimplePoly :: forall (s :: k1) (t :: k2) (a :: k1) (b :: k2) .
-+# if __GLASGOW_HASKELL__ >= 809
-+#  define KVS(kvs) kvs
-+# else
-+#  define KVS(kvs)
-+# endif
-+
-+lessSimplePoly :: forall KVS(k1 k2) (s :: k1) (t :: k2) (a :: k1) (b :: k2) .
-                   Equality a b a b
- lessSimplePoly f = f
- 
- equalityAnEqualityPoly ::
--       forall (s :: k1) (t :: k2) (a :: k1) (b :: k2) .
-+       forall KVS(k1 k2) (s :: k1) (t :: k2) (a :: k1) (b :: k2) .
-        Equality s t a b -> AnEquality s t a b
- equalityAnEqualityPoly f = f
- #else
-
-commit 9757e2808a7409651b7dfb274041ef69a6fac2ed
-Author: Ryan Scott <ryan.gl.scott@gmail.com>
-Date:   Thu Feb 21 06:57:55 2019 -0500
+Date:   Fri Apr 26 13:38:18 2019 -0400
 
     Allow building with template-haskell-2.15.0.0
 
