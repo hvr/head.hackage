@@ -1,0 +1,26 @@
+diff -ru streaming-0.2.2.0.orig/src/Streaming/Internal.hs streaming-0.2.2.0/src/Streaming/Internal.hs
+--- streaming-0.2.2.0.orig/src/Streaming/Internal.hs	1969-12-31 19:00:00.000000000 -0500
++++ streaming-0.2.2.0/src/Streaming/Internal.hs	2019-05-02 15:48:52.108061100 -0400
+@@ -91,6 +91,7 @@
+ import Control.Monad.Reader.Class
+ import Control.Monad.State.Class
+ import Control.Monad.Error.Class
++import qualified Control.Monad.Fail as Fail
+ import Control.Applicative
+ import Data.Function ( on )
+ import Control.Monad.Morph
+@@ -244,9 +245,14 @@
+       Return r  -> f r
+   {-# INLINABLE (>>=) #-}       
+ 
++#if !(MIN_VERSION_base(4,13,0))
+   fail = lift . fail
+   {-#INLINE fail #-}
++#endif
+ 
++instance (Functor f, MonadFail m) => MonadFail (Stream f m) where
++  fail = lift . Fail.fail
++  {-# INLINE fail #-}
+ 
+ -- _bind
+ --     :: (Functor f, Monad m)
