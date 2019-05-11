@@ -1,7 +1,7 @@
-diff -ru persistent-template-2.7.0.orig/Database/Persist/TH.hs persistent-template-2.7.0/Database/Persist/TH.hs
---- persistent-template-2.7.0.orig/Database/Persist/TH.hs	2019-04-15 22:46:49.000000000 -0400
-+++ persistent-template-2.7.0/Database/Persist/TH.hs	2019-04-19 17:46:14.353877721 -0400
-@@ -502,8 +502,14 @@
+diff -ru persistent-template-2.7.1.orig/Database/Persist/TH.hs persistent-template-2.7.1/Database/Persist/TH.hs
+--- persistent-template-2.7.1.orig/Database/Persist/TH.hs	2019-05-06 21:35:33.000000000 -0400
++++ persistent-template-2.7.1/Database/Persist/TH.hs	2019-05-11 09:02:38.170979008 -0400
+@@ -503,8 +503,14 @@
  
  uniqueTypeDec :: MkPersistSettings -> EntityDef -> Dec
  uniqueTypeDec mps t =
@@ -17,7 +17,7 @@ diff -ru persistent-template-2.7.0.orig/Database/Persist/TH.hs persistent-templa
              Nothing
              (map (mkUnique mps t) $ entityUniques t)
              (derivClause $ entityUniques t)
-@@ -765,7 +771,12 @@
+@@ -766,7 +772,12 @@
                          bi <- backendKeyI
                          return (bi, allInstances)
  
@@ -31,7 +31,7 @@ diff -ru persistent-template-2.7.0.orig/Database/Persist/TH.hs persistent-templa
      cxti <- mapM conT i
      let kd = if useNewtype
                 then NewtypeInstD [] k [recordType] Nothing dec [DerivClause Nothing cxti]
-@@ -1052,19 +1063,34 @@
+@@ -1053,19 +1064,34 @@
          , puk
          , DataInstD
              []

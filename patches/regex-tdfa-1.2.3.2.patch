@@ -1,7 +1,7 @@
-diff -ru regex-tdfa-1.2.3.1.orig/Text/Regex/TDFA.hs regex-tdfa-1.2.3.1/Text/Regex/TDFA.hs
---- regex-tdfa-1.2.3.1.orig/Text/Regex/TDFA.hs	2018-06-22 04:38:28.000000000 -0400
-+++ regex-tdfa-1.2.3.1/Text/Regex/TDFA.hs	2019-03-15 11:17:44.181955455 -0400
-@@ -56,6 +56,7 @@
+diff -ru regex-tdfa-1.2.3.2.orig/Text/Regex/TDFA.hs regex-tdfa-1.2.3.2/Text/Regex/TDFA.hs
+--- regex-tdfa-1.2.3.2.orig/Text/Regex/TDFA.hs	2019-05-08 17:56:36.000000000 -0400
++++ regex-tdfa-1.2.3.2/Text/Regex/TDFA.hs	2019-05-11 09:11:57.955453593 -0400
+@@ -176,6 +176,7 @@
                        ,module Text.Regex.TDFA.Common
                        ,module Text.Regex.Base) where
  
@@ -9,7 +9,7 @@ diff -ru regex-tdfa-1.2.3.1.orig/Text/Regex/TDFA.hs regex-tdfa-1.2.3.1/Text/Rege
  import Data.Version(Version)
  import Text.Regex.Base
  import Text.Regex.TDFA.String()
-@@ -82,9 +83,9 @@
+@@ -202,9 +203,9 @@
  
  -- | This is the monadic matching operator.  If a single match fails,
  -- then 'fail' will be called.

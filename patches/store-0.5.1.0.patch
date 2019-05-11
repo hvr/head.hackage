@@ -1,7 +1,7 @@
-diff -ru store-0.5.0.1.orig/src/Data/Store/TH/Internal.hs store-0.5.0.1/src/Data/Store/TH/Internal.hs
---- store-0.5.0.1.orig/src/Data/Store/TH/Internal.hs	2017-11-22 10:23:16.000000000 -0500
-+++ store-0.5.0.1/src/Data/Store/TH/Internal.hs	2019-03-16 09:49:48.207604408 -0400
-@@ -354,7 +354,14 @@
+diff -ru store-0.5.1.0.orig/src/Data/Store/TH/Internal.hs store-0.5.1.0/src/Data/Store/TH/Internal.hs
+--- store-0.5.1.0.orig/src/Data/Store/TH/Internal.hs	2019-04-24 14:58:44.000000000 -0400
++++ store-0.5.1.0/src/Data/Store/TH/Internal.hs	2019-05-11 08:56:43.536046269 -0400
+@@ -363,7 +363,14 @@
      FamilyI _ insts <- reify ''UV.Vector
      return (map (everywhere (id `extT` dequalVarT) . go) insts)
    where
@@ -17,9 +17,9 @@ diff -ru store-0.5.0.1.orig/src/Data/Store/TH/Internal.hs store-0.5.0.1/src/Data
      go (NewtypeInstD preds _ [ty] _ con _) = (preds, ty, conToDataCons con)
      go (DataInstD preds _ [ty] _ cons _) = (preds, ty, concatMap conToDataCons cons)
  #else
-diff -ru store-0.5.0.1.orig/src/Data/Store/TH.hs store-0.5.0.1/src/Data/Store/TH.hs
---- store-0.5.0.1.orig/src/Data/Store/TH.hs	2017-11-22 10:23:16.000000000 -0500
-+++ store-0.5.0.1/src/Data/Store/TH.hs	2019-03-16 09:51:04.588196220 -0400
+diff -ru store-0.5.1.0.orig/src/Data/Store/TH.hs store-0.5.1.0/src/Data/Store/TH.hs
+--- store-0.5.1.0.orig/src/Data/Store/TH.hs	2019-04-24 14:58:44.000000000 -0400
++++ store-0.5.1.0/src/Data/Store/TH.hs	2019-05-11 08:56:43.536046269 -0400
 @@ -37,6 +37,7 @@
      , assertRoundtrip
      ) where
@@ -37,9 +37,9 @@ diff -ru store-0.5.0.1.orig/src/Data/Store/TH.hs store-0.5.0.1/src/Data/Store/TH
  assertRoundtrip verbose x
      | checkRoundtrip verbose x = return ()
      | otherwise = fail $ "Failed to roundtrip "  ++ show (typeOf x)
-diff -ru store-0.5.0.1.orig/src/Data/Store/Version.hs store-0.5.0.1/src/Data/Store/Version.hs
---- store-0.5.0.1.orig/src/Data/Store/Version.hs	2017-11-22 10:23:16.000000000 -0500
-+++ store-0.5.0.1/src/Data/Store/Version.hs	2019-03-16 09:51:19.052308284 -0400
+diff -ru store-0.5.1.0.orig/src/Data/Store/Version.hs store-0.5.1.0/src/Data/Store/Version.hs
+--- store-0.5.1.0.orig/src/Data/Store/Version.hs	2019-04-24 14:58:44.000000000 -0400
++++ store-0.5.1.0/src/Data/Store/Version.hs	2019-05-11 08:56:43.536046269 -0400
 @@ -217,7 +217,7 @@
      goField = do
          s <- get
@@ -49,9 +49,9 @@ diff -ru store-0.5.0.1.orig/src/Data/Store/Version.hs store-0.5.0.1/src/Data/Sto
              (name:names) -> do
                  getStructureInfo' ignore renames (Proxy :: Proxy b)
                  s' <- get
-diff -ru store-0.5.0.1.orig/src/System/IO/ByteBuffer.hs store-0.5.0.1/src/System/IO/ByteBuffer.hs
---- store-0.5.0.1.orig/src/System/IO/ByteBuffer.hs	2017-11-22 10:23:16.000000000 -0500
-+++ store-0.5.0.1/src/System/IO/ByteBuffer.hs	2019-03-16 09:51:48.640537533 -0400
+diff -ru store-0.5.1.0.orig/src/System/IO/ByteBuffer.hs store-0.5.1.0/src/System/IO/ByteBuffer.hs
+--- store-0.5.1.0.orig/src/System/IO/ByteBuffer.hs	2018-12-24 02:27:39.000000000 -0500
++++ store-0.5.1.0/src/System/IO/ByteBuffer.hs	2019-05-11 08:56:43.536046269 -0400
 @@ -43,6 +43,7 @@
  import           Control.Applicative
  import           Control.Exception (SomeException, throwIO)
