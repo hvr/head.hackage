@@ -1,0 +1,12 @@
+diff -ru happy-1.19.10.orig/src/AttrGrammarParser.hs happy-1.19.10/src/AttrGrammarParser.hs
+--- happy-1.19.10.orig/src/AttrGrammarParser.hs	2019-05-09 03:31:41.000000000 -0400
++++ happy-1.19.10/src/AttrGrammarParser.hs	2019-05-11 08:44:12.337786973 -0400
+@@ -339,7 +339,7 @@
+ 
+ 
+ happyError :: P a
+-happyError = fail ("Parse error\n")
++happyError = failP ("Parse error\n")
+ {-# LINE 1 "templates/GenericTemplate.hs" #-}
+ {-# LINE 1 "templates/GenericTemplate.hs" #-}
+ {-# LINE 1 "<built-in>" #-}
