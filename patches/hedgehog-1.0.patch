@@ -1,0 +1,21 @@
+diff -ru hedgehog-1.0.orig/src/Hedgehog/Internal/Gen.hs hedgehog-1.0/src/Hedgehog/Internal/Gen.hs
+--- hedgehog-1.0.orig/src/Hedgehog/Internal/Gen.hs	2019-05-13 05:52:05.000000000 -0400
++++ hedgehog-1.0/src/Hedgehog/Internal/Gen.hs	2019-05-17 13:26:15.191782408 -0400
+@@ -1,5 +1,6 @@
+ {-# OPTIONS_HADDOCK not-home #-}
+ {-# LANGUAGE ApplicativeDo #-}
++{-# LANGUAGE CPP #-}
+ {-# LANGUAGE DataKinds #-}
+ {-# LANGUAGE DeriveFoldable #-}
+ {-# LANGUAGE DeriveFunctor #-}
+@@ -486,8 +487,10 @@
+           runGenT size sk . k =<<
+           runGenT size sm m
+ 
++#if !(MIN_VERSION_base(4,13,0))
+   fail =
+     Fail.fail
++#endif
+ 
+ instance Monad m => MonadFail (GenT m) where
+   fail =

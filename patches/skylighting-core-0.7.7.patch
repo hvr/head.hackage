@@ -1,0 +1,18 @@
+diff -ru skylighting-core-0.7.7.orig/src/Skylighting/Regex.hs skylighting-core-0.7.7/src/Skylighting/Regex.hs
+--- skylighting-core-0.7.7.orig/src/Skylighting/Regex.hs	2019-02-28 01:12:37.000000000 -0500
++++ skylighting-core-0.7.7/src/Skylighting/Regex.hs	2019-05-17 14:07:17.266167167 -0400
+@@ -12,6 +12,7 @@
+               , convertOctalEscapes
+               ) where
+ 
++import qualified Control.Monad.Fail as Fail
+ import qualified Control.Exception as E
+ import Data.Aeson
+ import Data.Binary (Binary)
+@@ -102,5 +103,5 @@
+ encodeToText :: BS.ByteString -> Text.Text
+ encodeToText = TE.decodeUtf8 . Base64.encode
+ 
+-decodeFromText :: (Monad m) => Text.Text -> m BS.ByteString
++decodeFromText :: (Fail.MonadFail m) => Text.Text -> m BS.ByteString
+ decodeFromText = either fail return . Base64.decode . TE.encodeUtf8

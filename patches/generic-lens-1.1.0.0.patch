@@ -1,0 +1,32 @@
+commit 07cfab73b53324a8459148a61b37e92c002e9b37
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Fri May 17 13:30:53 2019 -0400
+
+    Fix https://github.com/kcsongor/generic-lens/issues/84
+
+diff --git a/src/Data/Generics/Product/Any.hs b/src/Data/Generics/Product/Any.hs
+index cc90fc0..e78bcf9 100644
+--- a/src/Data/Generics/Product/Any.hs
++++ b/src/Data/Generics/Product/Any.hs
+@@ -53,7 +53,7 @@ import Data.Generics.Product.Typed
+ -- human = Human "Tunyasz" 50 "London"
+ -- :}
+ 
+-class HasAny (sel :: k) s t a b | s sel k -> a where
++class HasAny sel s t a b | s sel -> a where
+   -- |A lens that focuses on a part of a product as identified by some
+   --  selector. Currently supported selectors are field names, positions and
+   --  unique types. Compatible with the lens package's 'Control.Lens.Lens'
+diff --git a/src/Data/Generics/Sum/Any.hs b/src/Data/Generics/Sum/Any.hs
+index cefb67a..478ef5b 100644
+--- a/src/Data/Generics/Sum/Any.hs
++++ b/src/Data/Generics/Sum/Any.hs
+@@ -61,7 +61,7 @@ import Data.Generics.Internal.VL.Prism
+ -- :}
+ 
+ -- |Sums that have generic prisms.
+-class AsAny (sel :: k) a s | s sel k -> a where
++class AsAny sel a s | s sel -> a where
+   -- |A prism that projects a sum as identified by some selector. Currently
+   --  supported selectors are constructor names and unique types. Compatible
+   --  with the lens package's 'Control.Lens.Prism' type.

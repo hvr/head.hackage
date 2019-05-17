@@ -1,0 +1,29 @@
+diff -ru bencode-0.6.0.0.orig/src/Data/BEncode/Parser.hs bencode-0.6.0.0/src/Data/BEncode/Parser.hs
+--- bencode-0.6.0.0.orig/src/Data/BEncode/Parser.hs	2015-05-09 15:56:43.000000000 -0400
++++ bencode-0.6.0.0/src/Data/BEncode/Parser.hs	2019-05-17 14:32:05.074495583 -0400
+@@ -1,3 +1,5 @@
++{-# LANGUAGE CPP #-}
++
+ -----------------------------------------------------------------------------
+ -- |
+ -- Module      :  BParser
+@@ -26,6 +28,7 @@
+ 
+ import           Control.Applicative        hiding (optional)
+ import           Control.Monad
++import qualified Control.Monad.Fail as Fail
+ import           Data.BEncode
+ import qualified Data.ByteString.Lazy.Char8 as L
+ import qualified Data.Map                   as Map
+@@ -61,6 +64,11 @@
+                                           Ok a b' -> runB (f a) b'
+                                           Error str -> Error str
+     return val = BParser $ Ok val
++#if !(MIN_VERSION_base(4,13,0))
++    fail = Fail.fail
++#endif
++
++instance Fail.MonadFail BParser where
+     fail str = BParser $ \_ -> Error str
+ 
+ instance Functor BParser where

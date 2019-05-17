@@ -1,0 +1,105 @@
+commit 628b9f79437644aaad2fe486171c6a8e957099d3
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Fri May 17 14:15:54 2019 -0400
+
+    Adapt to base-4.13.0.0
+
+diff --git a/src/Text/Pandoc/Class.hs b/src/Text/Pandoc/Class.hs
+index fb3cfa72a..b924d51dc 100644
+--- a/src/Text/Pandoc/Class.hs
++++ b/src/Text/Pandoc/Class.hs
+@@ -981,7 +981,7 @@ instance PandocMonad PandocPure where
+       u : us -> do
+         modifyPureState $ \st -> st { stUniqStore = us }
+         return u
+-      _ -> M.fail "uniq store ran out of elements"
++      _ -> error "uniq store ran out of elements"
+   openURL u = throwError $ PandocResourceNotFound u
+   readFileLazy fp = do
+     fps <- getsPureState stFiles
+diff --git a/src/Text/Pandoc/Readers/Markdown.hs b/src/Text/Pandoc/Readers/Markdown.hs
+index c3469b22b..364a6f473 100644
+--- a/src/Text/Pandoc/Readers/Markdown.hs
++++ b/src/Text/Pandoc/Readers/Markdown.hs
+@@ -260,7 +260,7 @@ yamlBsToMeta bstr = do
+ nodeToKey :: Monad m => YAML.Node -> m Text
+ nodeToKey (YAML.Scalar (YAML.SStr t))       = return t
+ nodeToKey (YAML.Scalar (YAML.SUnknown _ t)) = return t
+-nodeToKey _                                 = fail "Non-string key in YAML mapping"
++nodeToKey _                                 = error "Non-string key in YAML mapping"
+ 
+ toMetaValue :: PandocMonad m
+             => Text -> MarkdownParser m (F MetaValue)
+diff --git a/src/Text/Pandoc/Writers/Docx.hs b/src/Text/Pandoc/Writers/Docx.hs
+index a7b9ee621..c38ffc3d5 100644
+--- a/src/Text/Pandoc/Writers/Docx.hs
++++ b/src/Text/Pandoc/Writers/Docx.hs
+@@ -560,7 +560,7 @@ writeDocx opts doc@(Pandoc meta _) = do
+   settingsEntry <- copyChildren refArchive distArchive settingsPath epochtime settingsList
+ 
+   let entryFromArchive arch path =
+-         maybe (fail $ path ++ " missing in reference docx")
++         maybe (error $ path ++ " missing in reference docx")
+                return
+                (findEntryByPath path arch `mplus` findEntryByPath path distArchive)
+   docPropsAppEntry <- entryFromArchive refArchive "docProps/app.xml"
+diff --git a/src/Text/Pandoc/Writers/Muse.hs b/src/Text/Pandoc/Writers/Muse.hs
+index ae23a4f9b..32244dd94 100644
+--- a/src/Text/Pandoc/Writers/Muse.hs
++++ b/src/Text/Pandoc/Writers/Muse.hs
+@@ -614,7 +614,7 @@ inlineToMuse (Subscript lst) = do
+   modify $ \st -> st { stUseTags = False }
+   return $ "<sub>" <> contents <> "</sub>"
+ inlineToMuse SmallCaps {} =
+-  fail "SmallCaps should be expanded before normalization"
++  error "SmallCaps should be expanded before normalization"
+ inlineToMuse (Quoted SingleQuote lst) = do
+   contents <- inlineListToMuse lst
+   modify $ \st -> st { stUseTags = False }
+@@ -624,7 +624,7 @@ inlineToMuse (Quoted DoubleQuote lst) = do
+   modify $ \st -> st { stUseTags = False }
+   return $ "“" <> contents <> "”"
+ inlineToMuse Cite {} =
+-  fail "Citations should be expanded before normalization"
++  error "Citations should be expanded before normalization"
+ inlineToMuse (Code _ str) = do
+   useTags <- gets stUseTags
+   modify $ \st -> st { stUseTags = False }
+@@ -632,7 +632,7 @@ inlineToMuse (Code _ str) = do
+              then "<code>" <> text (substitute "</code>" "<</code><code>/code>" str) <> "</code>"
+              else "=" <> text str <> "="
+ inlineToMuse Math{} =
+-  fail "Math should be expanded before normalization"
++  error "Math should be expanded before normalization"
+ inlineToMuse (RawInline (Format f) str) = do
+   modify $ \st -> st { stUseTags = False }
+   return $ "<literal style=\"" <> text f <> "\">" <> text str <> "</literal>"
+diff --git a/src/Text/Pandoc/Writers/OOXML.hs b/src/Text/Pandoc/Writers/OOXML.hs
+index 3c62a4f79..469fe31ea 100644
+--- a/src/Text/Pandoc/Writers/OOXML.hs
++++ b/src/Text/Pandoc/Writers/OOXML.hs
+@@ -54,9 +54,9 @@ parseXml :: (PandocMonad m) => Archive -> Archive -> String -> m Element
+ parseXml refArchive distArchive relpath =
+   case findEntryByPath relpath refArchive `mplus`
+          findEntryByPath relpath distArchive of
+-            Nothing -> fail $ relpath ++ " missing in reference file"
++            Nothing -> error $ relpath ++ " missing in reference file"
+             Just e  -> case parseXMLDoc . UTF8.toStringLazy . fromEntry $ e of
+-                       Nothing -> fail $ relpath ++ " corrupt in reference file"
++                       Nothing -> error $ relpath ++ " corrupt in reference file"
+                        Just d  -> return d
+ 
+ -- Copied from Util
+diff --git a/src/Text/Pandoc/Writers/Powerpoint/Output.hs b/src/Text/Pandoc/Writers/Powerpoint/Output.hs
+index a45c09bd4..6a0d4a002 100644
+--- a/src/Text/Pandoc/Writers/Powerpoint/Output.hs
++++ b/src/Text/Pandoc/Writers/Powerpoint/Output.hs
+@@ -153,7 +153,7 @@ copyFileToArchive arch fp = do
+   refArchive <- asks envRefArchive
+   distArchive <- asks envDistArchive
+   case findEntryByPath fp refArchive `mplus` findEntryByPath fp distArchive of
+-    Nothing -> fail $ fp ++ " missing in reference file"
++    Nothing -> error $ fp ++ " missing in reference file"
+     Just e -> return $ addEntryToArchive e arch
+ 
+ alwaysInheritedPatterns :: [Pattern]

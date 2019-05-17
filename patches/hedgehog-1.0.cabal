@@ -1,5 +1,5 @@
-version: 0.6.1
-x-revision: 3
+version: 1.0
+x-revision: 1
 
 name:
   hedgehog
@@ -12,14 +12,17 @@ homepage:
 bug-reports:
   https://github.com/hedgehogqa/haskell-hedgehog/issues
 synopsis:
-  Hedgehog will eat all your bugs.
+  Release with confidence.
 description:
-  Hedgehog is a modern property-based testing system, in the spirit of
-  QuickCheck. Hedgehog uses integrated shrinking, so shrinks obey the
-  invariants of generated values by construction.
+  <http://hedgehog.qa/ Hedgehog> automatically generates a comprehensive array
+  of test cases, exercising your software in ways human testers would never
+  imagine.
   .
-  To get started quickly, see the examples:
-  <https://github.com/hedgehogqa/haskell-hedgehog/tree/master/hedgehog-example>
+  Generate hundreds of test cases automatically, exposing even the
+  most insidious of corner cases. Failures are automatically simplified, giving
+  developers coherent, intelligible error messages.
+  .
+  To get started quickly, see the <https://github.com/hedgehogqa/haskell-hedgehog/tree/master/hedgehog-example examples>.
 category:
   Testing
 license:
@@ -31,15 +34,10 @@ cabal-version:
 build-type:
   Simple
 tested-with:
-    GHC == 7.10.2
-  , GHC == 7.10.3
-  , GHC == 8.0.1
-  , GHC == 8.0.2
-  , GHC == 8.2.1
+    GHC == 8.0.2
   , GHC == 8.2.2
-  , GHC == 8.4.1
-  , GHC == 8.4.2
-  , GHC == 8.4.3
+  , GHC == 8.4.4
+  , GHC == 8.6.4
 extra-source-files:
   README.md
   CHANGELOG.md
@@ -50,7 +48,8 @@ source-repository head
 
 library
   build-depends:
-      base                            >= 3          && < 5
+   -- GHC 8.0.1 / base-4.9.0.0 (May 2016)
+      base                            >= 4.9        && < 5
     , ansi-terminal                   >= 0.6        && < 0.10
     , async                           >= 2.0        && < 2.3
     , bytestring                      >= 0.10       && < 0.11
@@ -58,6 +57,7 @@ library
     , containers                      >= 0.4        && < 0.7
     , directory                       >= 1.2        && < 1.4
     , exceptions                      >= 0.7        && < 0.11
+    , fail                            >= 4.9        && < 5
     , lifted-async                    >= 0.7        && < 0.11
     , mmorph                          >= 1.0        && < 1.2
     , monad-control                   >= 1.0        && < 1.1
@@ -66,22 +66,20 @@ library
     , primitive                       >= 0.6        && < 0.7
     , random                          >= 1.1        && < 1.2
     , resourcet                       >= 1.1        && < 1.3
-    , semigroups                      >= 0.16       && < 0.19
+    , semigroups                      >= 0.16       && < 0.20
     , stm                             >= 2.4        && < 2.6
     , template-haskell                >= 2.10       && < 2.15
     , text                            >= 1.1        && < 1.3
-    , th-lift                         >= 0.7        && < 0.8
     , time                            >= 1.4        && < 1.10
-    , transformers                    >= 0.4        && < 0.6
-    , transformers-base               >= 0.4        && < 0.5
+    , transformers                    >= 0.5        && < 0.6
+    , transformers-base               >= 0.4.5.1    && < 0.5
     , wl-pprint-annotated             >= 0.0        && < 0.2
-
-  if !os(windows)
-    build-depends:
-      unix                            >= 2.6        && < 2.8
 
   ghc-options:
     -Wall
+
+  if impl(ghc >= 8.0)
+    ghc-options: -Wnoncanonical-monad-instances
 
   hs-source-dirs:
     src
@@ -89,6 +87,7 @@ library
   exposed-modules:
     Hedgehog
     Hedgehog.Gen
+    Hedgehog.Main
     Hedgehog.Range
 
     Hedgehog.Internal.Config
@@ -127,14 +126,19 @@ test-suite test
     test
 
   other-modules:
+    Test.Hedgehog.Applicative
+    Test.Hedgehog.Filter
     Test.Hedgehog.Seed
     Test.Hedgehog.Text
+    Test.Hedgehog.Zip
 
   build-depends:
       hedgehog
     , base                            >= 3          && < 5
     , containers                      >= 0.4        && < 0.7
+    , mmorph                          >= 1.0        && < 1.2
+    , mtl                             >= 2.1        && < 2.3
     , pretty-show                     >= 1.6        && < 1.10
-    , semigroups                      >= 0.16       && < 0.19
+    , semigroups                      >= 0.16       && < 0.20
     , text                            >= 1.1        && < 1.3
     , transformers                    >= 0.3        && < 0.6
