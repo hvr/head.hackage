@@ -12,7 +12,7 @@ index d4cf0b1..7080c7c 100644
    rpointMethod _ = RNil
    {-# INLINE rpointMethod #-}
  
-+#if __GLASGOW_HASKELL__ >= 809
++#if __GLASGOW_HASKELL__ >= 808
 +# define KVS(kvs) kvs
 +#else
 +# define KVS(kvs)
@@ -74,7 +74,7 @@ index 35e5944..f2524e3 100644
  lens sa sbt afb s = fmap (sbt s) $ afb (sa s)
  {-# INLINE lens #-}
  
-+#if __GLASGOW_HASKELL__ >= 809
++#if __GLASGOW_HASKELL__ >= 808
 +# define KVS(kvs) kvs
 +#else
 +# define KVS(kvs)
@@ -136,7 +136,7 @@ index b813e47..f359ef1 100644
      RNil -> RNil
      (x :& xs) -> Compose (Dict x) :& reifyConstraint prx xs
  
-+#if __GLASGOW_HASKELL__ >= 809
++#if __GLASGOW_HASKELL__ >= 808
 +# define KVS(kvs) kvs
 +#else
 +# define KVS(kvs)
@@ -165,7 +165,7 @@ index 6f850c8..68c6893 100644
      withForeignPtr dst $ \dst' ->
        dst <$ copyBytes dst' src' n
  
-+#if __GLASGOW_HASKELL__ >= 809
++#if __GLASGOW_HASKELL__ >= 808
 +# define KVS(kvs) kvs
 +#else
 +# define KVS(kvs)
@@ -203,7 +203,7 @@ index f84d54b..d48cf3c 100644
  instance ToJSON (f a) => ToJSON ((((,) Text) :. f) a) where
    toJSON (Compose (name, x)) = object [(name, toJSON x)]
  
-+#if __GLASGOW_HASKELL__ >= 809
++#if __GLASGOW_HASKELL__ >= 808
 +# define KVS(kvs) kvs
 +#else
 +# define KVS(kvs)

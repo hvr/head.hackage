@@ -1,0 +1,19 @@
+commit 4b33d76001a11970d615f675a7e10b71a74085c2
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Fri May 17 13:57:34 2019 -0400
+
+    Adapt to base-4.13.0.0
+
+diff --git a/src/Text/TeXMath/Writers/TeX.hs b/src/Text/TeXMath/Writers/TeX.hs
+index 262ece97..a0e54516 100644
+--- a/src/Text/TeXMath/Writers/TeX.hs
++++ b/src/Text/TeXMath/Writers/TeX.hs
+@@ -93,7 +93,7 @@ writeBinom cmd x y = do
+            "\\brack"  -> tellGenFrac "[" "]"
+            "\\brace"  -> tellGenFrac "\\{" "\\}"
+            "\\bangle" -> tellGenFrac "\\langle" "\\rangle"
+-           _          -> fail "writeBinom: unknown cmd"
++           _          -> error "writeBinom: unknown cmd"
+        tellGroup $ writeExp x
+        tellGroup $ writeExp y
+      else tellGroup $ do

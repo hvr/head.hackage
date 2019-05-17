@@ -1,0 +1,30 @@
+diff -ru regex-pcre-builtin-0.94.4.8.8.35.orig/Text/Regex/PCRE/Wrap.hsc regex-pcre-builtin-0.94.4.8.8.35/Text/Regex/PCRE/Wrap.hsc
+--- regex-pcre-builtin-0.94.4.8.8.35.orig/Text/Regex/PCRE/Wrap.hsc	2014-05-12 08:04:05.000000000 -0400
++++ regex-pcre-builtin-0.94.4.8.8.35/Text/Regex/PCRE/Wrap.hsc	2019-05-17 13:43:28.369074601 -0400
+@@ -69,6 +69,8 @@
+   retNoSubstring
+   ) where
+ 
++import qualified Control.Monad.Fail as Fail
++
+ #if defined(HAVE_PCRE_H)
+ import Control.Monad(when)
+ import Data.Array(Array,accumArray)
+@@ -134,7 +136,7 @@
+ 
+ (=~)  :: (RegexMaker Regex CompOption ExecOption source,RegexContext Regex source1 target)
+       => source1 -> source -> target
+-(=~~) :: (RegexMaker Regex CompOption ExecOption source,RegexContext Regex source1 target,Monad m)
++(=~~) :: (RegexMaker Regex CompOption ExecOption source,RegexContext Regex source1 target,Fail.MonadFail m)
+       => source1 -> source -> m target
+ 
+ #if defined(HAVE_PCRE_H)
+@@ -154,7 +156,7 @@
+                q = makeRegex r
+            in match q x
+ 
+--- (=~~) ::(RegexMaker Regex CompOption ExecOption source,RegexContext Regex source1 target,Monad m) => source1 -> source -> m target
++-- (=~~) ::(RegexMaker Regex CompOption ExecOption source,RegexContext Regex source1 target,Fail.MonadFail m) => source1 -> source -> m target
+ (=~~) x r = do (q :: Regex) <-  makeRegexM r
+                matchM q x
+ 

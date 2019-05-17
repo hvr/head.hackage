@@ -1,0 +1,53 @@
+diff -ru inline-c-0.7.0.1.orig/src/Language/C/Inline/Internal.hs inline-c-0.7.0.1/src/Language/C/Inline/Internal.hs
+--- inline-c-0.7.0.1.orig/src/Language/C/Inline/Internal.hs	2018-12-16 18:08:10.000000000 -0500
++++ inline-c-0.7.0.1/src/Language/C/Inline/Internal.hs	2019-05-17 16:26:24.310528911 -0400
+@@ -54,6 +54,7 @@
+ 
+ import           Control.Applicative
+ import           Control.Monad (forM, void, msum)
++import qualified Control.Monad.Fail as Fail
+ import           Control.Monad.State (evalStateT, StateT, get, put)
+ import           Control.Monad.Trans.Class (lift)
+ import           Data.Foldable (forM_)
+@@ -523,7 +524,7 @@
+     -- The @m@ is polymorphic because we use this both for the plain
+     -- parser and the StateT parser we use above.  We only need 'fail'.
+     purgeHaskellIdentifiers
+-      :: forall n. (Applicative n, Monad n)
++      :: forall n. (Applicative n, Fail.MonadFail n)
+       => C.Type HaskellIdentifier -> n (C.Type C.CIdentifier)
+     purgeHaskellIdentifiers cTy = for cTy $ \hsIdent -> do
+       let hsIdentS = unHaskellIdentifier hsIdent
+@@ -539,9 +540,9 @@
+   -> TH.QuasiQuoter
+ quoteCode p = TH.QuasiQuoter
+   { TH.quoteExp = p
+-  , TH.quotePat = fail "inline-c: quotePat not implemented (quoteCode)"
+-  , TH.quoteType = fail "inline-c: quoteType not implemented (quoteCode)"
+-  , TH.quoteDec = fail "inline-c: quoteDec not implemented (quoteCode)"
++  , TH.quotePat = \_ -> fail "inline-c: quotePat not implemented (quoteCode)"
++  , TH.quoteType = \_ -> fail "inline-c: quoteType not implemented (quoteCode)"
++  , TH.quoteDec = \_ -> fail "inline-c: quoteDec not implemented (quoteCode)"
+   }
+ 
+ genericQuote
+diff -ru inline-c-0.7.0.1.orig/src/Language/C/Types/Parse.hs inline-c-0.7.0.1/src/Language/C/Types/Parse.hs
+--- inline-c-0.7.0.1.orig/src/Language/C/Types/Parse.hs	2018-05-01 05:44:49.000000000 -0400
++++ inline-c-0.7.0.1/src/Language/C/Types/Parse.hs	2019-05-17 16:25:08.465693889 -0400
+@@ -88,6 +88,7 @@
+ 
+ import           Control.Applicative
+ import           Control.Monad (msum, void, MonadPlus, unless, when)
++import qualified Control.Monad.Fail as Fail
+ import           Control.Monad.Reader (MonadReader, runReaderT, ReaderT, asks, ask)
+ import           Data.Functor.Identity (Identity)
+ import qualified Data.HashSet as HashSet
+@@ -166,7 +167,7 @@
+ -- referring to Haskell variables, and thus we need to parse Haskell
+ -- identifiers in certain positions.
+ type CParser i m =
+-  ( Monad m
++  ( Fail.MonadFail m
+   , Functor m
+   , Applicative m
+   , MonadPlus m

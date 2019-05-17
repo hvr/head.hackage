@@ -1,0 +1,22 @@
+diff -ru xml-hamlet-0.5.0.orig/Text/Hamlet/XMLParse.hs xml-hamlet-0.5.0/Text/Hamlet/XMLParse.hs
+--- xml-hamlet-0.5.0.orig/Text/Hamlet/XMLParse.hs	2017-01-16 07:55:00.000000000 -0500
++++ xml-hamlet-0.5.0/Text/Hamlet/XMLParse.hs	2019-05-17 14:34:44.015911657 -0400
+@@ -15,6 +15,7 @@
+ import Text.Shakespeare.Base
+ import Control.Applicative ((<$>), Applicative (..))
+ import Control.Monad
++import qualified Control.Monad.Fail as Fail
+ import Data.Char (isUpper)
+ import Data.Data
+ import Text.ParserCombinators.Parsec hiding (Line)
+@@ -25,6 +26,10 @@
+     return = Ok
+     Error s >>= _ = Error s
+     Ok v >>= f = f v
++#if !(MIN_VERSION_base(4,13,0))
++    fail = Fail.fail
++#endif
++instance Fail.MonadFail Result where
+     fail = Error
+ instance Functor Result where
+     fmap = liftM
