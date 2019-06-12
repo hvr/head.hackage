@@ -1,14 +1,38 @@
-commit 8b8d16d9e6718242b958ef6a2d2a650cea83ac09
+commit 79490be79c4ad2e07fc8e43a9887fc21f1907f76
 Author: Ryan Scott <ryan.gl.scott@gmail.com>
-Date:   Sun Jan 20 08:38:19 2019 -0500
+Date:   Wed Jun 12 18:52:03 2019 -0400
 
-    Allow building with Cabal-2.5.*
+    Allow building with Cabal-3.0.*
 
 diff --git a/src/Distribution/Extra/Doctest.hs b/src/Distribution/Extra/Doctest.hs
-index 1beb9d2..85d428c 100644
+index 1beb9d2..94ca62b 100644
 --- a/src/Distribution/Extra/Doctest.hs
 +++ b/src/Distribution/Extra/Doctest.hs
-@@ -103,6 +103,9 @@ import Distribution.Types.GenericPackageDescription
+@@ -69,8 +69,10 @@ import Distribution.PackageDescription
+        PackageDescription (), TestSuite (..))
+ import Distribution.Simple
+        (UserHooks (..), autoconfUserHooks, defaultMainWithHooks, simpleUserHooks)
++#if !(MIN_VERSION_Cabal(3,0,0))
+ import Distribution.Simple.BuildPaths
+        (autogenModulesDir)
++#endif
+ import Distribution.Simple.Compiler
+        (PackageDB (..), showCompilerId)
+ import Distribution.Simple.LocalBuildInfo
+@@ -79,7 +81,11 @@ import Distribution.Simple.LocalBuildInfo
+ import Distribution.Simple.Setup
+        (BuildFlags (buildDistPref, buildVerbosity), HaddockFlags (haddockDistPref, haddockVerbosity), fromFlag, emptyBuildFlags)
+ import Distribution.Simple.Utils
+-       (createDirectoryIfMissingVerbose, findFile, rewriteFile)
++       (createDirectoryIfMissingVerbose, findFile)
++#if !(MIN_VERSION_Cabal(3,0,0))
++import Distribution.Simple.Utils
++       (rewriteFile)
++#endif
+ import Distribution.Text
+        (display, simpleParse)
+ import System.FilePath
+@@ -103,6 +109,9 @@ import Distribution.Types.GenericPackageDescription
  import Distribution.PackageDescription
         (CondTree (..))
  #endif
@@ -18,7 +42,7 @@ index 1beb9d2..85d428c 100644
  
  #if MIN_VERSION_directory(1,2,2)
  import System.Directory
-@@ -432,7 +435,9 @@ generateBuildModule testSuiteName flags pkg lbi = do
+@@ -432,7 +441,9 @@ generateBuildModule testSuiteName flags pkg lbi = do
         isSpecific _                     = False
  
      mbLibraryName :: Library -> Name
