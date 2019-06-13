@@ -1,0 +1,12 @@
+diff -ru happy-1.19.11.orig/Setup.lhs happy-1.19.11/Setup.lhs
+--- happy-1.19.11.orig/Setup.lhs	2019-06-06 03:20:45.000000000 -0400
++++ happy-1.19.11/Setup.lhs	2019-06-13 07:19:11.018577108 -0400
+@@ -45,7 +45,7 @@
+               _ -> []
+ 
+ myPostBuild _ flags _ lbi = do
+-  let runProgram p = rawSystemProgramConf (fromFlagOrDefault normal (buildVerbosity flags))
++  let runProgram p = runDbProgram (fromFlagOrDefault normal (buildVerbosity flags))
+                                           p
+                                           (withPrograms lbi)
+       cpp_template src dst opts = do
