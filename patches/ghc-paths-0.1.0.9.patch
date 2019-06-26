@@ -1,0 +1,13 @@
+Only in ghc-paths-0.1.0.9/: ghc-paths.buildinfo
+diff -ru ghc-paths-0.1.0.9.orig/Setup.hs ghc-paths-0.1.0.9/Setup.hs
+--- ghc-paths-0.1.0.9.orig/Setup.hs	2012-12-03 07:00:02.000000000 -0500
++++ ghc-paths-0.1.0.9/Setup.hs	2019-06-26 10:55:50.814321566 -0400
+@@ -26,7 +26,7 @@
+   where
+     defaultPostConf :: Args -> ConfigFlags -> PackageDescription -> LocalBuildInfo -> IO ()
+     defaultPostConf args flags pkgdescr lbi = do
+-      libdir_ <- rawSystemProgramStdoutConf (fromFlag (configVerbosity flags))
++      libdir_ <- getDbProgramOutput (fromFlag (configVerbosity flags))
+                      ghcProgram (withPrograms lbi) ["--print-libdir"]
+       let libdir = reverse $ dropWhile isSpace $ reverse libdir_
+ 
