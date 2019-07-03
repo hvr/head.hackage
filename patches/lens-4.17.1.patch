@@ -1,8 +1,8 @@
-commit 53e1d423703c3cbce05d73250af107517b235c83
+commit 324c0e7a0d9c510b474f9bbc60f358de4566e48a
 Author: Ryan Scott <ryan.gl.scott@gmail.com>
-Date:   Fri Apr 26 13:38:18 2019 -0400
+Date:   Wed Jul 3 13:21:45 2019 -0400
 
-    Allow building with template-haskell-2.15.0.0
+    Adapt to building with template-haskell-2.15.*/2.16.*
 
 diff --git a/src/Control/Lens/Internal/TH.hs b/src/Control/Lens/Internal/TH.hs
 index 6ea63da2..185e47ae 100644
@@ -66,7 +66,7 @@ index dc7cead1..eff0a99b 100644
  data DataDecl = DataDecl
    { dataContext :: Cxt -- ^ Datatype context.
 diff --git a/src/Language/Haskell/TH/Lens.hs b/src/Language/Haskell/TH/Lens.hs
-index 9d1b0c88..9a7dbe18 100644
+index 9d1b0c88..8d5b8a35 100644
 --- a/src/Language/Haskell/TH/Lens.hs
 +++ b/src/Language/Haskell/TH/Lens.hs
 @@ -4,6 +4,10 @@
@@ -200,3 +200,37 @@ index 9d1b0c88..9a7dbe18 100644
  #endif
  
  _InfixL :: Prism' FixityDirection ()
+@@ -1837,7 +1901,15 @@ _TupE
+   = prism' reviewer remitter
+   where
+       reviewer = TupE
+-      remitter (TupE x) = Just x
++#if MIN_VERSION_template_haskell(2,16,0)
++                      . map Just
++#endif
++      remitter (TupE x) =
++#if MIN_VERSION_template_haskell(2,16,0)
++        sequence x
++#else
++        Just x
++#endif
+       remitter _ = Nothing
+ 
+ _UnboxedTupE :: Prism' Exp [Exp]
+@@ -1845,7 +1917,15 @@ _UnboxedTupE
+   = prism' reviewer remitter
+   where
+       reviewer = UnboxedTupE
+-      remitter (UnboxedTupE x) = Just x
++#if MIN_VERSION_template_haskell(2,16,0)
++                      . map Just
++#endif
++      remitter (UnboxedTupE x) =
++#if MIN_VERSION_template_haskell(2,16,0)
++        sequence x
++#else
++        Just x
++#endif
+       remitter _ = Nothing
+ 
+ #if MIN_VERSION_template_haskell(2,12,0)

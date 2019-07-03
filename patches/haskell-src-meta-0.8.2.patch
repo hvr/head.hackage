@@ -1,0 +1,71 @@
+diff -ru haskell-src-meta-0.8.2.orig/src/Language/Haskell/Meta/Syntax/Translate.hs haskell-src-meta-0.8.2/src/Language/Haskell/Meta/Syntax/Translate.hs
+--- haskell-src-meta-0.8.2.orig/src/Language/Haskell/Meta/Syntax/Translate.hs	2019-02-26 21:44:20.000000000 -0500
++++ haskell-src-meta-0.8.2/src/Language/Haskell/Meta/Syntax/Translate.hs	2019-07-03 13:56:24.764549867 -0400
+@@ -85,11 +85,23 @@
+ instance (ToExp a) => ToExp [a] where
+   toExp = ListE . fmap toExp
+ instance (ToExp a, ToExp b) => ToExp (a,b) where
+-  toExp (a,b) = TupE [toExp a, toExp b]
++  toExp (a,b) = TupE $
++#if MIN_VERSION_template_haskell(2,16,0)
++                    map Just
++#endif
++                [toExp a, toExp b]
+ instance (ToExp a, ToExp b, ToExp c) => ToExp (a,b,c) where
+-  toExp (a,b,c) = TupE [toExp a, toExp b, toExp c]
++  toExp (a,b,c) = TupE $
++#if MIN_VERSION_template_haskell(2,16,0)
++                    map Just
++#endif
++                  [toExp a, toExp b, toExp c]
+ instance (ToExp a, ToExp b, ToExp c, ToExp d) => ToExp (a,b,c,d) where
+-  toExp (a,b,c,d) = TupE [toExp a, toExp b, toExp c, toExp d]
++  toExp (a,b,c,d) = TupE $
++#if MIN_VERSION_template_haskell(2,16,0)
++                    map Just
++#endif
++                    [toExp a, toExp b, toExp c, toExp d]
+ 
+ 
+ instance ToPat Lit where
+@@ -250,8 +262,20 @@
+   toExp (Hs.Case _ e alts)           = CaseE (toExp e) (map toMatch alts)
+   toExp (Hs.Do _ ss)                 = DoE (map toStmt ss)
+   toExp e@(Hs.MDo _ _)               = noTH "toExp" e
+-  toExp (Hs.Tuple _ Hs.Boxed xs)     = TupE (fmap toExp xs)
+-  toExp (Hs.Tuple _ Hs.Unboxed xs)   = UnboxedTupE (fmap toExp xs)
++  toExp (Hs.Tuple _ Hs.Boxed xs)     = TupE (fmap
++#if MIN_VERSION_template_haskell(2,16,0)
++                                                  (Just . toExp)
++#else
++                                                  toExp
++#endif
++                                                        xs)
++  toExp (Hs.Tuple _ Hs.Unboxed xs)   = UnboxedTupE (fmap
++#if MIN_VERSION_template_haskell(2,16,0)
++                                                         (Just . toExp)
++#else
++                                                         toExp
++#endif
++                                                               xs)
+   toExp e@Hs.TupleSection{}        = noTH "toExp" e
+   toExp (Hs.List _ xs)               = ListE (fmap toExp xs)
+   toExp (Hs.Paren _ e)               = ParensE (toExp e)
+diff -ru haskell-src-meta-0.8.2.orig/src/Language/Haskell/Meta/Utils.hs haskell-src-meta-0.8.2/src/Language/Haskell/Meta/Utils.hs
+--- haskell-src-meta-0.8.2.orig/src/Language/Haskell/Meta/Utils.hs	2019-02-26 21:44:20.000000000 -0500
++++ haskell-src-meta-0.8.2/src/Language/Haskell/Meta/Utils.hs	2019-07-03 13:57:37.549286480 -0400
+@@ -338,7 +338,13 @@
+   in replicateM n (newName "a")
+       >>= \ns -> return (Just (LamE
+                     [ConP dConN (fmap VarP ns)]
+-                    (TupE $ fmap VarE ns)))
++                    (TupE $ fmap
++#if MIN_VERSION_template_haskell(2,16,0)
++                                 (Just . VarE)
++#else
++                                 VarE
++#endif
++                                      ns)))
+ fromDataConI _ = return Nothing
+ 
+ fromTyConI :: Info -> Maybe Dec

@@ -1,0 +1,23 @@
+commit b521da0ed2a96984ec3620bf88624b3074e0bcf7
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Wed Jul 3 13:33:55 2019 -0400
+
+    Adapt to template-haskell-2.16.*
+
+diff --git a/Data/FileEmbed.hs b/Data/FileEmbed.hs
+index bbd83ee..2fcd48b 100644
+--- a/Data/FileEmbed.hs
++++ b/Data/FileEmbed.hs
+@@ -143,7 +143,11 @@ pairToExp _root (path, bs) = do
+     qAddDependentFile $ _root ++ '/' : path
+ #endif
+     exp' <- bsToExp bs
+-    return $! TupE [LitE $ StringL path, exp']
++    return $! TupE $!
++#if MIN_VERSION_template_haskell(2,16,0)
++              map Just
++#endif
++              [LitE $ StringL path, exp']
+ 
+ bsToExp :: B.ByteString -> Q Exp
+ #if MIN_VERSION_template_haskell(2, 5, 0)

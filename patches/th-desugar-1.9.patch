@@ -1,11 +1,11 @@
-commit 04372a6db858203713074dd3b38b68efa17bedee
+commit 8fd994fad31d160a025ce3274438b0eb4cb21539
 Author: Ryan Scott <ryan.gl.scott@gmail.com>
-Date:   Fri Mar 15 19:09:33 2019 -0400
+Date:   Wed Jul 3 14:15:40 2019 -0400
 
-    Adapt to base-4.13.0.0
+    Adapt to base-4.13.*/template-haskell-2.{15.*,16.*}
 
 diff --git a/Language/Haskell/TH/Desugar/Core.hs b/Language/Haskell/TH/Desugar/Core.hs
-index 0f185a1..5e2bea4 100644
+index 0cc2f44..69a8014 100644
 --- a/Language/Haskell/TH/Desugar/Core.hs
 +++ b/Language/Haskell/TH/Desugar/Core.hs
 @@ -21,6 +21,7 @@ import Language.Haskell.TH.ExpandSyns ( expandSyns )
@@ -16,69 +16,30 @@ index 0f185a1..5e2bea4 100644
  import Control.Monad.Zip
  import Control.Monad.Writer hiding (forM_, mapM)
  import Data.Foldable hiding (notElem)
-@@ -1211,7 +1212,7 @@ reorderFieldsPat :: DsMonad q => Name -> [VarStrictType] -> [FieldPat] -> PatM q
- reorderFieldsPat con_name field_decs field_pats =
-   reorderFields' dsPat con_name field_decs field_pats (repeat DWildPa)
- 
--reorderFields' :: (Applicative m, Monad m)
-+reorderFields' :: (Applicative m, Fail.MonadFail m)
-                => (a -> m da)
-                -> Name -- ^ The name of the constructor (used for error reporting)
-                -> [VarStrictType] -> [(Name, a)]
-@@ -1297,7 +1298,7 @@ strictToBang = id
- #endif
- 
- -- | Convert a 'DType' to a 'DPred'.
--dTypeToDPred :: Monad q => DType -> q DPred
-+dTypeToDPred :: Fail.MonadFail q => DType -> q DPred
- dTypeToDPred (DForallT tvbs cxt ty)
-                              = DForallPr tvbs cxt `liftM` dTypeToDPred ty
- dTypeToDPred (DAppT t1 t2)   = liftM2 DAppPr (dTypeToDPred t1) (return t2)
-diff --git a/Language/Haskell/TH/Desugar/Util.hs b/Language/Haskell/TH/Desugar/Util.hs
-index 3729601..4a74ce5 100644
---- a/Language/Haskell/TH/Desugar/Util.hs
-+++ b/Language/Haskell/TH/Desugar/Util.hs
-@@ -36,6 +36,7 @@ import Language.Haskell.TH hiding ( cxt )
- import Language.Haskell.TH.Syntax
- 
- import Control.Monad ( replicateM )
-+import qualified Control.Monad.Fail as Fail
- import qualified Data.Set as S
- import Data.Foldable
- import Data.Generics hiding ( Fixity )
-@@ -104,7 +105,7 @@ stripPlainTV_maybe (PlainTV n) = Just n
- stripPlainTV_maybe _           = Nothing
- 
- -- | Report that a certain TH construct is impossible
--impossible :: Monad q => String -> q a
-+impossible :: Fail.MonadFail q => String -> q a
- impossible err = fail (err ++ "\n    This should not happen in Haskell.\n    Please email rae@cs.brynmawr.edu with your code if you see this.")
- 
- -- | Extract a 'Name' from a 'TyVarBndr'
-@@ -330,7 +331,7 @@ mapMaybeM f (x:xs) = do
-     Nothing -> ys
-     Just z  -> z : ys
- 
--expectJustM :: Monad m => String -> Maybe a -> m a
-+expectJustM :: Fail.MonadFail m => String -> Maybe a -> m a
- expectJustM _   (Just x) = return x
- expectJustM err Nothing  = fail err
- 
-
-commit c98e9a910fa97ee43719748ef1c7cd9d32e578e1
-Author: Ryan Scott <ryan.gl.scott@gmail.com>
-Date:   Fri Mar 15 19:07:41 2019 -0400
-
-    Allow building with template-haskell-2.15.0.0
-    
-    Adapted from
-    https://github.com/goldfirere/th-desugar/commit/9b9a6f0bdb6becd3f5ae896ddb539069131f7ba0
-
-diff --git a/Language/Haskell/TH/Desugar/Core.hs b/Language/Haskell/TH/Desugar/Core.hs
-index 0cc2f44..0f185a1 100644
---- a/Language/Haskell/TH/Desugar/Core.hs
-+++ b/Language/Haskell/TH/Desugar/Core.hs
-@@ -714,24 +714,40 @@ dsDec (FamilyD DataFam n tvbs m_k) =
+@@ -72,10 +73,20 @@ dsExp (LamCaseE matches) = do
+   matches' <- dsMatches x matches
+   return $ DLamE [x] (DCaseE (DVarE x) matches')
+ dsExp (TupE exps) = do
+-  exps' <- mapM dsExp exps
++  exps' <-
++#if MIN_VERSION_template_haskell(2,16,0)
++           mapMaybeM (mapM dsExp) exps
++#else
++           mapM dsExp exps
++#endif
+   return $ foldl DAppE (DConE $ tupleDataName (length exps)) exps'
+ dsExp (UnboxedTupE exps) =
+-  foldl DAppE (DConE $ unboxedTupleDataName (length exps)) <$> mapM dsExp exps
++  foldl DAppE (DConE $ unboxedTupleDataName (length exps)) <$>
++#if MIN_VERSION_template_haskell(2,16,0)
++    mapMaybeM (mapM dsExp) exps
++#else
++    mapM dsExp exps
++#endif
+ dsExp (CondE e1 e2 e3) =
+   dsExp (CaseE e1 [ Match (ConP 'True [])  (NormalB e2) []
+                   , Match (ConP 'False []) (NormalB e3) [] ])
+@@ -714,24 +725,40 @@ dsDec (FamilyD DataFam n tvbs m_k) =
    (:[]) <$> (DDataFamilyD n <$> mapM dsTvb tvbs <*> mapM dsType m_k)
  #endif
  #if __GLASGOW_HASKELL__ > 710
@@ -135,7 +96,7 @@ index 0cc2f44..0f185a1 100644
  #else
  dsDec (DataInstD cxt n tys cons derivings) = do
    tys' <- mapM dsType tys
-@@ -755,7 +771,20 @@ dsDec (TySynInstD n lhs rhs) = (:[]) <$> (DTySynInstD n <$>
+@@ -755,7 +782,20 @@ dsDec (TySynInstD n lhs rhs) = (:[]) <$> (DTySynInstD n <$>
                                            (DTySynEqn <$> mapM dsType lhs
                                                       <*> dsType rhs))
  #else
@@ -156,7 +117,7 @@ index 0cc2f44..0f185a1 100644
  #if __GLASGOW_HASKELL__ > 710
  dsDec (ClosedTypeFamilyD tfHead eqns) =
    (:[]) <$> (DClosedTypeFamilyD <$> dsTypeFamilyHead tfHead
-@@ -961,7 +990,11 @@ dsPragma (SpecialiseP n ty m_inl phases) = DSpecialiseP n <$> dsType ty
+@@ -961,7 +1001,11 @@ dsPragma (SpecialiseP n ty m_inl phases) = DSpecialiseP n <$> dsType ty
                                                            <*> pure m_inl
                                                            <*> pure phases
  dsPragma (SpecialiseInstP ty)            = DSpecialiseInstP <$> dsType ty
@@ -169,7 +130,7 @@ index 0cc2f44..0f185a1 100644
                                                        <*> dsExp lhs
                                                        <*> dsExp rhs
                                                        <*> pure phases
-@@ -983,7 +1016,14 @@ dsRuleBndr (TypedRuleVar n ty) = DTypedRuleVar n <$> dsType ty
+@@ -983,7 +1027,14 @@ dsRuleBndr (TypedRuleVar n ty) = DTypedRuleVar n <$> dsType ty
  #if __GLASGOW_HASKELL__ >= 707
  -- | Desugar a @TySynEqn@. (Available only with GHC 7.8+)
  dsTySynEqn :: DsMonad q => TySynEqn -> q DTySynEqn
@@ -184,6 +145,24 @@ index 0cc2f44..0f185a1 100644
  #endif
  
  -- | Desugar clauses to a function definition
+@@ -1171,7 +1222,7 @@ reorderFieldsPat :: DsMonad q => Name -> [VarStrictType] -> [FieldPat] -> PatM q
+ reorderFieldsPat con_name field_decs field_pats =
+   reorderFields' dsPat con_name field_decs field_pats (repeat DWildPa)
+ 
+-reorderFields' :: (Applicative m, Monad m)
++reorderFields' :: (Applicative m, Fail.MonadFail m)
+                => (a -> m da)
+                -> Name -- ^ The name of the constructor (used for error reporting)
+                -> [VarStrictType] -> [(Name, a)]
+@@ -1257,7 +1308,7 @@ strictToBang = id
+ #endif
+ 
+ -- | Convert a 'DType' to a 'DPred'.
+-dTypeToDPred :: Monad q => DType -> q DPred
++dTypeToDPred :: Fail.MonadFail q => DType -> q DPred
+ dTypeToDPred (DForallT tvbs cxt ty)
+                              = DForallPr tvbs cxt `liftM` dTypeToDPred ty
+ dTypeToDPred (DAppT t1 t2)   = liftM2 DAppPr (dTypeToDPred t1) (return t2)
 diff --git a/Language/Haskell/TH/Desugar/Reify.hs b/Language/Haskell/TH/Desugar/Reify.hs
 index d04c297..e2bd3ae 100644
 --- a/Language/Haskell/TH/Desugar/Reify.hs
@@ -321,7 +300,7 @@ index bb257c3..2289faa 100644
  
  clauseToTH :: DClause -> Clause
 diff --git a/Language/Haskell/TH/Desugar/Util.hs b/Language/Haskell/TH/Desugar/Util.hs
-index 2fe6283..3729601 100644
+index 2fe6283..4a74ce5 100644
 --- a/Language/Haskell/TH/Desugar/Util.hs
 +++ b/Language/Haskell/TH/Desugar/Util.hs
 @@ -27,7 +27,7 @@ module Language.Haskell.TH.Desugar.Util (
@@ -333,7 +312,33 @@ index 2fe6283..3729601 100644
    ) where
  
  import Prelude hiding (mapM, foldl, concatMap, any)
-@@ -394,3 +394,12 @@ uniStarKindName = ''(Kind.★)
+@@ -36,6 +36,7 @@ import Language.Haskell.TH hiding ( cxt )
+ import Language.Haskell.TH.Syntax
+ 
+ import Control.Monad ( replicateM )
++import qualified Control.Monad.Fail as Fail
+ import qualified Data.Set as S
+ import Data.Foldable
+ import Data.Generics hiding ( Fixity )
+@@ -104,7 +105,7 @@ stripPlainTV_maybe (PlainTV n) = Just n
+ stripPlainTV_maybe _           = Nothing
+ 
+ -- | Report that a certain TH construct is impossible
+-impossible :: Monad q => String -> q a
++impossible :: Fail.MonadFail q => String -> q a
+ impossible err = fail (err ++ "\n    This should not happen in Haskell.\n    Please email rae@cs.brynmawr.edu with your code if you see this.")
+ 
+ -- | Extract a 'Name' from a 'TyVarBndr'
+@@ -330,7 +331,7 @@ mapMaybeM f (x:xs) = do
+     Nothing -> ys
+     Just z  -> z : ys
+ 
+-expectJustM :: Monad m => String -> Maybe a -> m a
++expectJustM :: Fail.MonadFail m => String -> Maybe a -> m a
+ expectJustM _   (Just x) = return x
+ expectJustM err Nothing  = fail err
+ 
+@@ -394,3 +395,12 @@ uniStarKindName = ''(Kind.★)
  uniStarKindName = starKindName
  #endif
  #endif

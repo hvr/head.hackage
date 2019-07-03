@@ -1,0 +1,12 @@
+diff -ru kind-generics-0.3.0.0.orig/src/Generics/Kind.hs kind-generics-0.3.0.0/src/Generics/Kind.hs
+--- kind-generics-0.3.0.0.orig/src/Generics/Kind.hs	2018-12-04 09:04:47.000000000 -0500
++++ kind-generics-0.3.0.0/src/Generics/Kind.hs	2019-07-03 13:39:40.002441920 -0400
+@@ -75,7 +75,7 @@
+ -- > instance GenericK E LoT0 where
+ -- >   type RepK E = Exists (*) (Field Var0)
+ data Exists k (f :: LoT (k -> d) -> *) (x :: LoT d) where
+-  Exists :: forall (t :: k) d (f :: LoT (k -> d) -> *) (x :: LoT d)
++  Exists :: forall k (t :: k) d (f :: LoT (k -> d) -> *) (x :: LoT d)
+           .{ unExists :: f (t ':&&: x) } -> Exists k f x
+ deriving instance (forall t. Show (f (t ':&&: x))) => Show (Exists k f x)
+ 

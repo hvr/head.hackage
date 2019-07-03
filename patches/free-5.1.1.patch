@@ -1,0 +1,25 @@
+commit ef04b7e2b26461c3278a76dc2e1e093ce55d6d02
+Author: Ryan Scott <ryan.gl.scott@gmail.com>
+Date:   Wed Jul 3 13:20:47 2019 -0400
+
+    Adapt to building with template-haskell-2.16.*
+
+diff --git a/src/Control/Monad/Free/TH.hs b/src/Control/Monad/Free/TH.hs
+index 1a5ace9..856bb39 100644
+--- a/src/Control/Monad/Free/TH.hs
++++ b/src/Control/Monad/Free/TH.hs
+@@ -112,7 +112,13 @@ mkArg (VarT n) t
+             , "in a constructor's argument type: `" ++ pprint t ++ "'" ]
+           let tup = foldl AppT (TupleT $ length ts) ts
+           xs <- mapM (const $ newName "x") ts
+-          return $ Captured tup (LamE (map VarP xs) (TupE (map VarE xs)))
++          return $ Captured tup (LamE (map VarP xs) (TupE (map
++#if MIN_VERSION_template_haskell(2,16,0)
++                                                               (Just . VarE)
++#else
++                                                               VarE
++#endif
++                                                                    xs)))
+         _ -> fail $ unlines
+               [ "expected a type variable `" ++ pprint n ++ "'"
+               , "or a type like (a1 -> ... -> aN -> " ++ pprint n ++ ")"
