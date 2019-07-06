@@ -74,9 +74,14 @@ let
               transformers = null;
               unix = null;
 
-              doctest = haskellPackages.callHackage "doctest" "0.16.0" {};
-              http-api-data = haskellPackages.callPackage ./http-api-data.nix {};
-              tagged = self1.callHackage "tagged" "0.8.6" {};
+              aeson = haskellPackages.callHackage "aeson" "1.4.4.0" {};
+              primitive = haskellPackages.callHackage "primitive" "0.7.0.0" {};
+              haskell-src-exts = self1.haskell-src-exts_1_21_0;
+              th-abstraction = haskellPackages.callHackage "th-abstraction" "0.3.1.0" {};
+              time-compat = haskellPackages.callHackage "time-compat" "1.9.2.2" {};
+              socks = haskellPackages.callHackage "socks" "0.6.0" {};
+              connection = haskellPackages.callHackage "connection" "0.3.0" {};
+              shelly = haskellPackages.callHackage "shelly" "1.8.1" {};
 
               jailbreak-cabal = self.haskell.packages.ghc864.jailbreak-cabal;
               cabal2nix = self.haskell.packages.ghc864.cabal2nix;
