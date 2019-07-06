@@ -4,8 +4,7 @@
              # it can either be a local directory or fetched from the web
 }:
 let
-  hpkgs = haskell.packages.ghc864.extend (self: super:
-            { aeson = haskell.lib.addBuildDepends super.aeson [self.contravariant]; });
+  hpkgs = haskell.packages.ghc864;
   ghc   = hpkgs.ghcWithPackages (ps: with ps;
             [ hopenssl distribution-nixpkgs ]);
 in
