@@ -2,18 +2,18 @@
 nixpkgs:
 let spec =
   {
-    version = "8.6.1.20180716";
+    version = "8.8.1.20190613";
     src =
       nixpkgs.fetchgit {
-        url = "git://git.haskell.org/ghc.git";
-        rev = "ghc-8.6.1-alpha2";
-        sha256 = "03y824yfy1xh2cznq5q75sql8pb0lxyw9ry82jgms9jampky98x6";
+        url = "https://gitlab.haskell.org/ghc/ghc.git";
+        rev = "ghc-8.8.1-alpha2";
+        sha256 = "0bhki6icpadspdlq2yl6sm7dg52gsmj7sgvjbh6nlgnxayq4ib2k";
       };
   };
 in
 
 (nixpkgs.haskell.compiler.ghcHEAD.override
     { version = spec.version
-    ; bootPkgs = nixpkgs.haskell.packages.ghc822; }).overrideAttrs(oldAttrs:
-    { src = spec.src; })
+    ; bootPkgs = nixpkgs.haskell.packages.ghc864; }).overrideAttrs(oldAttrs:
+    { src = spec.src; patches = []; })
 
