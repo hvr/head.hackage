@@ -87,7 +87,10 @@ let
               cabal2nix = self.haskell.packages.ghc864.cabal2nix;
             };
           };
-      in baseHaskellPackages.extend overrides;
+      in baseHaskellPackages.override (old: {
+        overrides = self.lib.composeExtensions (old.overrides or (_: _: {})) overrides;
+      });
+
 
     headHackageScripts = self.stdenv.mkDerivation {
       name = "head-hackage-scripts";
