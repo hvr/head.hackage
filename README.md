@@ -1,5 +1,11 @@
 # Overlay Hackage Package Index for GHC HEAD
 
+The official repository is moved to https://gitlab.haskell.org/ghc/head.hackage
+
+https://mail.haskell.org/pipermail/ghc-devs/2019-July/017934.html
+
+---
+
 ## How to contribute
 
 Submit PRs with patch(es) relative to the source tarball(s) of
